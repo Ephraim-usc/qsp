@@ -18,7 +18,9 @@ class System:
     self.n_compartments = len(compartments)
     self.analytes = analytes
     self.n_analytes = len(analytes)
+    
     self.volumes = np.full([self.n_compartments, self.n_analytes], np.nan)
+    self.flows = np.zeros([self.n_compartments, self.n_compartments], np.nan)
   
   def set_volume(self, compartment, volumes):
     self.compartments.append(compartment)
@@ -27,9 +29,9 @@ class System:
   def add_flow(self, analyte, compartment_a, compartment_b, coefficient):
     self.flows.append()
   
-  # rate: function that receives a dict of analyte concentrations, and returns the reaction rate
-  # delta: dict of concentration changes of the analytes per reaction
-  def add_reaction(self, compartment, rate, delta):
+  # powers: dict of powers for each analyte
+  # deltas: dict of concentration changes of the analytes per reaction
+  def add_reaction(self, compartment, coefficient, powers, deltas):
     self.reactions.append()
   
   def print(self):
