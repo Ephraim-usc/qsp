@@ -56,11 +56,21 @@ class System:
       deltas_[self.analytes.index(analyte)] += delta
     
     if type(coefficient) is unum.Unum:
-      coefficient = coefficient.number(units.l/units.h/(units.nM ** n_powers))
+      coefficient = coefficient.number(1/units.h/(units.nM ** (n_powers-1)))
     
-    if compartment_dest is not None:
+    if compartment is not None:
       compartment = self.compartments.index(compartment)
     self.reactions.append([compartment, coefficient, powers_, deltas_])
+  
+  def str_reaction(self, reaction):
+    compartment, coefficient, powers, deltas = reaction
+    str = f"[{compartment}] "
+    str += "[rate = " + " * ".join([f"{coefficient:.6f}"] + [f"{self.analytes[analyte]}^{power}" for analyte,power in enumerate(powers) if power > 0]) + "] "
+    
+    inputs = [f"{-delta}*{self.analytes[analyte]}" for analyte,delta in enumerate(deltas) if delta < 0]
+    outputs = [f"{delta}*{self.analytes[analyte]}" for analyte,delta in enumerate(deltas) if delta > 0]
+    str += "[" + " + ".join(inputs) + " → " + " + ".join(inputs) + "]"
+    return str
   
   def print(self):
     volumes = pd.DataFrame(self.volumes, index = self.analytes, columns = self.compartments)
@@ -72,6 +82,9 @@ class System:
       print(f"<flow of {analyte}>", flush = True)
       print(flows, flush = True)
       print(" ", flush = True)
+    print("<reactions>", flush = True)
+    for reaction in self.reactions:
+      print(self.str_reaction(reaction), flush = True)
 
 
 compartments = ["central", "peripheral", "extracellular", "intracellular"]
