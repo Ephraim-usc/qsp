@@ -5,30 +5,44 @@ import pandas as pd
 import unum
 import unum.units as units
 
+units.l = unum.new_unit('l', 1e-3 * units.m ** 3)
+units.pl = unum.new_unit('pl', 1e-12 * units.l)
+units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
+units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
+
+
 
 class System:
-  def __init__(self, analytes):
+  def __init__(self, compartments, analytes):
+    self.compartments = compartments
+    self.n_compartments = len(compartments)
     self.analytes = analytes
-    self.compartments = list()
+    self.n_analytes = len(analytes)
+    self.volumes = np.full([self.n_compartments, self.n_analytes], np.nan)
   
-  def add_compartment(self, compartment, volumes):
+  def set_volume(self, compartment, volumes):
     self.compartments.append(compartment)
+    self.volumes.append(volumes)
   
   def add_flow(self, analyte, compartment_a, compartment_b, coefficient):
     self.flows.append()
-
+  
   # rate: function that receives a dict of analyte concentrations, and returns the reaction rate
   # delta: dict of concentration changes of the analytes per reaction
   def add_reaction(self, compartment, rate, delta):
     self.reactions.append()
   
   def print(self):
-    pass
-
+    volumes = pd.DataFrame(self.volumes, index = self.compartments, columns = self.analytes)
+    print(volumes, flush = True)
 
 
 def antigen_on(params):
   return 5 * params["adc"] * params["drug"]
 
 
+compartments = ["central", "peripheral", "extracellular", "intracellular"]
+analytes = ["adc", "drug"]
+
+system = System(compartments, analytes)
 
