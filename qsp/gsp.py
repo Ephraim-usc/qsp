@@ -27,29 +27,38 @@ class System:
     volumes = np.array([[(i.number(units.l) if type(i) is unum.Unum else i) for i in row] for row in volumes])
     self.volumes = volumes
   
-  def set_volume(self, compartment, analyte, volume):
-    volume = volume.number(units.l) if type(volume) is unum.Unum else volume
+  def set_volume(self, analyte, compartment, volume):
+    if type(volume) is unum.Unum:
+      volume = volume.number(units.l)
     self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] = volume
   
-  # set compartment_dest as None for clearance
-  def add_flow(self, compartment_source, compartment_dest, analyte, coefficient):
+  # set compartment_dest as None if it is a clearance
+  def add_flow(self, analyte, compartment_source, compartment_dest, coefficient):
+    if type(coefficient) is unum.Unum:
+      coefficient = coefficient.number(units.l/units.h)
+    
     self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_source), ] -= coefficient
     if compartment_dest is None:
       return
     self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_dest)] += coefficient
   
+  # set compartment as None if it happens everywhere
   # powers: dict of powers for each analyte
   # deltas: dict of concentration changes of the analytes per reaction
   def add_reaction(self, compartment, coefficient, powers, deltas):
+    
+    if type(coefficient) is unum.Unum:
+      coefficient = coefficient.number(units.l/units.h)
+    
     self.reactions.append()
   
   def print(self):
-    volumes = pd.DataFrame(self.volumes, index = self.compartments, columns = self.analytes)
+    volumes = pd.DataFrame(self.volumes, index = self.analytes, columns = self.compartments)
     print("<volumes>", flush = True)
     print(volumes, flush = True)
     print(" ", flush = True)
     for i, analyte in enumerate(self.analytes):
-      flows = pd.DataFrame(self.flows[:,:,i], index = self.compartments, columns = self.compartments)
+      flows = pd.DataFrame(self.flows[i,:,:], index = self.compartments, columns = self.compartments)
       print(f"<flow of {analyte}>", flush = True)
       print(flows, flush = True)
       print(" ", flush = True)
@@ -57,10 +66,16 @@ class System:
 
 compartments = ["central", "peripheral", "extracellular", "intracellular"]
 analytes = ["adc", "drug"]
-volumes = np.array([[0.084 * units.l, 0.136 * units.l], [0.051 * units.l, 0.523 * units.l], [np.nan, np.nan], [np.nan, np.nan]])
+volumes = np.array([[0.084 * units.l, 0.051 * units.l, np.nan, np.nan], [0.136 * units.l, 0.523 * units.l, np.nan, np.nan]])
 
-volumes = np.array([[0.084 * units.l, 0.136 * units.l], [0.051 * units.l, 0.523 * units.l], [np.nan, np.nan], [np.nan, np.nan]])
-
-system = System(compartments, analytes)
+system = System(analytes, compartments)
 system.set_volumes(volumes)
-system.add_flow("central", "peripheral", "drug", 3.2)
+
+system.add_flow("adc", "central", None, 0.033 * (units.l/units.d))
+system.add_flow("drug", "central", None, 18.4 * (units.l/units.d))
+system.add_flow("adc", "central", "peripheral", 0.0585 * (units.l/units.d))
+
+system.add_reaction(None, 0.323 * (1/units.d)), {"adc":1}, {"adc":-1, "drug":1})
+
+
+
