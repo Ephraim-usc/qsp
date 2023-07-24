@@ -46,11 +46,21 @@ class System:
   # powers: dict of powers for each analyte
   # deltas: dict of concentration changes of the analytes per reaction
   def add_reaction(self, compartment, coefficient, powers, deltas):
+    powers_ = np.zeros([self.n_analytes])
+    for analyte, power in powers.items():
+      powers_[self.analytes.index(analyte)] += power
+    n_powers = powers_.sum()
+    
+    deltas_ = np.zeros([self.n_analytes])
+    for analyte, delta in deltas.items():
+      deltas_[self.analytes.index(analyte)] += delta
     
     if type(coefficient) is unum.Unum:
-      coefficient = coefficient.number(units.l/units.h)
+      coefficient = coefficient.number(units.l/units.h/(units.nM ** n_powers))
     
-    self.reactions.append()
+    if compartment_dest is not None:
+      compartment = self.compartments.index(compartment)
+    self.reactions.append([compartment, coefficient, powers_, deltas_])
   
   def print(self):
     volumes = pd.DataFrame(self.volumes, index = self.analytes, columns = self.compartments)
@@ -75,7 +85,7 @@ system.add_flow("adc", "central", None, 0.033 * (units.l/units.d))
 system.add_flow("drug", "central", None, 18.4 * (units.l/units.d))
 system.add_flow("adc", "central", "peripheral", 0.0585 * (units.l/units.d))
 
-system.add_reaction(None, 0.323 * (1/units.d)), {"adc":1}, {"adc":-1, "drug":1})
+system.add_reaction(None, 0.323 * (1/units.d), {"adc":1}, {"adc":-1, "drug":1})
 
 
 
