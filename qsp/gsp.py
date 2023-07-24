@@ -79,6 +79,8 @@ class System:
     print(" ", flush = True)
     for i, analyte in enumerate(self.analytes):
       flows = pd.DataFrame(self.flows[i,:,:], index = self.compartments, columns = self.compartments)
+      if not flows.values.any():
+        continue
       print(f"<flow of {analyte}>", flush = True)
       print(flows, flush = True)
       print(" ", flush = True)
@@ -88,11 +90,14 @@ class System:
 
 
 compartments = ["central", "peripheral", "extracellular", "intracellular"]
-analytes = ["adc", "drug"]
-volumes = np.array([[0.084 * units.l, 0.051 * units.l, 0, 0], [0.136 * units.l, 0.523 * units.l, 0, 0]])
-
+analytes = ["adc", "drug", "antigen", "substrate"]
 system = System(analytes, compartments)
-system.set_volumes(volumes)
+
+system.set_volume("adc", "central", 0.084 * units.l)
+system.set_volume("adc", "peripheral", 0.051 * units.l)
+
+system.set_volume("drug", "central", 0.136 * units.l)
+system.set_volume("drug", "peripheral", 0.523 * units.l)
 
 system.add_flow("adc", "central", None, 0.033 * (units.l/units.d))
 system.add_flow("drug", "central", None, 18.4 * (units.l/units.d))
