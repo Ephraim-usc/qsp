@@ -69,7 +69,7 @@ class System:
     
     inputs = [f"{-delta}*{self.analytes[analyte]}" for analyte,delta in enumerate(deltas) if delta < 0]
     outputs = [f"{delta}*{self.analytes[analyte]}" for analyte,delta in enumerate(deltas) if delta > 0]
-    str += "[" + " + ".join(inputs) + " → " + " + ".join(inputs) + "]"
+    str += "[" + " + ".join(inputs) + " → " + " + ".join(outputs) + "]"
     return str
   
   def print(self):
@@ -89,7 +89,7 @@ class System:
 
 compartments = ["central", "peripheral", "extracellular", "intracellular"]
 analytes = ["adc", "drug"]
-volumes = np.array([[0.084 * units.l, 0.051 * units.l, np.nan, np.nan], [0.136 * units.l, 0.523 * units.l, np.nan, np.nan]])
+volumes = np.array([[0.084 * units.l, 0.051 * units.l, 0, 0], [0.136 * units.l, 0.523 * units.l, 0, 0]])
 
 system = System(analytes, compartments)
 system.set_volumes(volumes)
