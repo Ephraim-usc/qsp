@@ -18,8 +18,12 @@ class System:
     self.n_compartments = len(compartments)
     self.analytes = analytes
     self.n_analytes = len(analytes)
+
+    if volumes is None:
+      self.volumes = np.full([self.n_compartments, self.n_analytes], np.nan)
+    else:
+      self.volumes = volumes
     
-    self.volumes = np.full([self.n_compartments, self.n_analytes], np.nan)
     self.flows = np.zeros([self.n_compartments, self.n_compartments, self.n_analytes])
     self.reactions = []
   
