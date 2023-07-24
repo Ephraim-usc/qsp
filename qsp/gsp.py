@@ -19,7 +19,7 @@ class System:
     self.compartments = compartments
     self.n_compartments = len(compartments)
     
-    self.volumes = np.full([self.n_analytes, self.n_compartments], np.nan)
+    self.volumes = np.zeros([self.n_analytes, self.n_compartments])
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.reactions = []
   
