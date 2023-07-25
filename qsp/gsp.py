@@ -23,11 +23,21 @@ class System:
     self.x = np.zeros([self.n_analytes, self.n_compartments])
     self.volumes = np.zeros([self.n_analytes, self.n_compartments])
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
+    self.flowing_analytes = []
     self.reactions = []
   
   def set_x(self, analyte, compartment, concentration):
     concentration = concentration.number(units.nM)
-    self.x[self.analytes.index(analyte), self.compartments.index(compartment)] = concentration
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    self.x[analyte, compartment] = concentration
+  
+  def step(self, t):
+    t = t.number(units.h)
+    for analyte in self.flowing_analytes:
+      x = self.x[analyte, :]
+      flows = self.flows[analyte, :, :]
+      self.x[analyte, :] += t * np.dot(x, flows)
   
   # if volumes is a vector, we assume all analytes share the same volume in each department
   def set_volumes(self, volumes):
@@ -38,17 +48,27 @@ class System:
   
   def set_volume(self, analyte, compartment, volume):
     volume = volume.number(units.ml)
-    self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] = volume
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    self.volumes[analyte, compartment] = volume
   
   def get_volume(self, analyte, compartment):
-    return self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] * units.ml
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    return self.volumes[analyte, compartment] * units.ml
   
   # set compartment_dest as None if it is a clearance
   def add_flow(self, analyte, compartment_source, compartment_dest, rate):
     rate = rate.number(units.ml/units.h)
-    self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_source)] -= rate
+    analyte = self.analytes.index(analyte)
+    compartment_source = self.compartments.index(compartment_source)
+    if analyte not in self.flowing_analytes:
+      self.flowing_analytes.append(analyte)
+      self.flowing_analytes.sort()
+    self.flows[analyte, compartment_source, compartment_source] -= rate
     if compartment_dest is not None:
-      self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_dest)] += rate
+      compartment_dest = self.compartments.index(compartment_dest)
+      self.flows[analyte, compartment_source, compartment_dest] += rate
   
   # set compartment as None if it happens everywhere
   # powers: dict of powers for each analyte
@@ -190,8 +210,11 @@ for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_endosomal", None, endosomal_degradation_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
 
 
+np.set_printoptions(suppress=True)
 system.set_x("T-vc-MMAE", "plasma", 1000 * units.nM)
+for _ in range(100000):
+  system.step(0.001 * units.h)
+system.x[0]
 
-np.dot(system.x[0], system.flows[0, :, :])
 
 
