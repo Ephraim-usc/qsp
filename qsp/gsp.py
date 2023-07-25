@@ -110,7 +110,7 @@ system.add_reaction(None, 0.323 * (1/units.d), {"adc":1}, {"adc":-1, "drug":1})
 
 # Dhaval et al. model
 compartments = [f"{organ}_{tissue}" for organ in ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"] for tissue in ["plasma", "BC", "interstitial", "endosomal", "cellular"]]
-compartments += ["plasma", "BC"]
+compartments += ["plasma", "BC", "lymph"]
 analytes = ["T-vc-MMAE", "MMAE", "FcRn", "HER2", "tubulin"]
 system = System(analytes, compartments)
 
@@ -129,25 +129,15 @@ volumes = np.array([0.00585, 0.00479, 0.0217, 0.000760, 0.119,
                     0.0005, 0.000405, 0.00153, 0.00005, 0.00653, 
                     0.0154, 0.0126, 0.0254, 0.000635, 0.0730,
                     0.0195, 0.0160, 0.0797, 0.00233, 0.348,
-                    0.944, 0.773,
+                    0.944, 0.773, 0.113
                    ]) * units.ml
 volumes = np.tile(volumes, reps = [len(analytes),1])
 system.set_volumes(volumes)
 
+# plasma to lung plasma flow
+system.add_flow("T-vc-MMAE", "plasma", "lung_plasma", 373 * units.ml / units.h)
 
-system.add_flow("T-vc-MMAE", "plasma", "lung_plasma", 371.51 * units.ml / units.h) # calculated as the sum of all inflows
-
-system.add_flow("T-vc-MMAE", "heart_plasma", "plasma", 36.5 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "muscle_plasma", "plasma", 86.1 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_plasma", "plasma", 27.8 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "adipose_plasma", "plasma", 13.4 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "bone_plasma", "plasma", 15.2 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "brain_plasma", "plasma", 11.8 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "kidney_plasma", "plasma", 68.5 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "liver_plasma", "plasma", (10.3 + 58.1 + 17.3 + 6.24 + 8.18) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "thymus_plasma", "plasma", 1.19 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "other_plasma", "plasma", 10.9 * units.ml / units.h)
-
+# lung plasma to tissue plasma flow
 system.add_flow("T-vc-MMAE", "lung_plasma", "heart_plasma", 36.5 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "muscle_plasma", 86.1 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "skin_plasma", 27.9 * units.ml / units.h)
@@ -158,19 +148,47 @@ system.add_flow("T-vc-MMAE", "lung_plasma", "kidney_plasma", 68.5 * units.ml / u
 system.add_flow("T-vc-MMAE", "lung_plasma", "liver_plasma", 10.3 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "thymus_plasma", 1.19 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "other_plasma", 10.9 * units.ml / units.h)
-
-system.add_flow("T-vc-MMAE", "SI_plasma", "liver_plasma", 58.1 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "LI_plasma", "liver_plasma", 17.3 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "pancreas_plasma", "liver_plasma", 6.24 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "spleen_plasma", "liver_plasma", 8.18 * units.ml / units.h)
-
 system.add_flow("T-vc-MMAE", "lung_plasma", "SI_plasma", 58.1 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "LI_plasma", 17.3 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "pancreas_plasma", 6.24 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "spleen_plasma", 8.18 * units.ml / units.h)
 
+# SLSP plasma to liver plasma flow
+system.add_flow("T-vc-MMAE", "SI_plasma", "liver_plasma", 58.1*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "LI_plasma", "liver_plasma", 17.3*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "spleen_plasma", "liver_plasma", 8.18*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "pancreas_plasma", "liver_plasma", 6.24*(499/500) * units.ml / units.h)
 
+# other tissue plasma to plasma flow
+system.add_flow("T-vc-MMAE", "heart_plasma", "plasma", 36.5*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "muscle_plasma", "plasma", 86.1*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "skin_plasma", "plasma", 27.8*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "adipose_plasma", "plasma", 13.4*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "bone_plasma", "plasma", 15.2*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "brain_plasma", "plasma", 11.8*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "kidney_plasma", "plasma", 68.5*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "liver_plasma", "plasma", (10.3 + 58.1 + 17.3 + 8.18 + 6.24)*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "thymus_plasma", "plasma", 1.19*(499/500) * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "other_plasma", "plasma", 10.9*(499/500) * units.ml / units.h)
 
+# tissue interstitial to lymph flow
+system.add_flow("T-vc-MMAE", "heart_interstitial", "lymph", 36.5*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "muscle_interstitial", "lymph", 86.1*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "skin_interstitial", "lymph", 27.8*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "adipose_interstitial", "lymph", 13.4*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "bone_interstitial", "lymph", 15.2*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "brain_interstitial", "lymph", 11.8*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "kidney_interstitial", "lymph", 68.5*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "liver_interstitial", "lymph", 10.3*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "thymus_interstitial", "lymph", 1.19*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "SI_interstitial", "lymph", 58.1*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "LI_interstitial", "lymph", 17.3*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "pancreas_interstitial", "lymph", 6.24*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "spleen_interstitial", "lymph", 8.18*(1/500)*0.2 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "other_interstitial", "lymph", 10.9*(1/500)*0.2 * units.ml / units.h)
+
+# lymph to plasma flow (should be what the authors mean, but note that this is much faster than the input into lymph)
+system.add_flow("T-vc-MMAE", "lymph", "plasma", 373*(1/9.1) * units.ml / units.h)
 
 
 
