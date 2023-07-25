@@ -20,9 +20,14 @@ class System:
     self.compartments = compartments
     self.n_compartments = len(compartments)
     
+    self.x = np.zeros([self.n_analytes, self.n_compartments])
     self.volumes = np.zeros([self.n_analytes, self.n_compartments])
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.reactions = []
+  
+  def set_x(self, analyte, compartment, concentration):
+    concentration = concentration.number(units.nM)
+    self.x[self.analytes.index(analyte), self.compartments.index(compartment)] = concentration
   
   # if volumes is a vector, we assume all analytes share the same volume in each department
   def set_volumes(self, volumes):
@@ -91,23 +96,6 @@ class System:
     for reaction in self.reactions:
       print(self.str_reaction(reaction), flush = True)
 
-
-# two-compartment model
-compartments = ["central", "peripheral", "extracellular", "intracellular"]
-analytes = ["adc", "drug", "antigen", "substrate"]
-system = System(analytes, compartments)
-
-system.set_volume("adc", "central", 0.084 * units.l)
-system.set_volume("adc", "peripheral", 0.051 * units.l)
-
-system.set_volume("drug", "central", 0.136 * units.l)
-system.set_volume("drug", "peripheral", 0.523 * units.l)
-
-system.add_flow("adc", "central", None, 0.033 * (units.l/units.d))
-system.add_flow("drug", "central", None, 18.4 * (units.l/units.d))
-system.add_flow("adc", "central", "peripheral", 0.0585 * (units.l/units.d))
-
-system.add_reaction(None, 0.323 * (1/units.d), {"adc":1}, {"adc":-1, "drug":1})
 
 
 # Dhaval et al. model
@@ -202,5 +190,8 @@ for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_endosomal", None, endosomal_degradation_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
 
 
+system.set_x("T-vc-MMAE", "plasma", 1000 * units.nM)
+
+np.dot(system.x[0], system.flows[0, :, :])
 
 
