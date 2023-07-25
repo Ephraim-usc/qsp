@@ -25,6 +25,8 @@ class System:
     self.reactions = []
   
   def set_volumes(self, volumes):
+    if volumes.ndim == 1:
+      volumes = np.tile(volumes, reps = [self.n_analytes, 1])
     volumes = np.array([[(i.number(units.ml) if type(i) is unum.Unum else i) for i in row] for row in volumes])
     self.volumes = volumes
   
@@ -33,15 +35,17 @@ class System:
       volume = volume.number(units.ml)
     self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] = volume
   
+  def get_volume(self, analyte, compartment):
+    return self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] * units.ml
+  
   # set compartment_dest as None if it is a clearance
   def add_flow(self, analyte, compartment_source, compartment_dest, coefficient):
     if type(coefficient) is unum.Unum:
       coefficient = coefficient.number(units.ml/units.h)
     
     self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_source)] -= coefficient
-    if compartment_dest is None:
-      return
-    self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_dest)] += coefficient
+    if compartment_dest is not None:
+      self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_dest)] += coefficient
   
   # set compartment as None if it happens everywhere
   # powers: dict of powers for each analyte
@@ -109,11 +113,22 @@ system.add_reaction(None, 0.323 * (1/units.d), {"adc":1}, {"adc":-1, "drug":1})
 
 
 # Dhaval et al. model
-compartments = [f"{organ}_{tissue}" for organ in ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"] for tissue in ["plasma", "BC", "interstitial", "endosomal", "cellular"]]
-compartments += ["plasma", "BC", "lymph"]
-analytes = ["T-vc-MMAE", "MMAE", "FcRn", "HER2", "tubulin"]
-system = System(analytes, compartments)
-
+organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
+plasma_flows = {"heart": 36.5 * units.ml/units.h, 
+                "lung": 373 * units.ml/units.h,
+                "muscle": 86.1 * units.ml/units.h,
+                "skin": 27.8 * units.ml/units.h,
+                "adipose": 13.4 * units.ml/units.h,
+                "bone": 15.2 * units.ml/units.h,
+                "brain": 11.8 * units.ml/units.h,
+                "kidney": 68.5 * units.ml/units.h,
+                "liver": 10.3 * units.ml/units.h,
+                "SI": 58.1 * units.ml/units.h,
+                "LI": 17.3 * units.ml/units.h,
+                "pancreas": 6.24 * units.ml/units.h,
+                "thymus": 1.19 * units.ml/units.h,
+                "spleen": 8.18 * units.ml/units.h,
+                "other": 10.9 * units.ml/units.h}
 volumes = np.array([0.00585, 0.00479, 0.0217, 0.000760, 0.119,
                     0.0295, 0.0241, 0.0384, 0.00102, 0.111,
                     0.249, 0.204, 1.47, 0.0566, 9.34,
@@ -131,131 +146,60 @@ volumes = np.array([0.00585, 0.00479, 0.0217, 0.000760, 0.119,
                     0.0195, 0.0160, 0.0797, 0.00233, 0.348,
                     0.944, 0.773, 0.113
                    ]) * units.ml
-volumes = np.tile(volumes, reps = [len(analytes),1])
+vascular_reflection_coefficients = {"heart": 0.95,
+                                   "lung": 0.95,
+                                   "muscle": 0.95,
+                                   "skin": 0.95,
+                                   "adipose": 0.95,
+                                   "bone": 0.85,
+                                   "brain": 0.99,
+                                   "kidney": 0.9,
+                                   "liver": 0.85,
+                                   "SI": 0.9,
+                                   "LI": 0.95,
+                                   "pancreas": 0.9,
+                                   "thymus": 0.9,
+                                   "spleen": 0.85,
+                                   "other": 0.95}
+lymphatic_reflection_coefficient = 0.2
+endosomal_pinocytosis_rate = 3.66e-2 / units.h
+
+compartments = [f"{organ}_{tissue}" for organ in organs for tissue in ["plasma", "BC", "interstitial", "endosomal", "cellular"]] + ["plasma", "BC", "lymph"]
+analytes = ["T-vc-MMAE", "MMAE", "HER2", "tubulin"]
+system = System(analytes, compartments)
 system.set_volumes(volumes)
+
 
 # plasma to lung plasma flow
 system.add_flow("T-vc-MMAE", "plasma", "lung_plasma", 373 * units.ml / units.h)
 
-# lung plasma to tissue plasma flow
-system.add_flow("T-vc-MMAE", "lung_plasma", "heart_plasma", 36.5 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "muscle_plasma", 86.1 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "skin_plasma", 27.9 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "adipose_plasma", 13.4 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "bone_plasma", 15.2 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "brain_plasma", 11.8 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "kidney_plasma", 68.5 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "liver_plasma", 10.3 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "thymus_plasma", 1.19 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "other_plasma", 10.9 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "SI_plasma", 58.1 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "LI_plasma", 17.3 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "pancreas_plasma", 6.24 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "lung_plasma", "spleen_plasma", 8.18 * units.ml / units.h)
+# lung plasma to organ plasma flow
+for organ in [organ for organ in organs if organ not in ["lung"]]:
+  system.add_flow("T-vc-MMAE", "lung_plasma", f"{organ}_plasma", plasma_flows[organ])
 
-# SLSP plasma to liver plasma flow
-system.add_flow("T-vc-MMAE", "SI_plasma", "liver_plasma", 58.1*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "LI_plasma", "liver_plasma", 17.3*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "spleen_plasma", "liver_plasma", 8.18*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "pancreas_plasma", "liver_plasma", 6.24*(499/500) * units.ml / units.h)
+# SLSP plasma to plasma flow, through liver
+for organ in ["SI", "LI", "spleen", "pancreas"]:
+  system.add_flow("T-vc-MMAE", f"{organ}_plasma", "liver_plasma", plasma_flows[organ] * (499/500))
+  system.add_flow("T-vc-MMAE", "liver_plasma", "plasma", plasma_flows[organ] * (499/500))
 
-# other tissue plasma to plasma flow
-system.add_flow("T-vc-MMAE", "heart_plasma", "plasma", 36.5*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "muscle_plasma", "plasma", 86.1*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_plasma", "plasma", 27.8*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "adipose_plasma", "plasma", 13.4*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "bone_plasma", "plasma", 15.2*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "brain_plasma", "plasma", 11.8*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "kidney_plasma", "plasma", 68.5*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "liver_plasma", "plasma", (10.3 + 58.1 + 17.3 + 8.18 + 6.24)*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "thymus_plasma", "plasma", 1.19*(499/500) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "other_plasma", "plasma", 10.9*(499/500) * units.ml / units.h)
+# other organ plasma to plasma flow
+for organ in [organ for organ in organs if organ not in ["lung"] + ["SI", "LI", "spleen", "pancreas"]]:
+  system.add_flow("T-vc-MMAE", f"{organ}_plasma", "plasma", plasma_flows[organ] * (499/500))
+
+# tissue plasma to interstitial flow
+for organ in organs:
+  system.add_flow("T-vc-MMAE", f"{organ}_plasma", f"{organ}_interstitial", plasma_flows[organ] * (1/500) * (1 - vascular_reflection_coefficients[organ]))
 
 # tissue interstitial to lymph flow
-system.add_flow("T-vc-MMAE", "lung_interstitial", "lymph", 373*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "heart_interstitial", "lymph", 36.5*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "muscle_interstitial", "lymph", 86.1*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_interstitial", "lymph", 27.8*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "adipose_interstitial", "lymph", 13.4*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "bone_interstitial", "lymph", 15.2*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "brain_interstitial", "lymph", 11.8*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "kidney_interstitial", "lymph", 68.5*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "liver_interstitial", "lymph", 10.3*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "thymus_interstitial", "lymph", 1.19*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "SI_interstitial", "lymph", 58.1*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "LI_interstitial", "lymph", 17.3*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "pancreas_interstitial", "lymph", 6.24*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "spleen_interstitial", "lymph", 8.18*(1/500)*(1-0.2) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "other_interstitial", "lymph", 10.9*(1/500)*(1-0.2) * units.ml / units.h)
+for organ in organs:
+  system.add_flow("T-vc-MMAE", f"{organ}_interstitial", "lymph", plasma_flows[organ] * (1/500) * (1 - lymphatic_reflection_coefficient))
 
 # lymph to plasma flow (should be what the authors mean, but note that this is much faster than the input into lymph)
 system.add_flow("T-vc-MMAE", "lymph", "plasma", 373*(1/9.1) * units.ml / units.h)
 
-# tissue plasma to interstitial flow
-system.add_flow("T-vc-MMAE", "lung_plasma", "lung_interstitial", 373*(1/500)*(1-0.95) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "heart_plasma", "heart_interstitial", 36.5*(1/500)*(1-0.95) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "muscle_plasma", "muscle_interstitial", 86.1*(1/500)*(1-0.95) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_plasma", "skin_interstitial", 27.8*(1/500)*(1-0.95) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "adipose_plasma", "adipose_interstitial", 13.4*(1/500)*(1-0.95) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "bone_plasma", "bone_interstitial", 15.2*(1/500)*(1-0.85) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "brain_plasma", "brain_interstitial", 11.8*(1/500)*(1-0.99) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "kidney_plasma", "kidney_interstitial", 68.5*(1/500)*(1-0.9) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "liver_plasma", "liver_interstitial", 10.3*(1/500)*(1-0.85) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "thymus_plasma", "thymus_interstitial", 1.19*(1/500)*(1-0.9) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "SI_plasma", "SI_interstitial", 58.1*(1/500)*(1-0.9) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "LI_plasma", "LI_interstitial", 17.3*(1/500)*(1-0.95) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "pancreas_plasma", "pancreas_interstitial", 6.24*(1/500)*(1-0.9) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "spleen_plasma", "spleen_interstitial", 8.18*(1/500)*(1-0.85) * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "other_plasma", "other_interstitial", 10.9*(1/500)*(1-0.95) * units.ml / units.h)
+# endosomal take-up from plasma and interstitial
+for organ in organs:
+  system.add_flow("T-vc-MMAE", f"{organ}_plasma", f"{organ}_endosomal", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
+  system.add_flow("T-vc-MMAE", f"{organ}_interstitial", f"{organ}_endosomal", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
 
-# endosomal take-up from plasma
-system.add_flow("T-vc-MMAE", "lung_plasma", "lung_endosomal", 0.0366*0.00102 * units.ml/ units.h)
-system.add_flow("T-vc-MMAE", "heart_plasma", "heart_endosomal", 0.0366*0.000760 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "muscle_plasma", "muscle_endosomal", 0.0366*0.0566 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_plasma", "skin_endosomal", 0.0366*0.0251 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "adipose_plasma", "adipose_endosomal", 0.0366*0.00991 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "bone_plasma", "bone_endosomal", 0.0366*0.0141 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "brain_plasma", "brain_endosomal", 0.0366*0.00243 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "kidney_plasma", "kidney_endosomal", 0.0366*0.00263 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "liver_plasma", "liver_endosomal", 0.0366*0.00963 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "thymus_plasma", "thymus_endosomal", 0.0366*0.00005 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "SI_plasma", "SI_endosomal", 0.0366*0.00364 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "LI_plasma", "LI_endosomal", 0.0366*0.00157 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "pancreas_plasma", "pancreas_endosomal", 0.0366*0.000485 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "spleen_plasma", "spleen_endosomal", 0.0366*0.000635 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "other_plasma", "other_endosomal", 0.0366*0.00233 * units.ml / units.h)
-
-# endosomal take-up from plasma
-system.add_flow("T-vc-MMAE", "lung_plasma", "lung_endosomal", 0.0366*0.00102 * units.ml/ units.h)
-system.add_flow("T-vc-MMAE", "heart_plasma", "heart_endosomal", 0.0366*0.000760 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "muscle_plasma", "muscle_endosomal", 0.0366*0.0566 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_plasma", "skin_endosomal", 0.0366*0.0251 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "adipose_plasma", "adipose_endosomal", 0.0366*0.00991 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "bone_plasma", "bone_endosomal", 0.0366*0.0141 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "brain_plasma", "brain_endosomal", 0.0366*0.00243 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "kidney_plasma", "kidney_endosomal", 0.0366*0.00263 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "liver_plasma", "liver_endosomal", 0.0366*0.00963 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "thymus_plasma", "thymus_endosomal", 0.0366*0.00005 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "SI_plasma", "SI_endosomal", 0.0366*0.00364 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "LI_plasma", "LI_endosomal", 0.0366*0.00157 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "pancreas_plasma", "pancreas_endosomal", 0.0366*0.000485 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "spleen_plasma", "spleen_endosomal", 0.0366*0.000635 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "other_plasma", "other_endosomal", 0.0366*0.00233 * units.ml / units.h)
-
-# endosomal take-up from interstitial
-system.add_flow("T-vc-MMAE", "lung_interstitial", "lung_endosomal", 0.0366*0.00102 * units.ml/ units.h)
-system.add_flow("T-vc-MMAE", "heart_interstitial", "heart_endosomal", 0.0366*0.000760 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "muscle_interstitial", "muscle_endosomal", 0.0366*0.0566 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_interstitial", "skin_endosomal", 0.0366*0.0251 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "adipose_interstitial", "adipose_endosomal", 0.0366*0.00991 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "bone_interstitial", "bone_endosomal", 0.0366*0.0141 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "brain_interstitial", "brain_endosomal", 0.0366*0.00243 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "kidney_interstitial", "kidney_endosomal", 0.0366*0.00263 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "liver_interstitial", "liver_endosomal", 0.0366*0.00963 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "thymus_interstitial", "thymus_endosomal", 0.0366*0.00005 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "SI_interstitial", "SI_endosomal", 0.0366*0.00364 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "LI_interstitial", "LI_endosomal", 0.0366*0.00157 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "pancreas_interstitial", "pancreas_endosomal", 0.0366*0.000485 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "spleen_interstitial", "spleen_endosomal", 0.0366*0.000635 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "other_interstitial", "other_endosomal", 0.0366*0.00233 * units.ml / units.h)
 
