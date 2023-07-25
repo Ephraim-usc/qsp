@@ -24,6 +24,7 @@ class System:
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.reactions = []
   
+  # if volumes is a vector, we assume all analytes share the same volume in each department
   def set_volumes(self, volumes):
     if volumes.ndim == 1:
       volumes = np.tile(volumes, reps = [self.n_analytes, 1])
@@ -31,21 +32,18 @@ class System:
     self.volumes = volumes
   
   def set_volume(self, analyte, compartment, volume):
-    if type(volume) is unum.Unum:
-      volume = volume.number(units.ml)
+    volume = volume.number(units.ml)
     self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] = volume
   
   def get_volume(self, analyte, compartment):
     return self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] * units.ml
   
   # set compartment_dest as None if it is a clearance
-  def add_flow(self, analyte, compartment_source, compartment_dest, coefficient):
-    if type(coefficient) is unum.Unum:
-      coefficient = coefficient.number(units.ml/units.h)
-    
-    self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_source)] -= coefficient
+  def add_flow(self, analyte, compartment_source, compartment_dest, rate):
+    rate = rate.number(units.ml/units.h)
+    self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_source)] -= rate
     if compartment_dest is not None:
-      self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_dest)] += coefficient
+      self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_dest)] += rate
   
   # set compartment as None if it happens everywhere
   # powers: dict of powers for each analyte
@@ -163,6 +161,7 @@ vascular_reflection_coefficients = {"heart": 0.95,
                                    "other": 0.95}
 lymphatic_reflection_coefficient = 0.2
 endosomal_pinocytosis_rate = 3.66e-2 / units.h
+endosomal_degradation_rate = 42.9 / units.h
 
 compartments = [f"{organ}_{tissue}" for organ in organs for tissue in ["plasma", "BC", "interstitial", "endosomal", "cellular"]] + ["plasma", "BC", "lymph"]
 analytes = ["T-vc-MMAE", "MMAE", "HER2", "tubulin"]
@@ -170,36 +169,38 @@ system = System(analytes, compartments)
 system.set_volumes(volumes)
 
 
-# plasma to lung plasma flow
+# plasma circle
 system.add_flow("T-vc-MMAE", "plasma", "lung_plasma", 373 * units.ml / units.h)
 
-# lung plasma to organ plasma flow
 for organ in [organ for organ in organs if organ not in ["lung"]]:
   system.add_flow("T-vc-MMAE", "lung_plasma", f"{organ}_plasma", plasma_flows[organ])
 
-# SLSP plasma to plasma flow, through liver
 for organ in ["SI", "LI", "spleen", "pancreas"]:
   system.add_flow("T-vc-MMAE", f"{organ}_plasma", "liver_plasma", plasma_flows[organ] * (499/500))
   system.add_flow("T-vc-MMAE", "liver_plasma", "plasma", plasma_flows[organ] * (499/500))
 
-# other organ plasma to plasma flow
 for organ in [organ for organ in organs if organ not in ["lung"] + ["SI", "LI", "spleen", "pancreas"]]:
   system.add_flow("T-vc-MMAE", f"{organ}_plasma", "plasma", plasma_flows[organ] * (499/500))
 
-# tissue plasma to interstitial flow
+
+# lymph circle
 for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_plasma", f"{organ}_interstitial", plasma_flows[organ] * (1/500) * (1 - vascular_reflection_coefficients[organ]))
-
-# tissue interstitial to lymph flow
-for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_interstitial", "lymph", plasma_flows[organ] * (1/500) * (1 - lymphatic_reflection_coefficient))
 
-# lymph to plasma flow (should be what the authors mean, but note that this is much faster than the input into lymph)
 system.add_flow("T-vc-MMAE", "lymph", "plasma", 373*(1/9.1) * units.ml / units.h)
 
-# endosomal take-up from plasma and interstitial
+
+# endosomal degradation
 for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_plasma", f"{organ}_endosomal", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
+  system.add_flow("T-vc-MMAE", f"{organ}_endosomal", f"{organ}_plasma", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal") * 0.715)
+  
   system.add_flow("T-vc-MMAE", f"{organ}_interstitial", f"{organ}_endosomal", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
+  system.add_flow("T-vc-MMAE", f"{organ}_endosomal", f"{organ}_interstitial", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal") * (1-0.715))
+  
+  system.add_flow("T-vc-MMAE", f"{organ}_endosomal", None, endosomal_degradation_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
+
+
 
 
