@@ -135,17 +135,18 @@ volumes = np.tile(volumes, reps = [len(analytes),1])
 system.set_volumes(volumes)
 
 
-system.add_flow("T-vc-MMAE", "plasma", "lung_plasma", 373 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "plasma", "lung_plasma", 371.51 * units.ml / units.h) # calculated as the sum of all inflows
 
 system.add_flow("T-vc-MMAE", "heart_plasma", "plasma", 36.5 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "muscle_plasma", "plasma", 86.1 * units.ml / units.h)
-system.add_flow("T-vc-MMAE", "skin_plasma", "plasma", 27.9 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "skin_plasma", "plasma", 27.8 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "adipose_plasma", "plasma", 13.4 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "bone_plasma", "plasma", 15.2 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "brain_plasma", "plasma", 11.8 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "kidney_plasma", "plasma", 68.5 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "liver_plasma", "plasma", (10.3 + 58.1 + 17.3 + 6.24 + 8.18) * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "thymus_plasma", "plasma", 1.19 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "other_plasma", "plasma", 10.9 * units.ml / units.h)
 
 system.add_flow("T-vc-MMAE", "lung_plasma", "heart_plasma", 36.5 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "muscle_plasma", 86.1 * units.ml / units.h)
@@ -156,6 +157,7 @@ system.add_flow("T-vc-MMAE", "lung_plasma", "brain_plasma", 11.8 * units.ml / un
 system.add_flow("T-vc-MMAE", "lung_plasma", "kidney_plasma", 68.5 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "liver_plasma", 10.3 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "lung_plasma", "thymus_plasma", 1.19 * units.ml / units.h)
+system.add_flow("T-vc-MMAE", "lung_plasma", "other_plasma", 10.9 * units.ml / units.h)
 
 system.add_flow("T-vc-MMAE", "SI_plasma", "liver_plasma", 58.1 * units.ml / units.h)
 system.add_flow("T-vc-MMAE", "LI_plasma", "liver_plasma", 17.3 * units.ml / units.h)
