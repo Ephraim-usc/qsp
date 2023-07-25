@@ -6,6 +6,7 @@ import unum
 import unum.units as units
 
 units.l = unum.new_unit('l', 1e-3 * units.m ** 3)
+units.ml = unum.new_unit('ml', 1e-3 * units.l)
 units.pl = unum.new_unit('pl', 1e-12 * units.l)
 units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
 units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
@@ -24,20 +25,20 @@ class System:
     self.reactions = []
   
   def set_volumes(self, volumes):
-    volumes = np.array([[(i.number(units.l) if type(i) is unum.Unum else i) for i in row] for row in volumes])
+    volumes = np.array([[(i.number(units.ml) if type(i) is unum.Unum else i) for i in row] for row in volumes])
     self.volumes = volumes
   
   def set_volume(self, analyte, compartment, volume):
     if type(volume) is unum.Unum:
-      volume = volume.number(units.l)
+      volume = volume.number(units.ml)
     self.volumes[self.analytes.index(analyte), self.compartments.index(compartment)] = volume
   
   # set compartment_dest as None if it is a clearance
   def add_flow(self, analyte, compartment_source, compartment_dest, coefficient):
     if type(coefficient) is unum.Unum:
-      coefficient = coefficient.number(units.l/units.h)
+      coefficient = coefficient.number(units.ml/units.h)
     
-    self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_source), ] -= coefficient
+    self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_source)] -= coefficient
     if compartment_dest is None:
       return
     self.flows[self.analytes.index(analyte), self.compartments.index(compartment_source), self.compartments.index(compartment_dest)] += coefficient
@@ -89,6 +90,7 @@ class System:
       print(self.str_reaction(reaction), flush = True)
 
 
+# two-compartment model
 compartments = ["central", "peripheral", "extracellular", "intracellular"]
 analytes = ["adc", "drug", "antigen", "substrate"]
 system = System(analytes, compartments)
@@ -104,6 +106,42 @@ system.add_flow("drug", "central", None, 18.4 * (units.l/units.d))
 system.add_flow("adc", "central", "peripheral", 0.0585 * (units.l/units.d))
 
 system.add_reaction(None, 0.323 * (1/units.d), {"adc":1}, {"adc":-1, "drug":1})
+
+
+# Dhaval et al. model
+compartments = [f"{organ}_{tissue}" for organ in ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"] for tissue in ["plasma", "BC", "interstitial", "endosomal", "cellular"]]
+compartments += ["plasma", "BC"]
+analytes = ["T-vc-MMAE", "MMAE", "FcRn", "HER2", "tubulin"]
+system = System(analytes, compartments)
+
+volumes = np.array([0.00585, 0.00479, 0.0217, 0.000760, 0.119,
+                    0.0295, 0.0241, 0.0384, 0.00102, 0.111,
+                    0.249, 0.204, 1.47, 0.0566, 9.34,
+                    0.188, 0.154, 1.66, 0.0251, 3.00,
+                    0.0218, 0.0178, 0.337, 0.00991, 1.60,
+                    0.0621, 0.0508, 0.525, 0.0141, 2.17,
+                    0.0107, 0.00873, 0.0873, 0.00243, 0.376,
+                    0.0289, 0.0236, 0.0788, 0.00263, 0.391,
+                    0.164, 0.134, 0.385, 0.00963, 1.23,
+                    0.0116, 0.00950, 0.127, 0.00364, 0.577,
+                    0.0050, 0.00409, 0.0545, 0.00157, 0.248,
+                    0.00534, 0.00437, 0.0169, 0.000485, 0.0699,
+                    0.0005, 0.000405, 0.00153, 0.00005, 0.00653, 
+                    0.0154, 0.0126, 0.0254, 0.000635, 0.0730,
+                    0.0195, 0.0160, 0.0797, 0.00233, 0.348,
+                    0.944, 0.773,
+                   ]) * units.ml
+volumes = np.tile(volumes, reps = [len(analytes),1])
+system.set_volumes(volumes)
+
+
+
+
+
+
+
+
+
 
 
 
