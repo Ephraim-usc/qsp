@@ -62,11 +62,12 @@ class System:
     return records
   
   def plot(self, analyte, compartments, records):
+    analyte = self.analytes.index(analyte)
+    compartments = [self.compartments.index(compartment) for compartment in compartments]
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
-      index = self.compartments.index(compartment)
-      ax.plot(records[0,index,:])
+      ax.plot(records[analyte,compartment,:])
       ax.set_yscale('symlog')
       ax.set_yticks([0, 1, 10, 100, 1000, 10000])
       ax.set_title(compartment)
