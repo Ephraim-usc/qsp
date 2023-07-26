@@ -1,8 +1,7 @@
 import math
 import numpy as np
 import pandas as pd
-
-np.set_printoptions(suppress=True)
+import tqdm
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -16,6 +15,7 @@ units.pl = unum.new_unit('pl', 1e-12 * units.l)
 units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
 units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
 
+np.set_printoptions(suppress=True)
 
 
 class System:
@@ -53,7 +53,7 @@ class System:
     t_record = t_record.number(units.h)
     
     records = [self.x.copy()]
-    for t_ in np.arange(t_step, t, t_step):
+    for t_ in tqdm.tqdm(np.arange(t_step, t, t_step)):
       self.step(t_step * units.h)
       if t_ / t_record >= len(records):
         records.append(self.x.copy())
