@@ -45,7 +45,7 @@ class System:
     for analyte in self.flowing_analytes:
       x = self.x[analyte, :]
       flows = self.flows[analyte, :, :]
-      self.x[analyte, :] += t * np.dot(x, flows)
+      self.x[analyte, :] += t * np.dot(x, flows) / self.volumes[analyte, :]
   
   def run(self, t, t_step = 0.001 * units.h, t_record = 1 * units.h):
     t = t.number(units.h)
