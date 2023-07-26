@@ -63,12 +63,12 @@ permeability_surface_area_coefficients = {"heart": 1.47 * units.ml/units.h,
                                           "brain": 0.00825 * units.ml/units.h,
                                           "kidney": 14.2 * units.ml/units.h,
                                           "liver": 49.2 * units.ml/units.h,
-                                          "SI": ,
-                                          "LI": ,
+                                          "SI": 0.457 * units.ml/units.h,
+                                          "LI": 0.457 * units.ml/units.h,
                                           "pancreas": 0.0657 * units.ml/units.h,
-                                          "thymus": ,
+                                          "thymus": 0.457 * units.ml/units.h,
                                           "spleen": 0.457 * units.ml/units.h,
-                                          "other": }
+                                          "other": 0.457 * units.ml/units.h}
 
 unbound_proportion_plasma = 0.8
 unbound_proportion_BC = 0.8 / 5.46
@@ -81,12 +81,12 @@ unbound_proportions = {"heart": unbound_proportion_plasma / 22.8,
                        "brain": unbound_proportion_plasma / 0.530,
                        "kidney": unbound_proportion_plasma / 42.4,
                        "liver": unbound_proportion_plasma / 3.80,
-                       "SI": unbound_proportion_plasma / ,
-                       "LI": unbound_proportion_plasma / ,
+                       "SI": unbound_proportion_plasma / 27.1 * (0.577 / 0.728),
+                       "LI": unbound_proportion_plasma / 27.1 * (0.248 / 0.314),
                        "pancreas": unbound_proportion_plasma / 2.93,
-                       "thymus": unbound_proportion_plasma / ,
+                       "thymus": unbound_proportion_plasma / 27.1 * (0.00653 / 0.009),
                        "spleen": unbound_proportion_plasma / 47.2,
-                       "other": unbound_proportion_plasma / }
+                       "other": unbound_proportion_plasma / 27.1 * (0.348/0.465)}
 liver_clearance_rate = 137 * units.ml/units.h
 
 
