@@ -38,6 +38,19 @@ class System:
       x = self.x[analyte, :]
       flows = self.flows[analyte, :, :]
       self.x[analyte, :] += t * np.dot(x, flows)
+
+  def run(self, t, t_step = 0.001 * units.h, t_record = 1 * units.h):
+    t = t.number(units.h)
+    t_step = t_step.number(units.h)
+    t_record = t_record.number(units.h)
+    
+    records = [self.x.copy()]
+    for t_ in range(t_step, t, t_step):
+      self.step(t_step * units.h)
+      if t_ / t_record >= len(records):
+        records.append(self.x.copy())
+    
+    return records
   
   # if volumes is a vector, we assume all analytes share the same volume in each department
   def set_volumes(self, volumes):
