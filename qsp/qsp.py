@@ -68,9 +68,9 @@ class System:
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
       ax.plot(records[analyte,compartment,:])
-      ax.set_yscale('symlog')
+      ax.set_yscale('symlog', linthresh = 1)
       ax.set_yticks([0, 1, 10, 100, 1000, 10000])
-      ax.set_title(compartment)
+      ax.set_title(self.compartments[compartment])
     fig.show()
   
   # if volumes is a vector, we assume all analytes share the same volume in each department
