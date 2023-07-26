@@ -9,4 +9,4 @@ download the package and install from local:
 
     git clone https://github.com/Ephraim-usc/qsp.git
     
-    python3 -m pip install ./glike
+    python3 -m pip install ./qsp
