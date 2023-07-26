@@ -154,11 +154,11 @@ for organ in organs:
 
 # organ plasma to interstitial flow (here I do not follow the authors in multiplying plasma flow by 1000)
 for organ in organs:
-  system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_endosomal", plasma_flows[organ] * unbound_proportion_plasma)
-  system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_plasma", plasma_flows[organ])
+  system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_endosomal", plasma_flows[organ] * unbound_proportion_plasma * 1000)
+  system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_plasma", plasma_flows[organ] * 1000)
   
-  system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_interstitial", plasma_flows[organ])
-  system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_endosomal", plasma_flows[organ])
+  system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_interstitial", plasma_flows[organ] * 1000)
+  system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_endosomal", plasma_flows[organ] * 1000)
 
 
 # cellular take-up
