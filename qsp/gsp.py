@@ -2,6 +2,9 @@ import math
 import numpy as np
 import pandas as pd
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
 import unum
 import unum.units as units
 
@@ -26,6 +29,9 @@ class System:
     self.flowing_analytes = []
     self.reactions = []
   
+  def clear_x(self):
+    self.x = np.zeros([self.n_analytes, self.n_compartments])
+  
   def set_x(self, analyte, compartment, concentration):
     concentration = concentration.number(units.nM)
     analyte = self.analytes.index(analyte)
@@ -49,8 +55,19 @@ class System:
       self.step(t_step * units.h)
       if t_ / t_record >= len(records):
         records.append(self.x.copy())
-    
+
+    records = np.dstack(records) # 3d array of size n_analytes x n_compartments x n_ts
     return records
+
+  def plot(self, analyte, compartments, records):
+    fig, axs = plt.subplots(nrows = 1, ncols = len(compartments))
+    for ax, compartment in zip(axs, compartments):
+      index = self.compartments.index(compartment)
+      ax.plot(records[0,index,:])
+      ax.set_yscale('log')
+      ax.set_yticks([1, 10, 100, 1000, 10000])
+      ax.set_title(compartment)
+    fig.show()
   
   # if volumes is a vector, we assume all analytes share the same volume in each department
   def set_volumes(self, volumes):
@@ -224,10 +241,16 @@ for organ in organs:
 
 
 np.set_printoptions(suppress=True)
+system.clear_x()
+
 system.set_x("T-vc-MMAE", "plasma", 1000 * units.nM)
-for _ in range(100000):
-  system.step(0.001 * units.h)
-system.x[0]
+for organ in organs:
+  system.set_x("T-vc-MMAE", f"{organ}_plasma", 1000 * units.nM)
+
+records = system.run(100 * units.h)
+records = np.dstack(records)
+records[0,-3,:]
+
 
 
 
