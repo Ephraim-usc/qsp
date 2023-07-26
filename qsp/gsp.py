@@ -45,7 +45,7 @@ class System:
     t_record = t_record.number(units.h)
     
     records = [self.x.copy()]
-    for t_ in range(t_step, t, t_step):
+    for t_ in np.arange(t_step, t, t_step):
       self.step(t_step * units.h)
       if t_ / t_record >= len(records):
         records.append(self.x.copy())
