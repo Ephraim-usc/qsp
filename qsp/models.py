@@ -87,6 +87,7 @@ unbound_proportions = {"heart": unbound_proportion_plasma / 22.8,
                        "thymus": unbound_proportion_plasma / ,
                        "spleen": unbound_proportion_plasma / 47.2,
                        "other": unbound_proportion_plasma / }
+liver_clearance_rate = 137 * units.ml/units.h
 
 
 compartments = [f"{organ}_{tissue}" for organ in organs for tissue in ["plasma", "BC", "interstitial", "endosomal", "cellular"]] + ["plasma", "BC", "lymph"]
@@ -161,8 +162,11 @@ for organ in organs:
 
 
 # cellular take-up
+for organ in organs:
+  system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_cellular", permeability_surface_area_coefficients[organ])
+  system.add_flow("MMAE", f"{organ}_cellular", f"{organ}_interstitial", permeability_surface_area_coefficients[organ] * unbound_proportions[organ])
 
 
-
-
+# liver clearance
+system.add_flow("MMAE", "liver_interstitial", None, liver_clearance_rate)
 
