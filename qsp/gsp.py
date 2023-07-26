@@ -2,6 +2,8 @@ import math
 import numpy as np
 import pandas as pd
 
+np.set_printoptions(suppress=True)
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -55,10 +57,10 @@ class System:
       self.step(t_step * units.h)
       if t_ / t_record >= len(records):
         records.append(self.x.copy())
-
+    
     records = np.dstack(records) # 3d array of size n_analytes x n_compartments x n_ts
     return records
-
+  
   def plot(self, analyte, compartments, records):
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments))
     for ax, compartment in zip(axs, compartments):
@@ -240,16 +242,8 @@ for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_endosomal", None, endosomal_degradation_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
 
 
-np.set_printoptions(suppress=True)
-system.clear_x()
 
-system.set_x("T-vc-MMAE", "plasma", 1000 * units.nM)
-for organ in organs:
-  system.set_x("T-vc-MMAE", f"{organ}_plasma", 1000 * units.nM)
 
-records = system.run(100 * units.h)
-records = np.dstack(records)
-records[0,-3,:]
 
 
 
