@@ -1,7 +1,9 @@
 import math
 import numpy as np
 import pandas as pd
-import tqdm
+
+from scipy.linalg import expm
+from tqdm import tqdm
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -28,7 +30,7 @@ class System:
     self.x = np.zeros([self.n_analytes, self.n_compartments])
     self.volumes = np.zeros([self.n_analytes, self.n_compartments])
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
-    self.flowing_analytes = []
+    self.Qs = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.reactions = []
   
   def clear_x(self):
@@ -40,21 +42,16 @@ class System:
     compartment = self.compartments.index(compartment)
     self.x[analyte, compartment] = concentration
   
-  def step(self, t):
-    t = t.number(units.h)
-    for analyte in self.flowing_analytes:
-      x = self.x[analyte, :]
-      flows = self.flows[analyte, :, :]
-      self.x[analyte, :] += t * np.dot(x, flows) / self.volumes[analyte, :]
-  
-  def run(self, t, t_step = 0.001 * units.h, t_record = 1 * units.h):
+  def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t = t.number(units.h)
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
+    flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Qs[analyte].any()]
     
     records = [self.x.copy()]
-    for t_ in tqdm.tqdm(np.arange(t_step, t, t_step)):
-      self.step(t_step * units.h)
+    for t_ in tqdm(np.arange(t_step, t, t_step)):
+      for analyte in flowing_analytes:
+        self.x[analyte] = np.dot(self.x[analyte], expm(t_step * self.Qs[analyte]))
       if t_ / t_record >= len(records):
         records.append(self.x.copy())
     
@@ -96,13 +93,12 @@ class System:
     rate = rate.number(units.ml/units.h)
     analyte = self.analytes.index(analyte)
     compartment_source = self.compartments.index(compartment_source)
-    if analyte not in self.flowing_analytes:
-      self.flowing_analytes.append(analyte)
-      self.flowing_analytes.sort()
     self.flows[analyte, compartment_source, compartment_source] -= rate
+    self.Qs[analyte, compartment_source, compartment_source] -= rate / self.volumes[analyte, compartment_source]
     if compartment_dest is not None:
       compartment_dest = self.compartments.index(compartment_dest)
       self.flows[analyte, compartment_source, compartment_dest] += rate
+      self.Qs[analyte, compartment_source, compartment_dest] += rate / self.volumes[analyte, compartment_dest]
   
   # set compartment as None if it happens everywhere
   # powers: dict of powers for each analyte
