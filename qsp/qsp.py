@@ -66,8 +66,8 @@ class System:
     for ax, compartment in zip(axs, compartments):
       index = self.compartments.index(compartment)
       ax.plot(records[0,index,:])
-      ax.set_yscale('log')
-      ax.set_yticks([1, 10, 100, 1000, 10000])
+      ax.set_yscale('symlog')
+      ax.set_yticks([0, 1, 10, 100, 1000, 10000])
       ax.set_title(compartment)
     fig.show()
   
