@@ -55,7 +55,9 @@ class System:
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Qs[analyte].any()]
 
-    while not math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
+    pbar = tqdm(total = t_end)
+    pbar.update(self.t)
+    while True:
       t_ = self.t
       self.t = min(self.t + t_step, t_end)
       for analyte in flowing_analytes:
@@ -64,6 +66,10 @@ class System:
         pass
       if (self.t // t_record) > (t_ // t_record):
         self.history.append((self.t, self.x.copy()))
+      pbar.update(self.t - t_)
+      if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
+        break
+    pbar.close()
   
   def plot(self, analyte, compartments):
     analyte = self.analytes.index(analyte)
