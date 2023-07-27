@@ -55,7 +55,7 @@ class System:
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Qs[analyte].any()]
     
-    pbar = tqdm(total = t_end, bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
+    pbar = tqdm(total = t_end, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
     pbar.update(self.t)
     while True:
       t_ = self.t
@@ -64,7 +64,7 @@ class System:
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
       for reaction in self.reactions:
         pass
-      if (self.t // t_record) > (t_ // t_record):
+      if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
       pbar.update(self.t - t_)
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
