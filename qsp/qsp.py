@@ -77,7 +77,9 @@ class System:
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
-      ax.plot(records[analyte,compartment,:])
+      X = [t for t, x in self.history]
+      Y = [x[analyte, compartment] for t, x in self.history]
+      ax.plot(X, Y)
       ax.set_yscale('symlog', linthresh = 1)
       ax.set_yticks([0, 1, 10, 100, 1000, 10000])
       ax.set_title(self.compartments[compartment])
