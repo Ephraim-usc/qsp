@@ -133,10 +133,7 @@ class System:
     
     if callable(k):
       k = k(self.t)
-    k = k.numeric(units.h)
-    
-    if type(coefficient) is unum.Unum:
-      coefficient = coefficient.number(1/units.h/(units.nM ** (n_powers-1)))
+    k = k.numeric(units.nM ** (1-powers.sum())/units.h)
     
     if compartment is not None:
       compartment = self.compartments.index(compartment)
