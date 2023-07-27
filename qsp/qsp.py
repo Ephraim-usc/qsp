@@ -27,38 +27,45 @@ class System:
     self.compartments = compartments
     self.n_compartments = len(compartments)
     
-    self.x = np.zeros([self.n_analytes, self.n_compartments])
     self.volumes = np.zeros([self.n_analytes, self.n_compartments])
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.Qs = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.reactions = []
+    
+    self.t = 0
+    self.x = np.zeros([self.n_analytes, self.n_compartments])
+    self.history = None
   
   def clear_x(self):
     self.x = np.zeros([self.n_analytes, self.n_compartments])
   
-  def set_x(self, analyte, compartment, concentration):
+  def clear_t(self):
+    self.t = 0
+    self.history = []
+  
+  def add_x(self, analyte, compartment, concentration):
     concentration = concentration.number(units.nM)
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
-    self.x[analyte, compartment] = concentration
+    self.x[analyte, compartment] += concentration
   
-  def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
-    t = t.number(units.h)
+  def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
+    t_end = t_end.number(units.h)
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Qs[analyte].any()]
-    
-    records = [self.x.copy()]
-    for t_ in tqdm(np.arange(t_step, t, t_step)):
+
+    while not math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
+      t_ = self.t
+      self.t = min(self.t + t_step, t_end)
       for analyte in flowing_analytes:
-        self.x[analyte] = np.dot(self.x[analyte], expm(t_step * self.Qs[analyte]))
-      if t_ / t_record >= len(records):
-        records.append(self.x.copy())
-    
-    records = np.dstack(records) # 3d array of size n_analytes x n_compartments x n_ts
-    return records
+        self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
+      for reaction in self.reactions:
+        pass
+      if (self.t // t_record) > (t_ // t_record):
+        self.history.append((self.t, self.x.copy()))
   
-  def plot(self, analyte, compartments, records):
+  def plot(self, analyte, compartments):
     analyte = self.analytes.index(analyte)
     compartments = [self.compartments.index(compartment) for compartment in compartments]
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), squeeze = False)
