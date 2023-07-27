@@ -118,15 +118,22 @@ class System:
   # set compartment as None if it happens everywhere
   # powers: dict of powers for each analyte
   # deltas: dict of concentration changes of the analytes per reaction
-  def add_reaction(self, compartment, coefficient, powers, deltas):
+  def add_reaction(self, compartment, powers, deltas, k):
+    compartment = self.compartments.index(compartment)
+    
     powers_ = np.zeros([self.n_analytes])
     for analyte, power in powers.items():
       powers_[self.analytes.index(analyte)] += power
-    n_powers = powers_.sum()
+    powers = powers_
     
     deltas_ = np.zeros([self.n_analytes])
     for analyte, delta in deltas.items():
       deltas_[self.analytes.index(analyte)] += delta
+    deltas = deltas_
+    
+    if callable(k):
+      k = k(self.t)
+    k = k.numeric(units.h)
     
     if type(coefficient) is unum.Unum:
       coefficient = coefficient.number(1/units.h/(units.nM ** (n_powers-1)))
