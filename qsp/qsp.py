@@ -54,8 +54,8 @@ class System:
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Qs[analyte].any()]
-
-    pbar = tqdm(total = t_end)
+    
+    pbar = tqdm(total = t_end, bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}")
     pbar.update(self.t)
     while True:
       t_ = self.t
