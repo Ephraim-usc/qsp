@@ -78,7 +78,7 @@ class System:
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
       for compartment, reaction in self.reactions:
         x = array2dict(self.x[:, compartment] * units.nM, self.analytes)
-        delta = dict2array(reaction(x, self.t * units.h), self.analytes) * t_step
+        delta = dict2array(reaction(x, self.t * units.h), self.analytes) * (t_step * units.h)
         self.x[:, compartment] += array_number(delta, units.nM)
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
