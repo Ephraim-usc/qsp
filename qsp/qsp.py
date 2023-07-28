@@ -88,18 +88,18 @@ class System:
     pbar.close()
   
   def plot(self, compartments):
-    analyte = self.analytes.index(analyte)
     compartments = [self.compartments.index(compartment) for compartment in compartments]
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
-      for analyte in self.analytes:
+      for analyte in range(len(self.analytes)):
         X = [t for t, x in self.history]
         Y = [x[analyte, compartment] for t, x in self.history]
-        ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={np.trapz(Y, X)}nM")
+        ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={np.trapz(Y, X)/X[-1]:.2f}nM")
       ax.set_yscale('symlog', linthresh = 1)
       ax.set_yticks([0, 1, 10, 100, 1000, 10000])
       ax.set_title(self.compartments[compartment])
+      ax.legend(prop={'size': 6})
     fig.show()
   
   # if volumes is a vector, we assume all analytes share the same volume in each department
