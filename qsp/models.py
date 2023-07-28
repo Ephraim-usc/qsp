@@ -17,21 +17,21 @@ plasma_flows = {"heart": 36.5 * units.ml/units.h,
                 "thymus": 1.19 * units.ml/units.h,
                 "spleen": 8.18 * units.ml/units.h,
                 "other": 10.9 * units.ml/units.h}
-volumes = np.array([0.00585, 0.00479, 0.0217, 0.000760, 0.119,
-                    0.0295, 0.0241, 0.0384, 0.00102, 0.111,
-                    0.249, 0.204, 1.47, 0.0566, 9.34,
-                    0.188, 0.154, 1.66, 0.0251, 3.00,
-                    0.0218, 0.0178, 0.337, 0.00991, 1.60,
-                    0.0621, 0.0508, 0.525, 0.0141, 2.17,
-                    0.0107, 0.00873, 0.0873, 0.00243, 0.376,
-                    0.0289, 0.0236, 0.0788, 0.00263, 0.391,
-                    0.164, 0.134, 0.385, 0.00963, 1.23,
-                    0.0116, 0.00950, 0.127, 0.00364, 0.577,
-                    0.0050, 0.00409, 0.0545, 0.00157, 0.248,
-                    0.00534, 0.00437, 0.0169, 0.000485, 0.0699,
-                    0.0005, 0.000405, 0.00153, 0.00005, 0.00653, 
-                    0.0154, 0.0126, 0.0254, 0.000635, 0.0730,
-                    0.0195, 0.0160, 0.0797, 0.00233, 0.348,
+volumes = np.array([0.00585, 0.00479, 0.0217, 0.000760, 0.0217, 0.119,
+                    0.0295, 0.0241, 0.0384, 0.00102, 0.0384, 0.111,
+                    0.249, 0.204, 1.47, 0.0566, 1.47, 9.34,
+                    0.188, 0.154, 1.66, 0.0251, 1.66, 3.00,
+                    0.0218, 0.0178, 0.337, 0.00991, 0.337, 1.60,
+                    0.0621, 0.0508, 0.525, 0.0141, 0.525, 2.17,
+                    0.0107, 0.00873, 0.0873, 0.00243, 0.0873, 0.376,
+                    0.0289, 0.0236, 0.0788, 0.00263, 0.0788, 0.391,
+                    0.164, 0.134, 0.385, 0.00963, 0.385, 1.23,
+                    0.0116, 0.00950, 0.127, 0.00364, 0.127, 0.577,
+                    0.0050, 0.00409, 0.0545, 0.00157, 0.0545, 0.248,
+                    0.00534, 0.00437, 0.0169, 0.000485, 0.0169, 0.0699,
+                    0.0005, 0.000405, 0.00153, 0.00005, 0.00153, 0.00653, 
+                    0.0154, 0.0126, 0.0254, 0.000635, 0.0254, 0.0730,
+                    0.0195, 0.0160, 0.0797, 0.00233, 0.0797, 0.348,
                     0.944, 0.773, 0.113
                    ]) * units.ml
 vascular_reflection_coefficients = {"heart": 0.95,
@@ -90,8 +90,8 @@ unbound_proportions = {"heart": unbound_proportion_plasma / 22.8,
 liver_clearance_rate = 137 * units.ml/units.h
 
 
-compartments = [f"{organ}_{tissue}" for organ in organs for tissue in ["plasma", "BC", "interstitial", "endosomal", "cellular"]] + ["plasma", "BC", "lymph"]
-analytes = ["T-vc-MMAE", "MMAE", "HER2", "tubulin"]
+compartments = [f"{organ}_{tissue}" for organ in organs for tissue in ["plasma", "BC", "interstitial", "endosomal", "membrane", "cellular"]] + ["plasma", "BC", "lymph"]
+analytes = ["T-vc-MMAE", "MMAE"]
 system = System(analytes, compartments)
 system.set_volumes(volumes)
 
@@ -127,6 +127,21 @@ for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_endosomal", f"{organ}_interstitial", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal") * (1-0.715))
   
   system.add_flow("T-vc-MMAE", f"{organ}_endosomal", None, endosomal_degradation_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
+
+
+# target-specific membrane crossing
+K_on_HER2 = 0.03 * units.l / units.nM / units.h
+K_off_HER2 = 0.014 / units.h
+K_int = 0.11 / units.h
+K_deg = 0.353 / units.h
+N_HER2 = 1e4
+cell_density = 1e8 / units.ml
+
+for organ in organs:
+  system.add_flow("T-vc-MMAE", f"{organ}_interstitial", f"{organ}_membrane", K_on_HER2 * N_HER2 * cell_density / units.avagadro)
+  system.add_flow("T-vc-MMAE", f"{organ}_membrane", f"{organ}_interstitial", K_off_HER2 * system.get_volume("T-vc-MMAE", f"{organ}_membrane"))
+  system.add_flow("T-vc-MMAE", f"{organ}_membrane", f"{organ}_cellular", K_int * system.get_volume("T-vc-MMAE", f"{organ}_membrane"))
+  system.add_flow("T-vc-MMAE", f"{organ}_cellular", None, K_deg * system.get_volume("T-vc-MMAE", f"{organ}_cellular"))
 
 
 # plasma circle
@@ -169,4 +184,7 @@ for organ in organs:
 
 # liver clearance
 system.add_flow("MMAE", "liver_interstitial", None, liver_clearance_rate)
+
+
+# HER2 binding
 
