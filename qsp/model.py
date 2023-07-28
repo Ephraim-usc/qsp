@@ -204,7 +204,3 @@ for organ in organs:
 
 # liver clearance
 system.add_flow("MMAE", "liver_interstitial", None, liver_clearance_rate)
-
-
-# HER2 binding
-
