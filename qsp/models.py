@@ -130,12 +130,12 @@ for organ in organs:
 
 
 # target-specific membrane crossing
-K_on_HER2 = 0.0 * units.l / units.nM / units.h
+K_on_HER2 = 0.03 * units.l / units.nM / units.h
 K_off_HER2 = 0.014 / units.h
 K_int = 0.11 / units.h
 K_deg = 0.353 / units.h
 N_HER2 = 1e4
-cell_density = 1e8 / units.ml
+cell_density = 1e6 / units.ml
 
 for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_interstitial", f"{organ}_membrane", K_on_HER2 * N_HER2 * cell_density / units.avagadro)
