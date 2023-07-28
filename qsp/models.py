@@ -153,7 +153,7 @@ def degradation_cellular(x, t):
   DAR = 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
   return {"T-vc-MMAE": -rate, "MMAE": DAR * rate}
 
-def dissosciation(x, t):
+def dissociation(x, t):
   rate = dissociation_rate * x["T-vc-MMAE"]
   DAR = 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
   return {"T-vc-MMAE": -rate, "MMAE": DAR * rate}
