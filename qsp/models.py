@@ -134,7 +134,7 @@ K_on_HER2 = 0.03 / units.nM / units.h
 K_off_HER2 = 0.014 / units.h
 K_int = 0.11 / units.h
 K_deg = 0.353 / units.h
-N_HER2 = 1e4
+N_HER2 = 1e3
 cell_density = 1e9 / units.ml
 
 for organ in organs:
@@ -142,6 +142,19 @@ for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_membrane", f"{organ}_interstitial", K_off_HER2 * system.get_volume("T-vc-MMAE", f"{organ}_membrane"))
   system.add_flow("T-vc-MMAE", f"{organ}_membrane", f"{organ}_cellular", K_int * system.get_volume("T-vc-MMAE", f"{organ}_membrane"))
   system.add_flow("T-vc-MMAE", f"{organ}_cellular", None, K_deg * system.get_volume("T-vc-MMAE", f"{organ}_cellular"))
+
+
+# dissociatoin and degradation
+def rate(x, t):
+  return
+
+def delta(x, t):
+  DAR = 1.5 * math.exp(-0.15 * t) + 3 * math.exp(-0.012 * t)
+  return np.array([-1, DAR])
+
+
+for organ in organs:
+  system.add_reaction(self, f"{organ}_cellular", {"T-vc-MMAE":1}, {"T-vc-MMAE":-1, "MMAE":1}, k)
 
 
 # plasma circle
