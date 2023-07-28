@@ -19,6 +19,20 @@ units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
 
 np.set_printoptions(suppress=True)
 
+def dict2array(x, names):
+  buffer = np.zeros(len(names), dtype = object)
+  for key, value in x.items():
+    buffer[names.index(key)] += value
+  return buffer
+
+def array2dict(x, names):
+  buffer = {name:x_ for name, x_ in zip(names, x)}
+  return buffer
+
+def array_number(x, unit):
+  buffer = np.array([x_.number(unit) for x_ in x])
+  return buffer
+
 
 class System:
   def __init__(self, analytes, compartments, volumes = None):
@@ -62,8 +76,10 @@ class System:
       self.t = min(self.t + t_step, t_end)
       for analyte in flowing_analytes:
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
-      for reaction in self.reactions:
-        pass
+      for compartment, reaction in self.reactions:
+        x = array2dict(self.x[:, compartment] * units.nM, self.analytes)
+        delta = dict2array(reaction(x, self.t * units.h), self.analytes) * t_step
+        self.x[:, compartment] += array_number(delta, units.nM)
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
       pbar.update(self.t - t_)
@@ -118,26 +134,9 @@ class System:
   # set compartment as None if it happens everywhere
   # powers: dict of powers for each analyte
   # deltas: dict of concentration changes of the analytes per reaction
-  def add_reaction(self, compartment, powers, deltas, k):
+  def add_reaction(self, compartment, reaction):
     compartment = self.compartments.index(compartment)
-    
-    powers_ = np.zeros([self.n_analytes])
-    for analyte, power in powers.items():
-      powers_[self.analytes.index(analyte)] += power
-    powers = powers_
-    
-    deltas_ = np.zeros([self.n_analytes])
-    for analyte, delta in deltas.items():
-      deltas_[self.analytes.index(analyte)] += delta
-    deltas = deltas_
-    
-    if callable(k):
-      k = k(self.t)
-    k = k.numeric(units.nM ** (1-powers.sum())/units.h)
-    
-    if compartment is not None:
-      compartment = self.compartments.index(compartment)
-    self.reactions.append([compartment, coefficient, powers_, deltas_])
+    self.reactions.append([compartment, reaction])
   
   def str_reaction(self, reaction):
     compartment, coefficient, powers, deltas = reaction
