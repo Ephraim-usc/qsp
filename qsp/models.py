@@ -53,6 +53,7 @@ lymphatic_reflection_coefficient = 0.2
 endosomal_pinocytosis_rate = 3.66e-2 / units.h
 endosomal_degradation_rate = 42.9 / units.h
 cellular_degradation_rate = 0.353 / units.h
+dissociation_rate = 0.323 / units.d
 
 permeability_surface_area_coefficient_BC = 0.105 * units.ml/units.h
 permeability_surface_area_coefficients = {"heart": 1.47 * units.ml/units.h,
@@ -152,10 +153,16 @@ def degradation_cellular(x, t):
   DAR = 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
   return {"T-vc-MMAE": -rate, "MMAE": DAR * rate}
 
+def dissosciation(x, t):
+  rate = dissociation_rate * x["T-vc-MMAE"]
+  DAR = 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
+  return {"T-vc-MMAE": -rate, "MMAE": DAR * rate}
+
 for organ in organs:
   system.add_reaction(f"{organ}_endosomal", degradation_endosomal)
   system.add_reaction(f"{organ}_cellular", degradation_cellular)
 
+system.add_reaction("plasma", dissociation)
 
 # plasma circle
 system.add_flow("MMAE", "plasma", "lung_plasma", 373 * units.ml / units.h)
