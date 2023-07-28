@@ -52,6 +52,7 @@ vascular_reflection_coefficients = {"heart": 0.95,
 lymphatic_reflection_coefficient = 0.2
 endosomal_pinocytosis_rate = 3.66e-2 / units.h
 endosomal_degradation_rate = 42.9 / units.h
+cellular_degradation_rate = 0.353 / units.h
 
 permeability_surface_area_coefficient_BC = 0.105 * units.ml/units.h
 permeability_surface_area_coefficients = {"heart": 1.47 * units.ml/units.h,
@@ -118,22 +119,19 @@ for organ in organs:
 system.add_flow("T-vc-MMAE", "lymph", "plasma", 373*(1/9.1) * units.ml / units.h)
 
 
-# endosomal degradation
+# endosomal take-up
 for organ in organs:
   system.add_flow("T-vc-MMAE", f"{organ}_plasma", f"{organ}_endosomal", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
   system.add_flow("T-vc-MMAE", f"{organ}_endosomal", f"{organ}_plasma", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal") * 0.715)
   
   system.add_flow("T-vc-MMAE", f"{organ}_interstitial", f"{organ}_endosomal", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
   system.add_flow("T-vc-MMAE", f"{organ}_endosomal", f"{organ}_interstitial", endosomal_pinocytosis_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal") * (1-0.715))
-  
-  system.add_flow("T-vc-MMAE", f"{organ}_endosomal", None, endosomal_degradation_rate * system.get_volume("T-vc-MMAE", f"{organ}_endosomal"))
 
 
 # target-specific membrane crossing
 K_on_HER2 = 0.03 / units.nM / units.h
 K_off_HER2 = 0.014 / units.h
 K_int = 0.11 / units.h
-K_deg = 0.353 / units.h
 N_HER2 = 1e3
 cell_density = 1e9 / units.ml
 
@@ -145,16 +143,19 @@ for organ in organs:
 
 
 # dissociatoin and degradation
-def rate(x, t):
-  return
+def degradation_endosomal(x, t):
+  rate = endosomal_degradation_rate * x["T-vc-MMAE"]
+  DAR = 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
+  return {"T-vc-MMAE": -rate, "MMAE": DAR * rate}
 
-def delta(x, t):
-  DAR = 1.5 * math.exp(-0.15 * t) + 3 * math.exp(-0.012 * t)
-  return np.array([-1, DAR])
-
+def degradation_cellular(x, t):
+  rate = cellular_degradation_rate * x["T-vc-MMAE"]
+  DAR = 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
+  return {"T-vc-MMAE": -rate, "MMAE": DAR * rate}
 
 for organ in organs:
-  system.add_reaction(self, f"{organ}_cellular", {"T-vc-MMAE":1}, {"T-vc-MMAE":-1, "MMAE":1}, k)
+  system.add_reaction(f"{organ}_endosomal", degradation_endosomal)
+  system.add_reaction(f"{organ}_cellular", degradation_cellular)
 
 
 # plasma circle
