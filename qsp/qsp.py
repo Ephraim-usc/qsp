@@ -87,15 +87,16 @@ class System:
         break
     pbar.close()
   
-  def plot(self, analyte, compartments):
+  def plot(self, compartments):
     analyte = self.analytes.index(analyte)
     compartments = [self.compartments.index(compartment) for compartment in compartments]
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
-      X = [t for t, x in self.history]
-      Y = [x[analyte, compartment] for t, x in self.history]
-      ax.plot(X, Y)
+      for analyte in self.analytes:
+        X = [t for t, x in self.history]
+        Y = [x[analyte, compartment] for t, x in self.history]
+        ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={np.trapz(Y, X)}nM")
       ax.set_yscale('symlog', linthresh = 1)
       ax.set_yticks([0, 1, 10, 100, 1000, 10000])
       ax.set_title(self.compartments[compartment])
