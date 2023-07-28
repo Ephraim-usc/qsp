@@ -95,7 +95,7 @@ class System:
       for analyte in range(len(self.analytes)):
         X = [t for t, x in self.history]
         Y = [x[analyte, compartment] for t, x in self.history]
-        AVG = np.trapz(Y, X) / (X[-1] - x[0])
+        AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG == 0:
           continue
         ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.2f}nM")
