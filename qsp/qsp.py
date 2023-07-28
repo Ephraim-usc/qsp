@@ -95,7 +95,10 @@ class System:
       for analyte in range(len(self.analytes)):
         X = [t for t, x in self.history]
         Y = [x[analyte, compartment] for t, x in self.history]
-        ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={np.trapz(Y, X)/X[-1]:.2f}nM")
+        AVG = np.trapz(Y, X) / (X[-1] - x[0])
+        if AVG == 0:
+          continue
+        ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.2f}nM")
       ax.set_yscale('symlog', linthresh = 1)
       ax.set_yticks([0, 1, 10, 100, 1000, 10000])
       ax.set_title(self.compartments[compartment])
