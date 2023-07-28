@@ -130,7 +130,7 @@ for organ in organs:
 
 
 # target-specific membrane crossing
-K_on_HER2 = 0.03 * units.l / units.nM / units.h
+K_on_HER2 = 0.0 * units.l / units.nM / units.h
 K_off_HER2 = 0.014 / units.h
 K_int = 0.11 / units.h
 K_deg = 0.353 / units.h
