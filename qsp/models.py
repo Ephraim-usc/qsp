@@ -92,10 +92,12 @@ unbound_proportions = {"heart": unbound_proportion_plasma / 22.8,
 liver_clearance_rate = 137 * units.ml/units.h
 
 def model(K_on_HER2 = 0.03 / units.nM / units.h,
-          K_off_HER2 = 0.014 / units.h
-          K_int = 0.11 / units.h
-          N_HER2 = 1e3
-          cell_density = 1e9 / units.ml):
+          K_off_HER2 = 0.014 / units.h,
+          K_int = 0.11 / units.h,
+          N_HER2 = 1e3,
+          cell_density = 1e9 / units.ml,
+          CL = 1.0,
+          PS = 1.0):
   compartments = [f"{organ}_{tissue}" for organ in organs for tissue in ["plasma", "BC", "interstitial", "endosomal", "membrane", "cellular"]] + ["plasma", "BC", "lymph"]
   analytes = ["T-vc-MMAE", "MMAE"]
   system = System(analytes, compartments)
@@ -134,12 +136,6 @@ def model(K_on_HER2 = 0.03 / units.nM / units.h,
   
   
   # target-specific membrane crossing
-  K_on_HER2 = 0.03 / units.nM / units.h
-  K_off_HER2 = 0.014 / units.h
-  K_int = 0.11 / units.h
-  N_HER2 = 1e3
-  cell_density = 1e9 / units.ml
-  
   for organ in organs:
     system.add_flow("T-vc-MMAE", f"{organ}_interstitial", f"{organ}_membrane", K_on_HER2 * N_HER2 * cell_density / units.avagadro * system.get_volume("T-vc-MMAE", f"{organ}_membrane"))
     system.add_flow("T-vc-MMAE", f"{organ}_membrane", f"{organ}_interstitial", K_off_HER2 * system.get_volume("T-vc-MMAE", f"{organ}_membrane"))
@@ -183,12 +179,12 @@ def model(K_on_HER2 = 0.03 / units.nM / units.h,
   
   
   # blood cell up-take
-  system.add_flow("MMAE", "plasma", "BC", permeability_surface_area_coefficient_BC * unbound_proportion_plasma)
-  system.add_flow("MMAE", "BC", "plasma", permeability_surface_area_coefficient_BC * unbound_proportion_BC)
+  system.add_flow("MMAE", "plasma", "BC", permeability_surface_area_coefficient_BC * PS * unbound_proportion_plasma)
+  system.add_flow("MMAE", "BC", "plasma", permeability_surface_area_coefficient_BC * PS * unbound_proportion_BC)
   
   for organ in organs:
-    system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_BC", permeability_surface_area_coefficient_BC * unbound_proportion_plasma)
-    system.add_flow("MMAE", f"{organ}_BC", f"{organ}_plasma", permeability_surface_area_coefficient_BC * unbound_proportion_BC)
+    system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_BC", permeability_surface_area_coefficient_BC * PS * unbound_proportion_plasma)
+    system.add_flow("MMAE", f"{organ}_BC", f"{organ}_plasma", permeability_surface_area_coefficient_BC * PS * unbound_proportion_BC)
   
   
   # organ plasma to interstitial flow (here I do not follow the authors in multiplying plasma flow by 1000)
@@ -202,11 +198,11 @@ def model(K_on_HER2 = 0.03 / units.nM / units.h,
   
   # cellular take-up
   for organ in organs:
-    system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_cellular", permeability_surface_area_coefficients[organ])
-    system.add_flow("MMAE", f"{organ}_cellular", f"{organ}_interstitial", permeability_surface_area_coefficients[organ] * unbound_proportions[organ])
+    system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_cellular", permeability_surface_area_coefficients[organ] * PS)
+    system.add_flow("MMAE", f"{organ}_cellular", f"{organ}_interstitial", permeability_surface_area_coefficients[organ] * PS * unbound_proportions[organ])
   
   
   # liver clearance
-  system.add_flow("MMAE", "liver_interstitial", None, liver_clearance_rate)
+  system.add_flow("MMAE", "liver_interstitial", None, liver_clearance_rate * CL)
 
   return system
