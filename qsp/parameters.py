@@ -76,8 +76,16 @@ cellular_degradation = 0.353 / units.h
 
 
 
+################### linkers ###################
+dissociation_general_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
+dissociation_endosomal_vc = 42.9 / units.h
+dissociation_cellular_vc = 0.353 / units.h # from Adam P. Singh et al. 2017
+
+vc = {}
+vc.update({"dissociation_general":dissociation_general_vc, "dissociation_endosomal":dissociation_endosomal_vc, "dissociation_cellular":dissociation_cellular_vc})
+
+
 ################### drugs ###################
-dissociation_MMAE = 0.323 / units.d
 permeabilities_MMAE = np.array([1.47, 2.47, 3.16, 0.681, 0.588, 0.568, 0.00825, 14.2, 49.2, 0.457, 0.457, 0.0657, 0.457, 0.457, 0.457]) * units.ml/units.h
 permeability_BC_MMAE = 0.105 * units.ml/units.h
 unbounds_MMAE = unbound_plasma_MMAE / np.array([22.8, 64.9, 1.51, 2.87, 3.01, 1.89, 0.530, 42.4, 3.80, 27.1*(0.728/0.577), 27.1*(0.314/0.248), 2.93, 27.1*(0.009/0.00653), 47.2, 27.1*(0.465/0.348)])
