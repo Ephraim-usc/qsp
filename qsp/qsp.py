@@ -88,8 +88,13 @@ class System:
       for compartment, reaction in self.reactions:
         x = array2dict(self.x[:, compartment] * units.nM, self.analytes)
         z = array2dict(self.z[variable], self.variables)
-        delta = dict2array(reaction(x, self.t * units.h), self.analytes) * (t_step * units.h)
+        delta = dict2array(reaction(x, z), self.analytes) * (t_step * units.h)
         self.x[:, compartment] += array_number(delta, units.nM)
+      for process in self.processes:
+        z = array2dict(self.z[variable], self.variables)
+        delta = dict2array(process(z), self.variables)
+        self.z += delta
+      
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
       pbar.update(self.t - t_)
