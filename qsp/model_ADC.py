@@ -61,33 +61,31 @@ def model(host, target, linker, drug, DAR):
     system.add_flow("adc", f"{organ}_membrane", f"{organ}_interstitial", target["off"] * v)
     system.add_flow("adc", f"{organ}_membrane", f"{organ}_cellular", target["int"] * v)
   
-  # blood cell up-take
-  system.add_flow("drug", "plasma", "BC", drug["permeability_BC"] * unbound_proportion_plasma)
-  system.add_flow("drug", "BC", "plasma", permeability_surface_area_coefficient_BC * PS * unbound_proportion_BC)
+  # fast drug equilibrium between tissues
+  for organ in organs:
+    system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_endosomal", host[f"plasma_flow_{organ}"] * drug["unbound_plasma"] * 1000)
+    system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_endosomal", host[f"plasma_flow_{organ}"] * 1000)
+    system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_plasma", host[f"plasma_flow_{organ}"] * 1000)
+    system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_interstitial", host[f"plasma_flow_{organ}"] * 1000)
+  
+  # BC and cellular permeation
+  v = host["volume_BC"]
+  system.add_flow("drug", "plasma", "BC", drug["permeability_BC"] * v * drug["unbound_plasma"])
+  system.add_flow("drug", "BC", "plasma", drug["permeability_BC"] * v * drug["unbound_BC"])
   
   for organ in organs:
-    system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_BC", permeability_surface_area_coefficient_BC * PS * unbound_proportion_plasma)
-    system.add_flow("MMAE", f"{organ}_BC", f"{organ}_plasma", permeability_surface_area_coefficient_BC * PS * unbound_proportion_BC)
+    v = host[f"volume_{organ}_BC"]
+    system.add_flow("drug", f"{organ}_plasma", f"{organ}_BC", drug["permeability_BC"] * v * drug["unbound_plasma"])
+    system.add_flow("drug", f"{organ}_BC", f"{organ}_plasma", drug["permeability_BC"] * v * drug["unbound_BC"]
   
-  
-  # organ plasma to interstitial flow (here I do not follow the authors in multiplying plasma flow by 1000)
   for organ in organs:
-    system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_endosomal", plasma_flows[organ] * unbound_proportion_plasma * 1000)
-    system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_plasma", plasma_flows[organ] * 1000)
-    
-    system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_interstitial", plasma_flows[organ] * 1000)
-    system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_endosomal", plasma_flows[organ] * 1000)
-  
-  
-  # cellular take-up
-  for organ in organs:
-    system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_cellular", permeability_surface_area_coefficients[organ] * PS)
-    system.add_flow("MMAE", f"{organ}_cellular", f"{organ}_interstitial", permeability_surface_area_coefficients[organ] * PS * unbound_proportions[organ])
-  
+    v = host[f"volume_{organ}_cellular"]
+    system.add_flow("drug", f"{organ}_interstitial", f"{organ}_cellular", drug[f"permeability_{organ}"] * v)
+    system.add_flow("drug", f"{organ}_cellular", f"{organ}_interstitial", drug[f"permeability_{organ}"] * v * drug[f"unbound_{organ}"])
   
   # liver clearance
-  system.add_flow("MMAE", "liver_interstitial", None, liver_clearance_rate * CL)
-
+  v = host["volume_liver_interstitial"]
+  system.add_flow("drug", "liver_interstitial", None, drug["liver_clearance"] * v)
   
   # dissociatoin and degradation
   def degradation_endosomal(x, z):
