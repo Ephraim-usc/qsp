@@ -21,36 +21,27 @@ volumes_mouse = np.array([0.944, 0.773, 0.113,
                           0.0195, 0.0160, 0.0797, 0.00233, 0.0797, 0.348,
                          ]) * units.ml
 
-plasma_flows = {"heart": 36.5 * units.ml/units.h, 
-                "lung": 373 * units.ml/units.h,
-                "muscle": 86.1 * units.ml/units.h,
-                "skin": 27.8 * units.ml/units.h,
-                "adipose": 13.4 * units.ml/units.h,
-                "bone": 15.2 * units.ml/units.h,
-                "brain": 11.8 * units.ml/units.h,
-                "kidney": 68.5 * units.ml/units.h,
-                "liver": 10.3 * units.ml/units.h,
-                "SI": 58.1 * units.ml/units.h,
-                "LI": 17.3 * units.ml/units.h,
-                "pancreas": 6.24 * units.ml/units.h,
-                "thymus": 1.19 * units.ml/units.h,
-                "spleen": 8.18 * units.ml/units.h,
-                "other": 10.9 * units.ml/units.h}
+volumes_human = np.array([3126, 2558, 274,
+                          13.1, 10.8, 48.8, 1.71, 48.8, 267,
+                          55.0, 45.0, 300, 5.00, 300, 595,
+                          662, 541, 3910, 150, 3910, 24815,
+                          127, 104, 1125, 17.0, 1125, 2035,
+                          148, 121, 2289, 67.3, 2289, 10840,
+                          224, 183, 1891, 50.8, 1891, 7817,
+                          0.0107, 0.00873, 0.0873, 0.00243, 0.0873, 0.376,
+                          0.0289, 0.0236, 0.0788, 0.00263, 0.0788, 0.391,
+                          0.164, 0.134, 0.385, 0.00963, 0.385, 1.23,
+                          0.0116, 0.00950, 0.127, 0.00364, 0.127, 0.577,
+                          0.0050, 0.00409, 0.0545, 0.00157, 0.0545, 0.248,
+                          0.00534, 0.00437, 0.0169, 0.000485, 0.0169, 0.0699,
+                          0.0005, 0.000405, 0.00153, 0.00005, 0.00153, 0.00653, 
+                          0.0154, 0.0126, 0.0254, 0.000635, 0.0254, 0.0730,
+                          0.0195, 0.0160, 0.0797, 0.00233, 0.0797, 0.348,
+                         ]) * units.ml
 
-vascular_reflection_coefficients = {"heart": 0.95,
-                                   "lung": 0.95,
-                                   "muscle": 0.95,
-                                   "skin": 0.95,
-                                   "adipose": 0.95,
-                                   "bone": 0.85,
-                                   "brain": 0.99,
-                                   "kidney": 0.9,
-                                   "liver": 0.85,
-                                   "SI": 0.9,
-                                   "LI": 0.95,
-                                   "pancreas": 0.9,
-                                   "thymus": 0.9,
-                                   "spleen": 0.85,
-                                   "other": 0.95}
+plasma_flows_mouse = np.array([36.5, 373, 86.1, 27.8, 13.4, 15.2, 11.8, 68.5, 10.3, 58.1, 17.3, 6.24, 1.19, 8.18, 10.9]) * units.ml/units.h
 
-lymphatic_reflection_coefficient = 0.2
+
+vascular_reflections_mouse = np.array([0.95, 0.95, 0.95, 0.95, 0.95, 0.85, 0.99, 0.9, 0.85, 0.9, 0.95, 0.9, 0.9, 0.85, 0.95])
+lymphatic_reflection_mouse = 0.2
+
