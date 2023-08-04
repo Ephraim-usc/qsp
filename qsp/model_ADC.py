@@ -123,3 +123,5 @@ def model(host, target, linker, drug):
   
   system.add_reaction("plasma", dissociation)
   system.add_process(DAR_decay)
+  
+  return system
