@@ -3,6 +3,7 @@ tissues = ["plasma", "BC", "interstitial", "endosomal", "membrane", "cellular"]
 centrals = ["plasma", "BC", "lymph"]
 compartments = centrals + [f"{organ}_{tissue}" for organ in organs for tissue in tissues]
 
+################### hosts ###################
 volumes_mouse = np.array([0.944, 0.773, 0.113,
                           0.00585, 0.00479, 0.0217, 0.000760, 0.0217, 0.119,
                           0.0295, 0.0241, 0.0384, 0.00102, 0.0384, 0.111,
@@ -61,6 +62,47 @@ human.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_
 human.update({f"BC_flow_{organ}":x for organ, x in zip(organs, BC_flows_human)})
 human.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflectionse)})
 human.update({"lymphatic_reflection":lymphatic_reflection})
+
+
+################### targets ###################
+endosomal_degradation = 42.9 / units.h
+cellular_degradation = 0.353 / units.h
+
+
+
+
+
+
+
+
+
+################### drugs ###################
+dissociation_MMAE = 0.323 / units.d
+permeabilities_MMAE = np.array([1.47, 2.47, 3.16, 0.681, 0.588, 0.568, 0.00825, 14.2, 49.2, 0.457, 0.457, 0.0657, 0.457, 0.457, 0.457]) * units.ml/units.h
+permeability_BC_MMAE = 0.105 * units.ml/units.h
+unbound_plasma_MMAE = 0.8
+unbound_BC_MMAE = 0.8 / 5.46
+unbounds_MMAE = unbound_plasma_MMAE / np.array([22.8, 64.9, 1.51, 2.87, 3.01, 1.89, 0.530, 42.4, 3.80, 27.1*(0.728/0.577), 27.1*(0.314/0.248), 2.93, 27.1*(0.009/0.00653), 47.2, 27.1*(0.465/0.348)])
+liver_clearance_MMAE = 137 * units.ml/units.h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
