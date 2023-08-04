@@ -43,6 +43,9 @@ volumes_human = np.array([3126, 2558, 274,
 plasma_flows_mouse = np.array([36.5, 373, 86.1, 27.8, 13.4, 15.2, 11.8, 68.5, 10.3, 58.1, 17.3, 6.24, 1.19, 8.18, 10.9]) * units.ml/units.h
 plasma_flows_human = np.array([7752, 181913, 33469, 11626, 11233, 2591, 21453, 36402, 13210, 12368, 12867, 3056, 353, 6343, 5521]) * units.ml/units.h
 
+lymphatic_flows_mouse = plasma_flows_mouse * 1/500
+lymphatic_flows_human = plasma_flows_human * 1/500
+
 BC_flows_mouse = np.array([29.9, 305, 70.5, 22.8, 11.0, 12.4, 9.64, 56.1, 8.40, 47.5, 14.1, 5.10, 0.97, 6.70, 8.91]) * units.ml/units.h
 BC_flows_human = np.array([6342, 148838, 27383, 9512, 9191, 2120, 17553, 29784, 10808, 10120, 10527, 2500, 289, 5189, 4517]) * units.ml/units.h
 
@@ -55,6 +58,7 @@ mouse = {}
 mouse.update({f"volume_{compartment}":x for compartment, x in zip(compartments, volumes_mouse)})
 mouse.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_mouse)})
 mouse.update({f"BC_flow_{organ}":x for organ, x in zip(organs, BC_flows_mouse)})
+mouse.update({f"lymphatic_flow_{organ}":x for organ, x in zip(organs, lymphatic_flows_mouse)})
 mouse.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
 mouse.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 mouse.update({"lymphatic_reflection":lymphatic_reflection})
@@ -63,6 +67,7 @@ human = {}
 human.update({f"volume_{compartment}":x for compartment, x in zip(compartments, volumes_human)})
 human.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_human)})
 human.update({f"BC_flow_{organ}":x for organ, x in zip(organs, BC_flows_human)})
+human.update({f"lymphatic_flow_{organ}":x for organ, x in zip(organs, lymphatic_flows_human)})
 human.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
 human.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 human.update({"lymphatic_reflection":lymphatic_reflection})
@@ -80,7 +85,7 @@ from scipy.optimize import fsolve
 fsolve(lambda t: DAR_curve(t * units.h) - 5, 0)
 
 def dissociation(DAR):
-  t = np.arange(-5, 
+  t = np.arange(-5, )
 
 
 
@@ -88,12 +93,21 @@ def dissociation(DAR):
 
 
 ################### linkers ###################
-dissociation_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
+# dissociation_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
+
+from scipy.optimize import fsolve
+def dissociation_vc(DAR):
+  curve = lambda t: 1.5*math.exp(-0.15*t) + 3*math.exp(-0.012*t)
+  t = fsolve(lambda t_: curve(t_) - DAR, 0)[0]
+  delta = 1e-3
+  derivative = (curve(t) - curve(t-delta))/delta
+  return -derivative/DAR * 1/units.h
+
 degradation_endosomal_vc = 42.9 / units.h
 degradation_cellular_vc = 0.353 / units.h # from Adam P. Singh et al. 2017
 
 vc = {}
-vc.update({"dissociation_general":dissociation_general_vc, "dissociation_endosomal":dissociation_endosomal_vc, "dissociation_cellular":dissociation_cellular_vc})
+vc.update({"dissociation":dissociation_vc, "dissociation_endosomal":degradation_endosomal_vc, "degradation_cellular":dissociation_cellular_vc})
 
 
 ################### drugs ###################
