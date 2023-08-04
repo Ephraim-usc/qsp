@@ -54,6 +54,9 @@ cell_densities = np.array([1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9
 vascular_reflections = np.array([0.95, 0.95, 0.95, 0.95, 0.95, 0.85, 0.99, 0.9, 0.85, 0.9, 0.95, 0.9, 0.9, 0.85, 0.95])
 lymphatic_reflection = 0.2
 
+endosomal_pinocytosis = 3.66e-2 / units.h
+plasma_recycle = 0.715
+
 mouse = {}
 mouse.update({f"volume_{compartment}":x for compartment, x in zip(compartments, volumes_mouse)})
 mouse.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_mouse)})
@@ -62,6 +65,7 @@ mouse.update({f"lymphatic_flow_{organ}":x for organ, x in zip(organs, lymphatic_
 mouse.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
 mouse.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 mouse.update({"lymphatic_reflection":lymphatic_reflection})
+mouse.update({"endosomal_pinocytosis":endosomal_pinocytosis})
 
 human = {}
 human.update({f"volume_{compartment}":x for compartment, x in zip(compartments, volumes_human)})
@@ -71,24 +75,16 @@ human.update({f"lymphatic_flow_{organ}":x for organ, x in zip(organs, lymphatic_
 human.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
 human.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 human.update({"lymphatic_reflection":lymphatic_reflection})
+human.update({"endosomal_pinocytosis":endosomal_pinocytosis})
 
 
 ################### targets ###################
-endosomal_degradation = 42.9 / units.h
-cellular_degradation = 0.353 / units.h
+# organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
+nums_zero = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+nums_HER2 = np.array([1e4, 1e4, 1e4, 1e4, 0, 1e3, 0, 1e3, 1e3, 1e3, 1e3, 0, 1e3, 0, 0])
 
-def DAR_curve(t):
-  return 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
-
-from scipy.optimize import fsolve
-
-fsolve(lambda t: DAR_curve(t * units.h) - 5, 0)
-
-def dissociation(DAR):
-  t = np.arange(-5, )
-
-
-
+zero = {f"num_{organ}":num for organ, num in zip(organs, nums_zero)}
+HER2 = {f"num_{organ}":num for organ, num in zip(organs, nums_HER2)}
 
 
 
