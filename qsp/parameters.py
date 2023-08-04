@@ -72,8 +72,15 @@ human.update({"lymphatic_reflection":lymphatic_reflection})
 endosomal_degradation = 42.9 / units.h
 cellular_degradation = 0.353 / units.h
 
+def DAR_curve(t):
+  return 1.5 * math.exp(-0.15/units.h * t) + 3 * math.exp(-0.012/units.h * t)
 
+from scipy.optimize import fsolve
 
+fsolve(lambda t: DAR_curve(t * units.h) - 5, 0)
+
+def dissociation(DAR):
+  t = np.arange(-5, 
 
 
 
@@ -81,9 +88,9 @@ cellular_degradation = 0.353 / units.h
 
 
 ################### linkers ###################
-dissociation_general_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
-dissociation_endosomal_vc = 42.9 / units.h
-dissociation_cellular_vc = 0.353 / units.h # from Adam P. Singh et al. 2017
+dissociation_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
+degradation_endosomal_vc = 42.9 / units.h
+degradation_cellular_vc = 0.353 / units.h # from Adam P. Singh et al. 2017
 
 vc = {}
 vc.update({"dissociation_general":dissociation_general_vc, "dissociation_endosomal":dissociation_endosomal_vc, "dissociation_cellular":dissociation_cellular_vc})
