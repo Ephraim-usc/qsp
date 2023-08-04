@@ -52,7 +52,7 @@ lymphatic_flows_human = plasma_flows_human * 1/500
 BC_flows_mouse = np.array([29.9, 305, 70.5, 22.8, 11.0, 12.4, 9.64, 56.1, 8.40, 47.5, 14.1, 5.10, 0.97, 6.70, 8.91]) * units.ml/units.h
 BC_flows_human = np.array([6342, 148838, 27383, 9512, 9191, 2120, 17553, 29784, 10808, 10120, 10527, 2500, 289, 5189, 4517]) * units.ml/units.h
 
-cell_densities = np.array([1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9])
+cell_densities = np.array([1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9]) * 1/units.ml
 
 vascular_reflections = np.array([0.95, 0.95, 0.95, 0.95, 0.95, 0.85, 0.99, 0.9, 0.85, 0.9, 0.95, 0.9, 0.9, 0.85, 0.95])
 lymphatic_reflection = 0.2
@@ -68,7 +68,7 @@ mouse.update({f"lymphatic_flow_{organ}":x for organ, x in zip(organs, lymphatic_
 mouse.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
 mouse.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 mouse.update({"lymphatic_reflection":lymphatic_reflection})
-mouse.update({"endosomal_pinocytosis":endosomal_pinocytosis})
+mouse.update({"endosomal_pinocytosis":endosomal_pinocytosis, "plasma_recycle":plasma_recycle})
 
 human = {}
 human.update({f"volume_{compartment}":x for compartment, x in zip(compartments, volumes_human)})
@@ -78,7 +78,7 @@ human.update({f"lymphatic_flow_{organ}":x for organ, x in zip(organs, lymphatic_
 human.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
 human.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 human.update({"lymphatic_reflection":lymphatic_reflection})
-human.update({"endosomal_pinocytosis":endosomal_pinocytosis})
+human.update({"endosomal_pinocytosis":endosomal_pinocytosis, "plasma_recycle":plasma_recycle})
 
 
 ################### targets ###################
