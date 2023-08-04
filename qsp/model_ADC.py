@@ -5,9 +5,10 @@ tissues = ["plasma", "BC", "interstitial", "endosomal", "membrane", "cellular"]
 centrals = ["plasma", "BC", "lymph"]
 compartments = centrals + [f"{organ}_{tissue}" for organ in organs for tissue in tissues]
 
-def model(host, target, linker, drug, DAR):
+def model(host, target, linker, drug):
   analytes = ["adc", "drug"]
-  system = System(analytes, compartments)
+  variables = ["DAR"]
+  system = System(analytes, compartments, variables)
   
   for analyte in analytes:
     for compartment in compartments:
@@ -108,9 +109,17 @@ def model(host, target, linker, drug, DAR):
       rate = drug["dissociation"] * x["adc"]
     return {"adc": -rate, "drug": DAR * rate}
   
+  def decay(z):
+    DAR = z["DAR"]
+    if callable(drug["dissociation"]):
+      rate = drug["dissociation"](DAR)
+    else:
+      rate = drug["dissociation"]
+    return {"DAR":-DAR * rate}
+  
   for organ in organs:
     system.add_reaction(f"{organ}_endosomal", degradation_endosomal)
     system.add_reaction(f"{organ}_cellular", degradation_cellular)
   
   system.add_reaction("plasma", dissociation)
-
+  system.add_process(DAR_decay)
