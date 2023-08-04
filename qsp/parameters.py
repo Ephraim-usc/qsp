@@ -45,6 +45,22 @@ plasma_flows_human = np.array([7752, 181913, 33469, 11626, 11233, 2591, 21453, 3
 BC_flows_mouse = np.array([29.9, 305, 70.5, 22.8, 11.0, 12.4, 9.64, 56.1, 8.40, 47.5, 14.1, 5.10, 0.97, 6.70, 8.91]) * units.ml/units.h
 BC_flows_human = np.array([6342, 148838, 27383, 9512, 9191, 2120, 17553, 29784, 10808, 10120, 10527, 2500, 289, 5189, 4517]) * units.ml/units.h
 
-vascular_reflections_mouse = np.array([0.95, 0.95, 0.95, 0.95, 0.95, 0.85, 0.99, 0.9, 0.85, 0.9, 0.95, 0.9, 0.9, 0.85, 0.95])
-lymphatic_reflection_mouse = 0.2
+vascular_reflections = np.array([0.95, 0.95, 0.95, 0.95, 0.95, 0.85, 0.99, 0.9, 0.85, 0.9, 0.95, 0.9, 0.9, 0.85, 0.95])
+lymphatic_reflection = 0.2
+
+mouse = {}
+mouse.update({f"volume_{compartment}":x for compartment, x in zip(compartments, volumes_mouse)})
+mouse.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_mouse)})
+mouse.update({f"BC_flow_{organ}":x for organ, x in zip(organs, BC_flows_mouse)})
+mouse.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflectionse)})
+mouse.update({"lymphatic_reflection":lymphatic_reflection})
+
+human = {}
+human.update({f"volume_{compartment}":x for compartment, x in zip(compartments, volumes_human)})
+human.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_human)})
+human.update({f"BC_flow_{organ}":x for organ, x in zip(organs, BC_flows_human)})
+human.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflectionse)})
+human.update({"lymphatic_reflection":lymphatic_reflection})
+
+
 
