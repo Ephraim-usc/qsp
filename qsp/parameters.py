@@ -56,7 +56,7 @@ mouse.update({f"volume_{compartment}":x for compartment, x in zip(compartments, 
 mouse.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_mouse)})
 mouse.update({f"BC_flow_{organ}":x for organ, x in zip(organs, BC_flows_mouse)})
 mouse.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
-mouse.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflectionse)})
+mouse.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 mouse.update({"lymphatic_reflection":lymphatic_reflection})
 
 human = {}
@@ -64,7 +64,7 @@ human.update({f"volume_{compartment}":x for compartment, x in zip(compartments, 
 human.update({f"plasma_flow_{organ}":x for organ, x in zip(organs, plasma_flows_human)})
 human.update({f"BC_flow_{organ}":x for organ, x in zip(organs, BC_flows_human)})
 human.update({f"cell_density_{organ}":x for organ, x in zip(organs, cell_densities)})
-human.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflectionse)})
+human.update({f"vascular_reflection_{organ}":x for organ, x in zip(organs, vascular_reflections)})
 human.update({"lymphatic_reflection":lymphatic_reflection})
 
 
