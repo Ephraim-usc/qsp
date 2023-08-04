@@ -69,9 +69,9 @@ class System:
     compartment = self.compartments.index(compartment)
     self.x[analyte, compartment] = concentration
   
-  def set_z(self, variable):
+  def set_z(self, variable, value):
     variable = self.variables.index(variable)
-    self.z[variable] = variable
+    self.z[variable] = value
   
   def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t_end = t_end.number(units.h)
