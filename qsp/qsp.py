@@ -169,4 +169,4 @@ class System:
       print(flows, flush = True)
       print(" ", flush = True)
     print(f"<{len(self.reactions)} reactions>", flush = True)
-    print(f"<{len(self.processes)} reactions>", flush = True)
+    print(f"<{len(self.processes)} processes>", flush = True)
