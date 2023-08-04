@@ -109,7 +109,7 @@ def model(host, target, linker, drug):
       rate = drug["dissociation"] * x["adc"]
     return {"adc": -rate, "drug": DAR * rate}
   
-  def decay(z):
+  def DAR_decay(z):
     DAR = z["DAR"]
     if callable(drug["dissociation"]):
       rate = drug["dissociation"](DAR)
