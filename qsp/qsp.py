@@ -35,11 +35,15 @@ def array_number(x, unit):
 
 
 class System:
-  def __init__(self, analytes, compartments, volumes = None):
+  def __init__(self, analytes, compartments, variables = None):
     self.analytes = analytes
     self.n_analytes = len(analytes)
     self.compartments = compartments
     self.n_compartments = len(compartments)
+    
+    variables = [] if variables is None else variables
+    self.variables = variables
+    self.n_variables = len(variables)
     
     self.volumes = np.zeros([self.n_analytes, self.n_compartments])
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
@@ -48,6 +52,7 @@ class System:
     
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments])
+    self.z = np.zeros(self.n_variables)
     self.history = None
   
   def clear_x(self):
@@ -57,11 +62,15 @@ class System:
     self.t = 0
     self.history = []
   
-  def add_x(self, analyte, compartment, concentration):
+  def set_x(self, analyte, compartment, concentration):
     concentration = concentration.number(units.nM)
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
-    self.x[analyte, compartment] += concentration
+    self.x[analyte, compartment] = concentration
+  
+  def set_z(self, variable):
+    variable = self.variables.index(variable)
+    self.z[variable] = variable
   
   def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t_end = t_end.number(units.h)
@@ -78,6 +87,7 @@ class System:
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
       for compartment, reaction in self.reactions:
         x = array2dict(self.x[:, compartment] * units.nM, self.analytes)
+        z = array2dict(self.z[variable], self.variables)
         delta = dict2array(reaction(x, self.t * units.h), self.analytes) * (t_step * units.h)
         self.x[:, compartment] += array_number(delta, units.nM)
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
