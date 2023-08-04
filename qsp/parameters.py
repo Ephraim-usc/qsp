@@ -80,14 +80,17 @@ cellular_degradation = 0.353 / units.h
 dissociation_MMAE = 0.323 / units.d
 permeabilities_MMAE = np.array([1.47, 2.47, 3.16, 0.681, 0.588, 0.568, 0.00825, 14.2, 49.2, 0.457, 0.457, 0.0657, 0.457, 0.457, 0.457]) * units.ml/units.h
 permeability_BC_MMAE = 0.105 * units.ml/units.h
+unbounds_MMAE = unbound_plasma_MMAE / np.array([22.8, 64.9, 1.51, 2.87, 3.01, 1.89, 0.530, 42.4, 3.80, 27.1*(0.728/0.577), 27.1*(0.314/0.248), 2.93, 27.1*(0.009/0.00653), 47.2, 27.1*(0.465/0.348)])
 unbound_plasma_MMAE = 0.8
 unbound_BC_MMAE = 0.8 / 5.46
-unbounds_MMAE = unbound_plasma_MMAE / np.array([22.8, 64.9, 1.51, 2.87, 3.01, 1.89, 0.530, 42.4, 3.80, 27.1*(0.728/0.577), 27.1*(0.314/0.248), 2.93, 27.1*(0.009/0.00653), 47.2, 27.1*(0.465/0.348)])
 liver_clearance_MMAE = 137 * units.ml/units.h
 
-
-
-
+MMAE = {}
+MMAE.update({f"permeability_{organ}":x for organ, x in zip(organs, permeabilities_MMAE)})
+MMAE.update({"permeability_BC":permeability_BC_MMAE})
+MMAE.update({f"unbound_{organ}":x for organ, x in zip(organs, unbounds_MMAE)})
+MMAE.update({"unbound_plasma":unbound_plasma_MMAE, "unbound_BC":unbound_BC_MMAE})
+MMAE.update({"liver_clearance":liver_clearance_MMAE})
 
 
 
