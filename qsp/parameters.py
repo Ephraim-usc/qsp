@@ -1,3 +1,6 @@
+from .qsp import *
+from scipy.optimize import fsolve
+
 organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
 tissues = ["plasma", "BC", "interstitial", "endosomal", "membrane", "cellular"]
 centrals = ["plasma", "BC", "lymph"]
@@ -98,7 +101,6 @@ HER2.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 ################### linkers ###################
 # dissociation_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
 
-from scipy.optimize import fsolve
 def dissociation_vc(DAR):
   curve = lambda t: 1.5*math.exp(-0.15*t) + 3*math.exp(-0.012*t)
   t = fsolve(lambda t_: curve(t_) - DAR, 0)[0]
@@ -110,7 +112,7 @@ degradation_endosomal_vc = 42.9 / units.h
 degradation_cellular_vc = 0.353 / units.h # from Adam P. Singh et al. 2017
 
 vc = {}
-vc.update({"dissociation":dissociation_vc, "dissociation_endosomal":degradation_endosomal_vc, "degradation_cellular":dissociation_cellular_vc})
+vc.update({"dissociation":dissociation_vc, "degradation_endosomal":degradation_endosomal_vc, "degradation_cellular":degradation_cellular_vc})
 
 
 ################### drugs ###################
@@ -120,9 +122,10 @@ PS_BC_MMAE = 0.105 * units.ml/units.h
 permeabilities_MMAE = PSs_MMAE / np.array([mouse[f"volume_{organ}_cellular"] for organ in organs])
 permeability_BC_MMAE = PS_BC_MMAE / mouse["volume_BC"]
 
-unbounds_MMAE = unbound_plasma_MMAE / np.array([22.8, 64.9, 1.51, 2.87, 3.01, 1.89, 0.530, 42.4, 3.80, 27.1*(0.728/0.577), 27.1*(0.314/0.248), 2.93, 27.1*(0.009/0.00653), 47.2, 27.1*(0.465/0.348)])
 unbound_plasma_MMAE = 0.8
 unbound_BC_MMAE = 0.8 / 5.46
+unbounds_MMAE = unbound_plasma_MMAE / np.array([22.8, 64.9, 1.51, 2.87, 3.01, 1.89, 0.530, 42.4, 3.80, 27.1*(0.728/0.577), 27.1*(0.314/0.248), 2.93, 27.1*(0.009/0.00653), 47.2, 27.1*(0.465/0.348)])
+
 liver_clearance_MMAE = 137 * units.ml/units.h / mouse["volume_liver_interstitial"]
 
 MMAE = {}
