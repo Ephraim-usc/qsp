@@ -49,6 +49,7 @@ class System:
     self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.Qs = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
     self.reactions = []
+    self.processes = []
     
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments])
@@ -92,7 +93,7 @@ class System:
         self.x[:, compartment] += array_number(delta, units.nM)
       for process in self.processes:
         z = array2dict(self.z[variable], self.variables)
-        delta = dict2array(process(z), self.variables)
+        delta = dict2array(process(z), self.variables) * (t_step * units.h)
         self.z += delta
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
@@ -148,22 +149,12 @@ class System:
       self.flows[analyte, compartment_source, compartment_dest] += rate
       self.Qs[analyte, compartment_source, compartment_dest] += rate / self.volumes[analyte, compartment_dest]
   
-  # set compartment as None if it happens everywhere
-  # powers: dict of powers for each analyte
-  # deltas: dict of concentration changes of the analytes per reaction
   def add_reaction(self, compartment, reaction):
     compartment = self.compartments.index(compartment)
     self.reactions.append([compartment, reaction])
   
-  def str_reaction(self, reaction):
-    compartment, coefficient, powers, deltas = reaction
-    str = f"[{compartment}] "
-    str += "[rate = " + " * ".join([f"{coefficient:.6f}"] + [f"{self.analytes[analyte]}^{power}" for analyte,power in enumerate(powers) if power > 0]) + "] "
-    
-    inputs = [f"{-delta}*{self.analytes[analyte]}" for analyte,delta in enumerate(deltas) if delta < 0]
-    outputs = [f"{delta}*{self.analytes[analyte]}" for analyte,delta in enumerate(deltas) if delta > 0]
-    str += "[" + " + ".join(inputs) + " → " + " + ".join(outputs) + "]"
-    return str
+  def add_process(self, process):
+    self.processes.append(process)
   
   def print(self):
     volumes = pd.DataFrame(self.volumes, index = self.analytes, columns = self.compartments)
@@ -177,6 +168,5 @@ class System:
       print(f"<flow of {analyte}>", flush = True)
       print(flows, flush = True)
       print(" ", flush = True)
-    print("<reactions>", flush = True)
-    for reaction in self.reactions:
-      print(self.str_reaction(reaction), flush = True)
+    print(f"<{len(self.reactions)} reactions>", flush = True)
+    print(f"<{len(self.processes)} reactions>", flush = True)
