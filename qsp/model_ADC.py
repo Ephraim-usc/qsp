@@ -26,11 +26,64 @@ def model(host, target, linker, drug, DAR):
   for organ in ["SI", "LI", "spleen", "pancreas"]:
     system.add_flow("adc", f"{organ}_plasma", "liver_plasma", host[f"plasma_flow_{organ}"] - host[f"lymphatic_flow_{organ}"])
     system.add_flow("drug", f"{organ}_plasma", "liver_plasma", host[f"plasma_flow_{organ}"])
+    system.add_flow("adc", f"{organ}_BC", "liver_BC", host[f"BC_flow_{organ}"])
+    system.add_flow("drug", f"{organ}_BC", "liver_BC", host[f"BC_flow_{organ}"])
+    
     system.add_flow("adc", "liver_plasma", "plasma", host[f"plasma_flow_{organ}"] - host[f"lymphatic_flow_{organ}"])
     system.add_flow("drug", "liver_plasma", "plasma", host[f"plasma_flow_{organ}"])
+    system.add_flow("adc", "liver_BC", "BC", host[f"BC_flow_{organ}"])
+    system.add_flow("drug", "liver_BC", "BC", host[f"BC_flow_{organ}"])
   
   for organ in [organ for organ in organs if organ not in ["lung"] + ["SI", "LI", "spleen", "pancreas"]]:
     system.add_flow("adc", f"{organ}_plasma", "plasma", host[f"plasma_flow_{organ}"] - host[f"lymphatic_flow_{organ}"])
+    system.add_flow("drug", f"{organ}_plasma", "plasma", host[f"plasma_flow_{organ}"])
+    system.add_flow("adc", f"{organ}_BC", "BC", host[f"BC_flow_{organ}"])
+    system.add_flow("drug", f"{organ}_BC", "BC", host[f"BC_flow_{organ}"])
+  
+  # lymphatic circle of adc
+  for organ in organs:
+    system.add_flow("adc", f"{organ}_plasma", f"{organ}_interstitial", host[f"lymphatic_flow_{organ}"] * (1 - host[f"vascular_reflection_{organ}"]))
+    system.add_flow("adc", f"{organ}_interstitial", "lymph", host[f"lymphatic_flow_{organ}"] * (1 - host["lymphatic_reflection"]))
+    system.add_flow("adc", "lymph", "plasma", host[f"lymphatic_flow_{organ}"]) # the article used a different measure, which I think is weird
 
-  #
+  # endosomal take-up and plasma recycle
+  for organ in organs:
+    v = system.get_volume("adc", f"{organ}_endosomal")
+    system.add_flow("adc", f"{organ}_plasma", f"{organ}_endosomal", host["endosomal_pinocytosis"] * v)
+    system.add_flow("adc", f"{organ}_interstitial", f"{organ}_endosomal", host["endosomal_pinocytosis"] * v)
+    system.add_flow("adc", f"{organ}_endosomal", f"{organ}_plasma", host["endosomal_pinocytosis"] * v * host["plasma_recycle"])
+    system.add_flow("adc", f"{organ}_endosomal", f"{organ}_interstitial", host["endosomal_pinocytosis"] * v * (1 - host["plasma_recycle"]))
+  
+  # target binding and internalization
+  for organ in organs:
+    v = system.get_volume("adc", f"{organ}_membrane")
+    system.add_flow("adc", f"{organ}_interstitial", f"{organ}_membrane", K_on_HER2 * N_HER2 * cell_density / units.avagadro * v)
+    system.add_flow("adc", f"{organ}_membrane", f"{organ}_interstitial", K_off_HER2 * v)
+    system.add_flow("adc", f"{organ}_membrane", f"{organ}_cellular", K_int * v)
+
+  
+  # dissociatoin and degradation
+  def degradation_endosomal(x, z):
+    DAR = z["DAR"]
+    rate = drug["degradation_endosomal"] * x["adc"]
+    return {"adc": -rate, "drug": DAR * rate}
+  
+  def degradation_cellular(x, z):
+    DAR = z["DAR"]
+    rate = drug["degradation_cellular"] * x["adc"]
+    return {"adc": -rate, "drug": DAR * rate}
+  
+  def dissociation(x, z):
+    DAR = z["DAR"]
+    if callable(drug["dissociation"]):
+      rate = drug["dissociation"](DAR) * x["adc"]
+    else:
+      rate = drug["dissociation"] * x["adc"]
+    return {"adc": -rate, "drug": DAR * rate}
+  
+  for organ in organs:
+    system.add_reaction(f"{organ}_endosomal", degradation_endosomal)
+    system.add_reaction(f"{organ}_cellular", degradation_cellular)
+  
+  system.add_reaction("plasma", dissociation)
   
