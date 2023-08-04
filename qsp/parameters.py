@@ -40,7 +40,10 @@ volumes_human = np.array([3126, 2558, 274,
                          ]) * units.ml
 
 plasma_flows_mouse = np.array([36.5, 373, 86.1, 27.8, 13.4, 15.2, 11.8, 68.5, 10.3, 58.1, 17.3, 6.24, 1.19, 8.18, 10.9]) * units.ml/units.h
+plasma_flows_human = np.array([7752, 181913, 33469, 11626, 11233, 2591, 21453, 36402, 13210, 12368, 12867, 3056, 353, 6343, 5521]) * units.ml/units.h
 
+BC_flows_mouse = np.array([29.9, 305, 70.5, 22.8, 11.0, 12.4, 9.64, 56.1, 8.40, 47.5, 14.1, 5.10, 0.97, 6.70, 8.91]) * units.ml/units.h
+BC_flows_human = np.array([6342, 148838, 27383, 9512, 9191, 2120, 17553, 29784, 10808, 10120, 10527, 2500, 289, 5189, 4517]) * units.ml/units.h
 
 vascular_reflections_mouse = np.array([0.95, 0.95, 0.95, 0.95, 0.95, 0.85, 0.99, 0.9, 0.85, 0.9, 0.95, 0.9, 0.9, 0.85, 0.95])
 lymphatic_reflection_mouse = 0.2
