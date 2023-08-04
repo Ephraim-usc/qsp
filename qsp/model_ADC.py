@@ -56,10 +56,37 @@ def model(host, target, linker, drug, DAR):
   
   # target binding and internalization
   for organ in organs:
-    v = system.get_volume("adc", f"{organ}_membrane")
-    system.add_flow("adc", f"{organ}_interstitial", f"{organ}_membrane", K_on_HER2 * N_HER2 * cell_density / units.avagadro * v)
-    system.add_flow("adc", f"{organ}_membrane", f"{organ}_interstitial", K_off_HER2 * v)
-    system.add_flow("adc", f"{organ}_membrane", f"{organ}_cellular", K_int * v)
+    v = system.get_volume("adc", f"{organ}_interstitial")
+    system.add_flow("adc", f"{organ}_interstitial", f"{organ}_membrane", target["on"] * (target[f"num_{organ}"] * host[f"cell_density_{organ}"] / units.avagadro) * v)
+    system.add_flow("adc", f"{organ}_membrane", f"{organ}_interstitial", target["off"] * v)
+    system.add_flow("adc", f"{organ}_membrane", f"{organ}_cellular", target["int"] * v)
+  
+  # blood cell up-take
+  system.add_flow("drug", "plasma", "BC", drug["permeability_BC"] * unbound_proportion_plasma)
+  system.add_flow("drug", "BC", "plasma", permeability_surface_area_coefficient_BC * PS * unbound_proportion_BC)
+  
+  for organ in organs:
+    system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_BC", permeability_surface_area_coefficient_BC * PS * unbound_proportion_plasma)
+    system.add_flow("MMAE", f"{organ}_BC", f"{organ}_plasma", permeability_surface_area_coefficient_BC * PS * unbound_proportion_BC)
+  
+  
+  # organ plasma to interstitial flow (here I do not follow the authors in multiplying plasma flow by 1000)
+  for organ in organs:
+    system.add_flow("MMAE", f"{organ}_plasma", f"{organ}_endosomal", plasma_flows[organ] * unbound_proportion_plasma * 1000)
+    system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_plasma", plasma_flows[organ] * 1000)
+    
+    system.add_flow("MMAE", f"{organ}_endosomal", f"{organ}_interstitial", plasma_flows[organ] * 1000)
+    system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_endosomal", plasma_flows[organ] * 1000)
+  
+  
+  # cellular take-up
+  for organ in organs:
+    system.add_flow("MMAE", f"{organ}_interstitial", f"{organ}_cellular", permeability_surface_area_coefficients[organ] * PS)
+    system.add_flow("MMAE", f"{organ}_cellular", f"{organ}_interstitial", permeability_surface_area_coefficients[organ] * PS * unbound_proportions[organ])
+  
+  
+  # liver clearance
+  system.add_flow("MMAE", "liver_interstitial", None, liver_clearance_rate * CL)
 
   
   # dissociatoin and degradation
