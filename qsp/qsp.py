@@ -88,11 +88,11 @@ class System:
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
       for compartment, reaction in self.reactions:
         x = array2dict(self.x[:, compartment] * units.nM, self.analytes)
-        z = array2dict(self.z[variable], self.variables)
+        z = array2dict(self.z, self.variables)
         delta = dict2array(reaction(x, z), self.analytes) * (t_step * units.h)
         self.x[:, compartment] += array_number(delta, units.nM)
       for process in self.processes:
-        z = array2dict(self.z[variable], self.variables)
+        z = array2dict(self.z, self.variables)
         delta = dict2array(process(z), self.variables) * (t_step * units.h)
         self.z += delta
       
