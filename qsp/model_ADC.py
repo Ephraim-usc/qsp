@@ -93,28 +93,28 @@ def model(host, target, linker, drug):
   # dissociatoin and degradation
   def degradation_endosomal(x, z):
     DAR = z["DAR"]
-    rate = drug["degradation_endosomal"] * x["adc"]
+    rate = linker["degradation_endosomal"] * x["adc"]
     return {"adc": -rate, "drug": DAR * rate}
   
   def degradation_cellular(x, z):
     DAR = z["DAR"]
-    rate = drug["degradation_cellular"] * x["adc"]
+    rate = linker["degradation_cellular"] * x["adc"]
     return {"adc": -rate, "drug": DAR * rate}
   
   def dissociation(x, z):
     DAR = z["DAR"]
-    if callable(drug["dissociation"]):
-      rate = drug["dissociation"](DAR) * x["adc"]
+    if callable(linker["dissociation"]):
+      rate = linker["dissociation"](DAR) * x["adc"]
     else:
-      rate = drug["dissociation"] * x["adc"]
+      rate = linker["dissociation"] * x["adc"]
     return {"adc": -rate, "drug": DAR * rate}
   
   def DAR_decay(z):
     DAR = z["DAR"]
-    if callable(drug["dissociation"]):
-      rate = drug["dissociation"](DAR)
+    if callable(linker["dissociation"]):
+      rate = linker["dissociation"](DAR)
     else:
-      rate = drug["dissociation"]
+      rate = linker["dissociation"]
     return {"DAR":-DAR * rate}
   
   for organ in organs:
