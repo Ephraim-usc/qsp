@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import unum
 import unum.units as units
 
-units.none = units.m / units.m
 units.l = unum.new_unit('l', 1e-3 * units.m ** 3)
 units.ml = unum.new_unit('ml', 1e-3 * units.l)
 units.pl = unum.new_unit('pl', 1e-12 * units.l)
@@ -54,7 +53,7 @@ class System:
     
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments])
-    self.z = np.zeros(self.n_variables)
+    self.z = np.zeros(self.n_variables, dtype = "O")
     self.history = None
   
   def clear_x(self):
@@ -72,7 +71,7 @@ class System:
   
   def set_z(self, variable, value):
     variable = self.variables.index(variable)
-    self.z[variable] = value * units.none
+    self.z[variable] = value
   
   def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t_end = t_end.number(units.h)
