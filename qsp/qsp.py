@@ -94,7 +94,7 @@ class System:
       for process in self.processes:
         z = array2dict(self.z, self.variables)
         delta = dict2array(process(z), self.variables) * (t_step * units.h)
-        self.z += delta
+        self.z += array_number(delta, 1)
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
