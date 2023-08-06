@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import unum
 import unum.units as units
 
+units.none = units.m / units.m
 units.l = unum.new_unit('l', 1e-3 * units.m ** 3)
 units.ml = unum.new_unit('ml', 1e-3 * units.l)
 units.pl = unum.new_unit('pl', 1e-12 * units.l)
@@ -71,7 +72,7 @@ class System:
   
   def set_z(self, variable, value):
     variable = self.variables.index(variable)
-    self.z[variable] = value
+    self.z[variable] = value * units.none
   
   def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t_end = t_end.number(units.h)
@@ -94,7 +95,7 @@ class System:
       for process in self.processes:
         z = array2dict(self.z, self.variables)
         delta = dict2array(process(z), self.variables) * (t_step * units.h)
-        self.z += array_number(delta, 1)
+        self.z += delta
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
