@@ -115,10 +115,10 @@ class System:
         X = [t for t, x in self.history]
         Y = [x[analyte, compartment] for t, x in self.history]
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
-        ax.axhline(y = 1, color = 'lightgrey', linestyles = '-', lw = 1)
-        ax.axhline(y = 10, color = 'lightgrey', linestyles = '-', lw = 1)
-        ax.axhline(y = 100, color = 'lightgrey', linestyles = '-', lw = 1)
-        ax.axhline(y = 1000, color = 'lightgrey', linestyles = '-', lw = 1)
+        ax.axhline(y = 1, color = 'lightgrey', lw = 1)
+        ax.axhline(y = 10, color = 'lightgrey', lw = 1)
+        ax.axhline(y = 100, color = 'lightgrey', lw = 1)
+        ax.axhline(y = 1000, color = 'lightgrey', lw = 1)
         ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.2f}nM")
       ax.set_yscale('symlog', linthresh = 1)
       ax.set_yticks([0, 1, 10, 100, 1000, 10000])
