@@ -173,7 +173,7 @@ class System:
       if not flows.any():
         continue
       for j, compartment in enumerate(self.compartments):
-        flow = array2dict(np.round(flows[j,:], 6), system.compartments, trim = True)
+        flow = array2dict(np.round(flows[j,:], 6), self.compartments, trim = True)
         print(f"{compartment} {flow}", flush = True)
       print(" ", flush = True)
     print(f"<{len(self.reactions)} reactions>", flush = True)
