@@ -83,9 +83,12 @@ human.update({"endosomal_pinocytosis":endosomal_pinocytosis, "plasma_recycle":pl
 
 ################### targets ###################
 # organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
-nums_zero = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+nums_zero = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 nums_HER2 = np.array([1e4, 1e4, 1e4, 1e4, 0, 1e3, 0, 1e3, 1e3, 1e3, 1e3, 0, 1e3, 0, 0])
+nums_CAIX = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1e5, 1e5, 0, 0, 0, 0, 0])
+nums_EGFR = np.array([1e3, 1e5, 1e3, 1e4, 1e3, 0, 1e3, 1e4, 1e4, 1e3, 1e4, 1e4, 1e4, 0, 0])
 
+# from Singh et al. 2020
 on_HER2 = 0.03 / units.nM / units.h
 off_HER2 = 0.014 / units.h
 int_HER2 = 0.11 / units.h
@@ -96,6 +99,12 @@ zero.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 
 HER2 = {f"num_{organ}":num for organ, num in zip(organs, nums_HER2)}
 HER2.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
+
+CAIX = {f"num_{organ}":num for organ, num in zip(organs, nums_CAIX)}
+CAIX.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
+
+EGFR = {f"num_{organ}":num for organ, num in zip(organs, nums_EGFR)}
+EGFR.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 
 
 ################### linkers ###################
@@ -116,6 +125,7 @@ vc.update({"dissociation":dissociation_vc, "degradation_endosomal":degradation_e
 
 
 ################### drugs ###################
+# organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
 PSs_MMAE = np.array([1.47, 2.47, 3.16, 0.681, 0.588, 0.568, 0.00825, 14.2, 49.2, 0.457, 0.457, 0.0657, 0.457, 0.457, 0.457]) * units.ml/units.h
 PS_BC_MMAE = 0.105 * units.ml/units.h
 
