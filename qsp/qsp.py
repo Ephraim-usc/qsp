@@ -25,8 +25,11 @@ def dict2array(x, names):
     buffer[names.index(key)] += value
   return buffer
 
-def array2dict(x, names):
-  buffer = {name:x_ for name, x_ in zip(names, x)}
+def array2dict(x, names, trim = False):
+  if trim:
+    buffer = {name:x_ for name, x_ in zip(names, x) if x_ != 0}
+  else:
+    buffer = {name:x_ for name, x_ in zip(names, x)}
   return buffer
 
 def array_number(x, unit):
@@ -162,11 +165,12 @@ class System:
     print(volumes, flush = True)
     print(" ", flush = True)
     for i, analyte in enumerate(self.analytes):
-      flows = pd.DataFrame(self.flows[i,:,:], index = self.compartments, columns = self.compartments)
-      if not flows.values.any():
+      flows = self.flows[i,:,:]
+      if not flows.any():
         continue
-      print(f"<flow of {analyte}>", flush = True)
-      print(flows, flush = True)
+      for j, compartment in enumerate(self.compartments):
+        flow = array2dict(np.round(flows[j,:], 6), system.compartments, trim = True)
+        print(f"{compartment} {flow}", flush = True)
       print(" ", flush = True)
     print(f"<{len(self.reactions)} reactions>", flush = True)
     print(f"<{len(self.processes)} processes>", flush = True)
