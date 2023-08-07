@@ -86,7 +86,7 @@ human.update({"endosomal_pinocytosis":endosomal_pinocytosis, "plasma_recycle":pl
 nums_zero = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 nums_HER2 = np.array([1e4, 1e4, 1e4, 1e4, 0, 1e3, 0, 1e3, 1e3, 1e3, 1e3, 0, 1e3, 0, 0])
 nums_CAIX = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1e5, 1e5, 0, 0, 0, 0, 0])
-nums_EGFR = np.array([1e3, 1e5, 1e3, 1e4, 1e3, 0, 1e3, 1e4, 1e4, 1e3, 1e4, 1e4, 1e4, 0, 0])
+nums_EGFR = np.array([1e3, 1e5, 1e3, 1e5, 1e3, 0, 1e3, 1e4, 1e4, 1e3, 1e4, 1e4, 1e4, 0, 0])
 
 # from Singh et al. 2020
 on_HER2 = 0.03 / units.nM / units.h
