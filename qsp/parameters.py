@@ -87,6 +87,7 @@ nums_zero = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 nums_HER2 = np.array([1e4, 1e4, 1e4, 1e4, 0, 1e3, 0, 1e3, 1e3, 1e3, 1e3, 0, 1e3, 0, 0])
 nums_CAIX = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1e5, 1e5, 0, 0, 0, 0, 0])
 nums_EGFR = np.array([1e3, 1e5, 1e3, 1e5, 1e3, 0, 1e3, 1e4, 1e4, 1e3, 1e4, 1e4, 1e4, 0, 0])
+nums_mesothelin = np.array([0, 1e5, 0, 1e3, 0, 0, 0, 0, 0, 0, 1e4, 0, 0, 0, 0])
 
 # from Singh et al. 2020
 on_HER2 = 0.03 / units.nM / units.h
@@ -106,6 +107,8 @@ CAIX.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 EGFR = {f"num_{organ}":num for organ, num in zip(organs, nums_EGFR)}
 EGFR.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 
+mesothelin = {f"num_{organ}":num for organ, num in zip(organs, nums_mesothelin)}
+mesothelin.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 
 ################### linkers ###################
 # dissociation_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
