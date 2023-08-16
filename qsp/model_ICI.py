@@ -10,11 +10,14 @@ mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * un
 mouse.update({"distribution": 4.82 * units.ml/units.d})
 mouse.update({"clearance": 0.334 * units.ml/units.d})
 mouse.update({"max_nonlinear_clearance": 0.518 * units.microgram/units.d, "max_nonlinear_clearance": 0.366 * units.microgram/units.ml})
+mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "vascular_recycle": 0.715})
+mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 
 MC38 = {}
 MC38.update({"volume": 170 * units.microliter})
 MC38.update({"volume_plasma_proportion": 0.07, "volume_endosomal_proportion": 0.005, "volume_interstitial_proportion": 0.55})
 MC38.update({"plasma_flow_density": 12.7 / units.h})
+MC38.update({"lymphatic_flow_ratio": 0.002})
 
 def model(host, target, mask, tumor):
   system = System(analytes, compartments)
@@ -31,12 +34,25 @@ def model(host, target, mask, tumor):
     system.add_flow(analyte, "central", None, host["clearance"])
     system.add_flow(analyte, "central", "peripheral", host["distribution"])
     system.add_flow(analyte, "peripheral", "central", host["distribution"])
-  
+
+  # tumor plasma and lymphatic flow
   for analyte in ["masked", "unmasked"]:
     system.add_flow(analyte, "central", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
-    system.add_flow(analyte, "tumor_plasma", "central", tumor["volume"] * tumor["plasma_flow_density"])
-
+    system.add_flow(analyte, "tumor_plasma", "central", tumor["volume"] * tumor["plasma_flow_density"] * (1 - tumor["lymphatic_flow_ratio"]))
+    
+    system.add_flow(analyte, "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - tumor["vascular_reflection"]))
+    system.add_flow(analyte, "tumor_interstitial", "central", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - tumor["lymphatic_reflection"]))
   
+  # endosomal take-up
+  for analyte in ["masked", "unmasked"]:
+    system.add_flow(analyte, "tumor_plasma", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
+    system.add_flow(analyte, "tumor_interstitial", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
+    system.add_flow(analyte, "tumor_endosomal", "tumor_plasma", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"] * host["vascular_recycle"])
+    system.add_flow(analyte, "tumor_endosomal", "tumor_interstitial", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]))
+
+  # complex degradation
+  for analyte in ["PD1-masked", "PD1-unmasked"]:
+    
   
   # nonlinear clearance reaction
   # PD1 association reaction
