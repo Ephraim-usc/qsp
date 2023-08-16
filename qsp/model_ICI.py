@@ -6,13 +6,15 @@ analytes = ["masked", "unmasked", "PD1", "PD1-masked", "PD1-unmasked", "FcRn", "
 compartments = ["central", "peripheral", "tumor_plasma", "tumor_endosomal", "tumor_interstitial"]
 
 mouse = []
-mouse.update({"volume_central":1.26*units.ml, "volume_peripheral":0.819*units.ml})
-
+mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * units.ml})
+mouse.update({"distribution": 4.82 * units.ml/units.d})
+mouse.update({"clearance": 0.334 * units.ml/units.d})
+mouse.update({"max_nonlinear_clearance": 0.518 * units.microgram/units.d, "max_nonlinear_clearance": 0.366 * units.microgram/units.ml})
 
 MC38 = {}
-MC38.update({"volume":170 * units.microliter})
-MC38.update({"ratio_plasma":0.07, "ratio_endosomal":0.005, "ratio_interstitial":0.55})
-
+MC38.update({"volume": 170 * units.microliter})
+MC38.update({"volume_plasma_proportion": 0.07, "volume_endosomal_proportion": 0.005, "volume_interstitial_proportion": 0.55})
+MC38.update({"plasma_flow_density": 12.7 / units.h})
 
 def model(host, target, mask, tumor):
   system = System(analytes, compartments)
@@ -20,15 +22,25 @@ def model(host, target, mask, tumor):
   for analyte in analytes:
     system.set_volume(analyte, "central", host["volume_central"])
     system.set_volume(analyte, "peripheral", host["volume_peripheral"])
-    system.set_volume(analyte, "tumor_plasma", tumor["ratio_plasma"])
-    system.set_volume(analyte, "tumor_endosomal", tumor["ratio_endosomal"])
-    system.set_volume(analyte, "tumor_interstitial", tumor["ratio_interstitial"])
+    system.set_volume(analyte, "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
+    system.set_volume(analyte, "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"])
+    system.set_volume(analyte, "tumor_interstitial", tumor["volume"] * tumor["volume_interstitial_proportion"])
   
-  # plasma and BC circles of adc and drug
-  system.add_flow("adc", "plasma", "lung_plasma", host["plasma_flow_lung"])
-  system.add_flow("drug", "plasma", "lung_plasma", host["plasma_flow_lung"])
-  system.add_flow("adc", "BC", "lung_BC", host["BC_flow_lung"])
-  system.add_flow("drug", "BC", "lung_BC", host["BC_flow_lung"])
+  # distribution and clearance
+  for analyte in ["masked", "unmasked"]:
+    system.add_flow(analyte, "central", None, host["clearance"])
+    system.add_flow(analyte, "central", "peripheral", host["distribution"])
+    system.add_flow(analyte, "peripheral", "central", host["distribution"])
+  
+  for analyte in ["masked", "unmasked"]:
+    system.add_flow(analyte, "central", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
+    system.add_flow(analyte, "tumor_plasma", "central", tumor["volume"] * tumor["plasma_flow_density"])
+
+  
+  
+  # nonlinear clearance reaction
+  # PD1 association reaction
+  
   
   for organ in [organ for organ in organs if organ not in ["lung"]]:
     system.add_flow("adc", "lung_plasma", f"{organ}_plasma", host[f"plasma_flow_{organ}"])
