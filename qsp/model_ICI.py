@@ -1,18 +1,28 @@
 from .qsp import *
 
-organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
-tissues = ["plasma", "BC", "interstitial", "endosomal", "membrane", "cellular"]
-centrals = ["plasma", "BC", "lymph"]
-compartments = centrals + [f"{organ}_{tissue}" for organ in organs for tissue in tissues]
+### this model is mostly from (A Lindauer et al. 2016) and (Mark Stroh et al. 2019)
 
-def model(host, target, linker, drug):
-  analytes = ["adc", "drug"]
-  variables = ["DAR"]
-  system = System(analytes, compartments, variables)
+analytes = ["masked", "unmasked", "PD1", "PD1-masked", "PD1-unmasked", "FcRn", "FcRn-masked", "FcRn-unmasked"]
+compartments = ["central", "peripheral", "tumor_plasma", "tumor_endosomal", "tumor_interstitial"]
+
+mouse = []
+mouse.update({"volume_central":1.26*units.ml, "volume_peripheral":0.819*units.ml})
+
+
+MC38 = {}
+MC38.update({"volume":170 * units.microliter})
+MC38.update({"ratio_plasma":0.07, "ratio_endosomal":0.005, "ratio_interstitial":0.55})
+
+
+def model(host, target, mask, tumor):
+  system = System(analytes, compartments)
   
   for analyte in analytes:
-    for compartment in compartments:
-      system.set_volume(analyte, compartment, host[f"volume_{compartment}"])
+    system.set_volume(analyte, "central", host["volume_central"])
+    system.set_volume(analyte, "peripheral", host["volume_peripheral"])
+    system.set_volume(analyte, "tumor_plasma", tumor["ratio_plasma"])
+    system.set_volume(analyte, "tumor_endosomal", tumor["ratio_endosomal"])
+    system.set_volume(analyte, "tumor_interstitial", tumor["ratio_interstitial"])
   
   # plasma and BC circles of adc and drug
   system.add_flow("adc", "plasma", "lung_plasma", host["plasma_flow_lung"])
