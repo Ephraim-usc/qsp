@@ -13,6 +13,7 @@ import unum.units as units
 
 units.l = unum.new_unit('l', 1e-3 * units.m ** 3)
 units.ml = unum.new_unit('ml', 1e-3 * units.l)
+units.microliter = unum.new_unit('microliter', 1e-6 * units.l)
 units.pl = unum.new_unit('pl', 1e-12 * units.l)
 units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
 units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
