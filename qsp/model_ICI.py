@@ -64,6 +64,16 @@ def model(host, target, mask, tumor):
     system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = "tumor_interstitial", side_products = {f"{analyte}":1})
   
   # PD1 dynamics
+  def rate_func(system):
+    x_target = system.get_x("target")
+    x_complex = system.get_x("target-masked", "tumor_interstitial") + system.get_x("target-unmasked", "tumor_interstitial")
+    rate = target["growth"] * (1 + target["TPemax"] * x_complex / (target["TPec50"] + x_complex)) - target["exhaustion"] * x_target
+    return rate
+  
+  def change_func(system, t):
+    system.x[system.analytes.index("PD1"), system.compartments.index("tumor_interstitial")] += (delta * t * units.h).number(units.nM)
+  
+  system.add_process(Process(rate_func, change_func))
   
   # PD1 association
   system.add_reaction("central", {"masked":1, "target":1}, {"target-masked":1}, target["on"] * mask["foldchange"], target["off"])
