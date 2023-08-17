@@ -10,8 +10,10 @@ mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * un
 mouse.update({"distribution": 4.82 * units.ml/units.d})
 mouse.update({"clearance": 0.334 * units.ml/units.d})
 mouse.update({"max_nonlinear_clearance": 0.518 * units.microgram/units.d, "max_nonlinear_clearance": 0.366 * units.microgram/units.ml})
-mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "vascular_recycle": 0.715})
 mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
+mouse.update({"internalization": 0.0194/ units.h})
+
 
 MC38 = {}
 MC38.update({"volume": 170 * units.microliter})
@@ -45,14 +47,17 @@ def model(host, target, mask, tumor):
   
   # endosomal take-up
   for analyte in ["masked", "unmasked"]:
+    system.add_flow(analyte, "tumor_endosomal", None, tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_degradation"])
+    
     system.add_flow(analyte, "tumor_plasma", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
     system.add_flow(analyte, "tumor_interstitial", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
     system.add_flow(analyte, "tumor_endosomal", "tumor_plasma", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"] * host["vascular_recycle"])
     system.add_flow(analyte, "tumor_endosomal", "tumor_interstitial", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]))
 
-  # complex degradation
+  # complex internalization
   for analyte in ["PD1-masked", "PD1-unmasked"]:
-    
+    system.add_flow(analyte, "central", None, host["volume_central"] * host["internalization"])
+    system.add_flow(analyte, "tumor_interstitial", None, tumor["volume"] * tumor["volume_interstitial_proportion"] * host["internalization"])
   
   # nonlinear clearance reaction
   # PD1 association reaction
