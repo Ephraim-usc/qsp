@@ -15,7 +15,10 @@ mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation"
 mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 1/units.nM/units.d, "FcRn-off": 6.55 / units.h})
 
 PD1 = {}
+PD1.update({"central": (1e4 * 1000/units.microliter) / units.avagadro}); PD1.update({"tumor": PD1["central"] * 4.3})
 PD1.update({"on": 0.34 * 1/units.nM/units.d, "off": 0.106 / units.h, "internalization": 0.0194/ units.h})
+PD1.update({"death": 0.02 / units.d})
+PD1.update({"growth": PD1["central"] * PD1["death"]})
 
 Tx = {}
 Tx.update({"foldchange": 0.01, "cleavage_central": 0.05 / units.d, "cleavage_tumor": 0.2 / units.d})
@@ -25,7 +28,6 @@ MC38.update({"volume": 170 * units.microliter})
 MC38.update({"volume_plasma_proportion": 0.07, "volume_endosomal_proportion": 0.005, "volume_interstitial_proportion": 0.55})
 MC38.update({"plasma_flow_density": 12.7 / units.h})
 MC38.update({"lymphatic_flow_ratio": 0.002})
-
 
 
 def model(host, target, mask, tumor):
@@ -88,5 +90,10 @@ def model(host, target, mask, tumor):
   
   # nonlinear clearance reaction
   
+  
+  # initial concentrations
+  system.set_x("target", "central", target["central"])
+  system.set_x("target", "tumor_interstitial", target["tumor"])
+  system.set_x("FcRn", "tumor_endosomal", host["FcRn"])
   
   return system
