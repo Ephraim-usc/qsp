@@ -205,10 +205,6 @@ class System:
     reaction = Reaction(compartment, reactants, products, forward, backward, side_compartment, side_products)
     self.reactions.append(reaction)
   
-  def add_reaction(self, compartment, reaction):
-    compartment = self.compartments.index(compartment)
-    self.reactions.append([compartment, reaction])
-  
   def add_process(self, process):
     self.processes.append(process)
   
