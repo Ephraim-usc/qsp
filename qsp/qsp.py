@@ -192,9 +192,9 @@ class System:
     compartment = self.compartments.index(compartment)
     reactants = dict2array(reactants, self.analytes)
     products = dict2array(products, self.analytes)
-    forward = forward.number(units.nM / units.h / units.nM**(reactants.sum().astype(int)))
+    forward = forward.number(units.nM / units.h / units.nM**(reactants.astype(int).sum()))
     if backward is not None:
-      backward = backward.number(units.nM / units.h / units.nM**(products.sum().astype(int)))
+      backward = backward.number(units.nM / units.h / units.nM**(products.astype(int).sum()))
     if side_compartment is not None:
       assert side_products is not None, "side compartment is given, but products not provided!"
       side_compartment = self.compartments.index(side_compartment)
