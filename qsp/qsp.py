@@ -43,11 +43,6 @@ def array_number(x, unit):
 
 class Reaction:
   def __init__(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
-    if side_compartment is not None:
-      assert side_products is not None, "side compartment is given, but products not provided!"
-    if side_products is not None:
-      assert side_compartment is not None, "side products are given, but compartment not specified!"
-
     self.compartment = compartment
     self.reactants = reactants
     self.products = products
@@ -62,6 +57,16 @@ class Reaction:
     
     system.x[:, compartment] += delta
     system.x[:, side_compartment] += delta_side
+
+
+class Process:
+  def __init__(self, rate_func, change_func):
+    self.rate_func = rate_func
+    self.change_func = change_func
+  
+  def apply(self, system, t):
+    rate = self.rate_func(system)
+    self.change_func(system, rate * t)
 
 
 class System:
@@ -116,15 +121,10 @@ class System:
       self.t = min(self.t + t_step, t_end)
       for analyte in flowing_analytes:
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
-      for compartment, reaction in self.reactions:
-        x = array2dict(self.x[:, compartment] * units.nM, self.analytes)
-        z = array2dict(self.z, self.variables)
-        delta = dict2array(reaction(x, z), self.analytes) * (t_step * units.h)
-        self.x[:, compartment] += array_number(delta, units.nM)
+      for reaction in self.reactions:
+        reaction.apply(self, self.t - t_)
       for process in self.processes:
-        z = array2dict(self.z, self.variables)
-        delta = dict2array(process(z), self.variables) * (t_step * units.h)
-        self.z += delta
+        process.apply(self, self.t - t_)
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
@@ -170,6 +170,11 @@ class System:
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
     return self.volumes[analyte, compartment] * units.ml
+
+  def get_x(self, analyte, compartment):
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    return self.x[analyte, compartment] * units.mM
   
   # set compartment_dest as None if it is a clearance
   def add_flow(self, analyte, compartment_source, compartment_dest, rate):
