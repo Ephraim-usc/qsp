@@ -41,6 +41,29 @@ def array_number(x, unit):
   return buffer
 
 
+class Reaction:
+  def __init__(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
+    if side_compartment is not None:
+      assert side_products is not None, "side compartment is given, but products not provided!"
+    if side_products is not None:
+      assert side_compartment is not None, "side products are given, but compartment not specified!"
+
+    self.compartment = compartment
+    self.reactants = reactants
+    self.products = products
+    self.forward = forward
+    self.side_compartment = side_compartment
+    self.side_products = side_products
+  
+  def apply(self, system, t):
+    rate = np.power(system.x[:, compartment], self.reactants).prod() * self.forward - np.power(system.x[:, compartment], self.products).prod() * self.backward
+    delta = (self.products - self.reactants) * rate * t
+    delta_side = self.side_products * rate * t
+    
+    system.x[:, compartment] += delta
+    system.x[:, side_compartment] += delta_side
+
+
 class System:
   def __init__(self, analytes, compartments, variables = None):
     self.analytes = analytes
@@ -60,7 +83,7 @@ class System:
     
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments])
-    self.z = np.zeros(self.n_variables, dtype = "O")
+    self.z = np.zeros(self.n_variables, dtype = float)
     self.history = None
   
   def clear_x(self):
@@ -159,6 +182,23 @@ class System:
       compartment_dest = self.compartments.index(compartment_dest)
       self.flows[analyte, compartment_source, compartment_dest] += rate
       self.Qs[analyte, compartment_source, compartment_dest] += rate / self.volumes[analyte, compartment_dest]
+
+  def add_reaction(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
+    compartment = self.compartments.index(compartment)
+    reactants = dict2array(reactants, self.analytes)
+    products = dict2array(products, self.analytes)
+    forward = forward.number(units.nM / units.h / units.nM**(reactants.sum().astype(int)))
+    if backward is not None:
+      backward = backward.number(units.nM / units.h / units.nM**(products.sum().astype(int)))
+    if side_compartment is not None:
+      assert side_products is not None, "side compartment is given, but products not provided!"
+      side_compartment = self.compartments.index(side_compartment)
+    if side_products is not None:
+      assert side_compartment is not None, "side products are given, but compartment not specified!"
+      side_products = dict2array(side_products, self.analytes)
+    
+    reaction = Reaction(compartment, reactants, products, forward, backward, side_compartment, side_products)
+    self.reactions.append(reaction)
   
   def add_reaction(self, compartment, reaction):
     compartment = self.compartments.index(compartment)
