@@ -85,7 +85,7 @@ def model(host, target, mask, tumor):
 
   # complex internalization
   for analyte in ["target-masked", "target-unmasked"]:
-    system.add_flow(analyte, "central", None, host["volume_central"] * host["internalization"])
+    system.add_flow(analyte, "central", None, host["volume_central"] * target["internalization"])
     system.add_flow(analyte, "tumor_interstitial", None, tumor["volume"] * tumor["volume_interstitial_proportion"] * target["internalization"])
   
   # nonlinear clearance reaction
