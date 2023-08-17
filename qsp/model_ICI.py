@@ -5,7 +5,7 @@ from .qsp import *
 analytes = ["masked", "unmasked", "target", "target-masked", "target-unmasked", "FcRn", "FcRn-masked", "FcRn-unmasked"]
 compartments = ["central", "peripheral", "tumor_plasma", "tumor_endosomal", "tumor_interstitial"]
 
-mouse = []
+mouse = {}
 mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * units.ml})
 mouse.update({"distribution": 4.82 * units.ml/units.d})
 mouse.update({"clearance": 0.334 * units.ml/units.d})
