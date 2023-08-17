@@ -61,7 +61,7 @@ def model(host, target, mask, tumor):
     
     system.add_flow(analyte, "tumor_endosomal", None, tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_degradation"])
     
-    system.add_reaction("tumor_endosomal", {f"{analyte}":1, "FcRn":1}, {f"FcRn-{analyte}":1}, host["FcRn-on"], backward = target["FcRn-off"])
+    system.add_reaction("tumor_endosomal", {f"{analyte}":1, "FcRn":1}, {f"FcRn-{analyte}":1}, host["FcRn-on"], backward = host["FcRn-off"])
     system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * host["vascular_recycle"], side_compartment = "tumor_plasma", side_products = {f"{analyte}":1})
     system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = "tumor_interstitial", side_products = {f"{analyte}":1})
   
