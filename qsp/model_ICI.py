@@ -12,7 +12,7 @@ mouse.update({"clearance": 0.334 * units.ml/units.d})
 mouse.update({"max_nonlinear_clearance": 0.518 * units.microgram/units.d, "max_nonlinear_clearance": 0.366 * units.microgram/units.ml})
 mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
-mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 1/units.nM/units.d, "FcRn-off": 6.55 / units.h})
+mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/units.d, "FcRn-off": 6.55 / units.h})
 
 PD1 = {}
 PD1.update({"central": (1e4 * 1000/units.microliter) / units.avagadro}); PD1.update({"tumor": PD1["central"] * 4.3})
