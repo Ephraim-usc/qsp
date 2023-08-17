@@ -52,18 +52,16 @@ def model(host, target, mask, tumor):
     system.add_flow(analyte, "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - tumor["vascular_reflection"]))
     system.add_flow(analyte, "tumor_interstitial", "central", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - tumor["lymphatic_reflection"]))
   
-  # endosomal take-up
+  # endosomal take-up, degradation, and recycle
   for analyte in ["masked", "unmasked"]:
     system.add_flow(analyte, "tumor_plasma", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
     system.add_flow(analyte, "tumor_interstitial", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
-    system.add_flow(analyte, "tumor_endosomal", "tumor_plasma", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"] * host["vascular_recycle"])
-    system.add_flow(analyte, "tumor_endosomal", "tumor_interstitial", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]))
-
-  # endosomal degradation
-  system.add_flow("masked", "tumor_endosomal", None, tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_degradation"])
-  system.add_flow("unmasked", "tumor_endosomal", None, tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_degradation"])
-  system.add_reaction("tumor_endosomal", {"masked":1, "FcRn":1}, {"FcRn-masked":1}, host["FcRn-on"], target["FcRn-off"])
-  system.add_reaction("tumor_endosomal", {"unmasked":1, "FcRn":1}, {"FcRn-unmasked":1}, host["FcRn-on"], target["FcRn-off"])
+    
+    system.add_flow(analyte, "tumor_endosomal", None, tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_degradation"])
+    
+    system.add_reaction("tumor_endosomal", {f"{analyte}":1, "FcRn":1}, {f"FcRn-{analyte}":1}, host["FcRn-on"], backward = target["FcRn-off"])
+    system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * host["vascular_recycle"], side_compartment = "tumor_plasma", side_products = {f"{analyte}":1})
+    system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = "tumor_interstitial", side_products = {f"{analyte}":1})
   
   # 
   
