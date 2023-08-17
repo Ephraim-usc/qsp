@@ -63,12 +63,12 @@ def model(host, target, mask, tumor):
     system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * host["vascular_recycle"], side_compartment = "tumor_plasma", side_products = {f"{analyte}":1})
     system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = "tumor_interstitial", side_products = {f"{analyte}":1})
   
-  # 
+  # PD1 dynamics
   
   # PD1 association
-  system.add_reaction("central", {"masked":1, "target":1}, {"target-masked":1}, target["on"], target["off"])
+  system.add_reaction("central", {"masked":1, "target":1}, {"target-masked":1}, target["on"] * mask["foldchange"], target["off"])
   system.add_reaction("central", {"unmasked":1, "target":1}, {"target-unmasked":1}, target["on"], target["off"])
-  system.add_reaction("tumor_interstitial", {"masked":1, "target":1}, {"target-masked":1}, target["on"], target["off"])
+  system.add_reaction("tumor_interstitial", {"masked":1, "target":1}, {"target-masked":1}, target["on"] * mask["foldchange"], target["off"])
   system.add_reaction("tumor_interstitial", {"unmasked":1, "target":1}, {"target-unmasked":1}, target["on"], target["off"])
 
   # complex internalization
