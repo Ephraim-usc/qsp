@@ -11,12 +11,10 @@ def nonlinear_clearance(system, t):
   MAX = 0.518 * units.microgram/units.d / molecular_weight
   EC50 = 0.366 * units.microgram/units.ml / molecular_weight
   
-  x_masked = system.get_x("masked", "central")
-  x_unmasked = system.get_x("unmasked", "central")
-  rate_masked = MAX * x_masked / (x_masked + EC50) / system.get_volume("masked", "central")
-  rate_unmasked = MAX * x_unmasked / (x_unmasked + EC50) / system.get_volume("masked", "central")
-  system.add_x("masked", "central", rate_masked * t)
-  system.add_x("unmasked", "central", rate_unmasked * t)
+  for analyte in ["masked", "unmasked"]:
+    x = system.get_x(analyte, "central")
+    rate = - MAX * x / (x + EC50) / system.get_volume(analyte, "central")
+    system.add_x(analyte, "central", rate * t)
 
 mouse = {}
 mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * units.ml})
@@ -33,11 +31,12 @@ def PD1_dynamics(system, t):
   growth = death * (1e4 * 1000/units.microliter) / units.avagadro
   TPemax = 94.7
   TPec50 = 1.46 * units.nM
-  
-  x_target = system.get_x("target", "tumor_interstitial")
-  x_complex = system.get_x("target-masked", "tumor_interstitial") + system.get_x("target-unmasked", "tumor_interstitial")
-  rate = growth * (1 + TPemax * x_complex / (TPec50 + x_complex)) - death * x_target
-  system.add_x("target", "tumor_interstitial", rate * t)
+
+  for compartment in ["central", "tumor_interstitial"]:
+    x_target = system.get_x("target", compartment)
+    x_complex = system.get_x("target-masked", compartment) + system.get_x("target-unmasked", compartment)
+    rate = growth * (1 + TPemax * x_complex / (TPec50 + x_complex)) - death * x_target
+    system.add_x("target", compartment, rate * t)
 
 
 PD1 = {}
