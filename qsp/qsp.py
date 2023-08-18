@@ -196,10 +196,11 @@ class System:
     fig.show()
   
   def print(self):
-    volumes = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
+    V = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
     print("<volumes>", flush = True)
-    print(volumes, flush = True)
+    print(V, flush = True)
     print(" ", flush = True)
+    
     for i, analyte in enumerate(self.analytes):
       Q = self.Q[i,:,:]
       if not Q.any():
@@ -207,9 +208,16 @@ class System:
       Q = pd.DataFrame(Q, index = self.compartments, columns = self.compartments)
       print(f"<Q matrix for {analyte}>", flush = True)
       print(Q, flush = True)
+      print(" ", flush = True)
       #for j, compartment in enumerate(self.compartments):
       #  Q = array2dict(np.round(flows[j,:], 6), self.compartments, trim = True)
       #  print(f"{compartment} {flow}", flush = True)
       #print(" ", flush = True)
+    
     print(f"<{len(self.reactions)} reactions>", flush = True)
     print(f"<{len(self.processes)} processes>", flush = True)
+    
+    x = pd.DataFrame(self.x, index = self.analytes, columns = self.compartments)
+    print("<x>", flush = True)
+    print(x, flush = True)
+    print(" ", flush = True)
