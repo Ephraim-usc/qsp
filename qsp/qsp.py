@@ -109,11 +109,11 @@ class System:
       assert side_compartment is not None, "side products are given, but compartment not specified!"
       side_products = dict2array(side_products, self.analytes)
     
-    reaction = functools.partial(reaction_general, system, compartment, reactants, products, forward, backward, side_compartment, side_products)
+    reaction = functools.partial(reaction_general, self, compartment, reactants, products, forward, backward, side_compartment, side_products)
     self.reactions.append(reaction)
   
-  def add_process(self, apply_func):
-    process = functools.partial(apply_func, self)
+  def add_process(self, process_func):
+    process = functools.partial(process_func, self)
     self.processes.append(process)
 
 
@@ -139,7 +139,17 @@ class System:
   def clear_x(self):
     self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float)
   
+  def get_z(self, variable):
+    variable = self.variables.index(variable)
+    return self.z[variable]
   
+  def set_z(self, variable, value):
+    variable = self.variables.index(variable)
+    self.z[variable] = value
+  
+  def clear_t(self):
+    self.t = 0
+    self.history = []
   
   def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t_end = t_end.number(units.h)
@@ -153,7 +163,7 @@ class System:
       t_ = self.t
       self.t = min(self.t + t_step, t_end)
       for analyte in flowing_analytes:
-        self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
+        self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Q[analyte]))
       for reaction in self.reactions:
         reaction(self.t - t_)
       for process in self.processes:
@@ -186,44 +196,21 @@ class System:
       ax.legend(prop={'size': 6})
     fig.show()
   
-  
-  
-    
-  
-  
-
-  
-  
-  
-  
-  def get_z(self, variable, value):
-    variable = self.variables.index(variable)
-    self.z[variable] = value
-  
-  def set_z(self, variable, value):
-    variable = self.variables.index(variable)
-    self.z[variable] = value
-  
-  def clear_t(self):
-    self.t = 0
-    self.history = []
-  
-  
-  
-  
-  
   def print(self):
     volumes = pd.DataFrame(self.volumes, index = self.analytes, columns = self.compartments)
     print("<volumes>", flush = True)
     print(volumes, flush = True)
     print(" ", flush = True)
     for i, analyte in enumerate(self.analytes):
-      flows = self.flows[i,:,:]
-      if not flows.any():
+      Q = self.Q[i,:,:]
+      if not Q.any():
         continue
-      for j, compartment in enumerate(self.compartments):
-        flow = array2dict(np.round(flows[j,:], 6), self.compartments, trim = True)
-        print(f"{compartment} {flow}", flush = True)
-      print(" ", flush = True)
+      Q = pd.DataFrame(Q, index = self.analytes, columns = self.compartments)
+      print(f"<Q matrix for {analyte}>", flush = True)
+      print(Q, flush = True)
+      #for j, compartment in enumerate(self.compartments):
+      #  Q = array2dict(np.round(flows[j,:], 6), self.compartments, trim = True)
+      #  print(f"{compartment} {flow}", flush = True)
+      #print(" ", flush = True)
     print(f"<{len(self.reactions)} reactions>", flush = True)
     print(f"<{len(self.processes)} processes>", flush = True)
