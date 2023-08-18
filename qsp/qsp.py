@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import pandas as pd
+import functools
 
 from scipy.linalg import expm
 from tqdm import tqdm
