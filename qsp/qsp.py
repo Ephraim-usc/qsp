@@ -24,7 +24,7 @@ units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
 
 np.set_printoptions(suppress=True)
 
-def dict2array(x, names, dtype):
+def dict2array(x, names, dtype = None):
   if dtype is None:
     buffer = np.zeros(len(names), dtype = object)
   else:
@@ -105,7 +105,7 @@ class System:
       side_compartment = self.compartments.index(side_compartment)
     if side_products is not None:
       assert side_compartment is not None, "side products are given, but compartment not specified!"
-      side_products = dict2array(side_products, self.analytes)
+      side_products = dict2array(side_products, self.analytes, dtype = int)
     
     reaction = functools.partial(reaction_general, self, compartment, reactants, products, forward, backward, side_compartment, side_products)
     self.reactions.append(reaction)
