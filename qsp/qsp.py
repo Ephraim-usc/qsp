@@ -74,12 +74,12 @@ class System:
     self.z = np.zeros(self.n_variables, dtype = float) # any object
     self.history = None
 
-  def get_V(self, analyte, compartment):
+  def get_volume(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
     return self.V[analyte, compartment] * units.ml
   
-  def set_V(self, analyte, compartment, value):
+  def set_volume(self, analyte, compartment, value):
     value = value.number(units.ml)
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
