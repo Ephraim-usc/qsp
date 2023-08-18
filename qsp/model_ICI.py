@@ -5,11 +5,24 @@ from .qsp import *
 analytes = ["masked", "unmasked", "target", "target-masked", "target-unmasked", "FcRn", "FcRn-masked", "FcRn-unmasked"]
 compartments = ["central", "peripheral", "tumor_plasma", "tumor_endosomal", "tumor_interstitial"]
 
+
+def nonlinear_clearance(system, t):
+  molecular_weight = 150000 * units.g/units.mol
+  MAX = 0.518 * units.microgram/units.d / molecular_weight
+  EC50 = 0.366 * units.microgram/units.ml / molecular_weight
+  
+  x_masked = system.get_x("masked", "central")
+  x_unmasked = system.get_x("unmasked", "central")
+  rate_masked = MAX * x_masked / (x_masked + EC50) / system.get_volume("masked", "central")
+  rate_unmasked = MAX * x_unmasked / (x_unmasked + EC50) / system.get_volume("masked", "central")
+  system.add_x("masked", "central", rate_masked * t)
+  system.add_x("unmasked", "central", rate_unmasked * t)
+
 mouse = {}
 mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * units.ml})
 mouse.update({"distribution": 4.82 * units.ml/units.d})
 mouse.update({"clearance": 0.334 * units.ml/units.d})
-#mouse.update({"max_nonlinear_clearance": 0.518 * units.microgram/units.d, "max_nonlinear_clearance": 0.366 * units.microgram/units.ml})
+mouse.update({"nonlinear_clearance": nonlinear_clearance})
 mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
 mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/units.d, "FcRn-off": 6.55 / units.h})
@@ -58,7 +71,9 @@ def model(host, target, mask, tumor):
     system.add_flow(analyte, "central", None, host["clearance"])
     system.add_flow(analyte, "central", "peripheral", host["distribution"])
     system.add_flow(analyte, "peripheral", "central", host["distribution"])
-
+  
+  system.add_process(host["nonlinear_clearance"])
+  
   # tumor plasma and lymphatic flow
   for analyte in ["masked", "unmasked"]:
     system.add_flow(analyte, "central", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
