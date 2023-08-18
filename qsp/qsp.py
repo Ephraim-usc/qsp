@@ -80,23 +80,31 @@ class System:
     self.variables = variables
     self.n_variables = len(variables)
     
-    self.volumes = np.zeros([self.n_analytes, self.n_compartments])
-    self.flows = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
-    self.Qs = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments])
+    self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float)
+    self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float)
     self.reactions = []
     self.processes = []
     
     self.t = 0
-    self.x = np.zeros([self.n_analytes, self.n_compartments])
+    self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float)
     self.z = np.zeros(self.n_variables, dtype = float)
     self.history = None
   
-  def clear_x(self):
-    self.x = np.zeros([self.n_analytes, self.n_compartments])
+  def get_V(self, analyte, compartment):
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    return self.V[analyte, compartment] * units.ml
   
-  def clear_t(self):
-    self.t = 0
-    self.history = []
+  def set_V(self, analyte, compartment, value):
+    value = value.number(units.ml)
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    self.V[analyte, compartment] = value
+
+  def get_x(self, analyte, compartment):
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    return self.x[analyte, compartment] * units.mM
   
   def set_x(self, analyte, compartment, concentration):
     concentration = concentration.number(units.nM)
@@ -104,9 +112,10 @@ class System:
     compartment = self.compartments.index(compartment)
     self.x[analyte, compartment] = concentration
   
-  def set_z(self, variable, value):
-    variable = self.variables.index(variable)
-    self.z[variable] = value
+  def clear_x(self):
+    self.x = np.zeros([self.n_analytes, self.n_compartments])
+  
+  
   
   def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t_end = t_end.number(units.h)
@@ -153,28 +162,27 @@ class System:
       ax.legend(prop={'size': 6})
     fig.show()
   
-  # if volumes is a vector, we assume all analytes share the same volume in each department
-  def set_volumes(self, volumes):
-    if volumes.ndim == 1:
-      volumes = np.tile(volumes, reps = [self.n_analytes, 1])
-    volumes = np.array([[(i.number(units.ml) if type(i) is unum.Unum else i) for i in row] for row in volumes])
-    self.volumes = volumes
   
-  def set_volume(self, analyte, compartment, volume):
-    volume = volume.number(units.ml)
-    analyte = self.analytes.index(analyte)
-    compartment = self.compartments.index(compartment)
-    self.volumes[analyte, compartment] = volume
   
-  def get_volume(self, analyte, compartment):
-    analyte = self.analytes.index(analyte)
-    compartment = self.compartments.index(compartment)
-    return self.volumes[analyte, compartment] * units.ml
+    
+  
+  
 
-  def get_x(self, analyte, compartment):
-    analyte = self.analytes.index(analyte)
-    compartment = self.compartments.index(compartment)
-    return self.x[analyte, compartment] * units.mM
+  
+  
+  
+  
+  def get_z(self, variable, value):
+    variable = self.variables.index(variable)
+    self.z[variable] = value
+  
+  def set_z(self, variable, value):
+    variable = self.variables.index(variable)
+    self.z[variable] = value
+  
+  def clear_t(self):
+    self.t = 0
+    self.history = []
   
   # set compartment_dest as None if it is a clearance
   def add_flow(self, analyte, compartment_source, compartment_dest, rate):
@@ -187,7 +195,7 @@ class System:
       compartment_dest = self.compartments.index(compartment_dest)
       self.flows[analyte, compartment_source, compartment_dest] += rate
       self.Qs[analyte, compartment_source, compartment_dest] += rate / self.volumes[analyte, compartment_dest]
-
+  
   def add_reaction(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
     compartment = self.compartments.index(compartment)
     reactants = dict2array(reactants, self.analytes)
