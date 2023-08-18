@@ -73,8 +73,8 @@ class System:
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
     self.z = np.zeros(self.n_variables, dtype = float) # any object
-    self.history = None
-
+    self.history = []
+  
   def get_volume(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
@@ -121,7 +121,7 @@ class System:
   def get_x(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
-    return self.x[analyte, compartment] * units.mM
+    return self.x[analyte, compartment] * units.nM
   
   def set_x(self, analyte, compartment, value):
     value = value.number(units.nM)
@@ -145,6 +145,7 @@ class System:
   def set_z(self, variable, value):
     variable = self.variables.index(variable)
     self.z[variable] = value
+  
   
   def clear_t(self):
     self.t = 0
