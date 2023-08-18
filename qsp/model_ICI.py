@@ -14,14 +14,29 @@ mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
 mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/units.d, "FcRn-off": 6.55 / units.h})
 
+
+def PD1_dynamics(system, t):
+  death = 0.02 / units.d
+  growth = death * (1e4 * 1000/units.microliter) / units.avagadro
+  TPemax = 94.7
+  TPec50 = 1.46 * units.nM
+  
+  x_target = system.get_x("target", "tumor_interstitial")
+  x_complex = system.get_x("target-masked", "tumor_interstitial") + system.get_x("target-unmasked", "tumor_interstitial")
+  rate = growth * (1 + TPemax * x_complex / (TPec50 + x_complex)) - death * x_target
+  system.add_x("target", "tumor_interstitial", rate * t)
+
 PD1 = {}
 PD1.update({"central": (1e4 * 1000/units.microliter) / units.avagadro}); PD1.update({"tumor": PD1["central"] * 4.3})
 PD1.update({"on": 0.34 * 1/units.nM/units.d, "off": 0.106 / units.h, "internalization": 0.0194/ units.h})
 PD1.update({"death": 0.02 / units.d})
 PD1.update({"growth": PD1["central"] * PD1["death"]})
+PD1.update({"dynamics": PD1_dynamics})
+
 
 Tx = {}
 Tx.update({"foldchange": 0.01, "cleavage_central": 0.05 / units.d, "cleavage_tumor": 0.2 / units.d})
+
 
 MC38 = {}
 MC38.update({"volume": 170 * units.microliter})
@@ -66,16 +81,7 @@ def model(host, target, mask, tumor):
     system.add_reaction("tumor_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = "tumor_interstitial", side_products = {f"{analyte}":1})
   
   # PD1 dynamics
-  def rate_func(system):
-    x_target = system.get_x("target")
-    x_complex = system.get_x("target-masked", "tumor_interstitial") + system.get_x("target-unmasked", "tumor_interstitial")
-    rate = target["growth"] * (1 + target["TPemax"] * x_complex / (target["TPec50"] + x_complex)) - target["exhaustion"] * x_target
-    return rate
-  
-  def change_func(system, t):
-    system.x[system.analytes.index("PD1"), system.compartments.index("tumor_interstitial")] += (delta * t * units.h).number(units.nM)
-  
-  system.add_process(Process(rate_func, change_func))
+  system.add_process(target["dynamics"])
   
   # PD1 association
   system.add_reaction("central", {"masked":1, "target":1}, {"target-masked":1}, target["on"] * mask["foldchange"], target["off"])
