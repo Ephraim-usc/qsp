@@ -216,6 +216,7 @@ class System:
     
     print(f"<{len(self.reactions)} reactions>", flush = True)
     print(f"<{len(self.processes)} processes>", flush = True)
+    print(" ", flush = True)
     
     x = pd.DataFrame(self.x, index = self.analytes, columns = self.compartments)
     print("<x>", flush = True)
