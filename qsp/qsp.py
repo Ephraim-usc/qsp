@@ -24,8 +24,11 @@ units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
 
 np.set_printoptions(suppress=True)
 
-def dict2array(x, names):
-  buffer = np.zeros(len(names), dtype = object)
+def dict2array(x, names, dtype):
+  if dtype is None:
+    buffer = np.zeros(len(names), dtype = object)
+  else:
+    buffer = np.zeros(len(names), dtype = dtype)
   for key, value in x.items():
     buffer[names.index(key)] += value
   return buffer
@@ -36,12 +39,6 @@ def array2dict(x, names, trim = False):
   else:
     buffer = {name:x_ for name, x_ in zip(names, x)}
   return buffer
-
-def array_number(x, unit):
-  buffer = np.array([x_.number(unit) for x_ in x])
-  return buffer
-
-
 
 
 def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
@@ -98,11 +95,11 @@ class System:
   
   def add_reaction(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
     compartment = self.compartments.index(compartment)
-    reactants = dict2array(reactants, self.analytes)
-    products = dict2array(products, self.analytes)
-    forward = forward.number(units.nM / units.h / units.nM**(reactants.astype(int).sum()))
+    reactants = dict2array(reactants, self.analytes, dtype = int)
+    products = dict2array(products, self.analytes, dtype = int)
+    forward = forward.number(units.nM / units.h / units.nM**(reactants.sum()))
     if backward is not None:
-      backward = backward.number(units.nM / units.h / units.nM**(products.astype(int).sum()))
+      backward = backward.number(units.nM / units.h / units.nM**(products.sum()))
     if side_compartment is not None:
       assert side_products is not None, "side compartment is given, but products not provided!"
       side_compartment = self.compartments.index(side_compartment)
@@ -154,7 +151,7 @@ class System:
     t_end = t_end.number(units.h)
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
-    flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Qs[analyte].any()]
+    flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
     
     pbar = tqdm(total = t_end, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
     pbar.update(self.t)
