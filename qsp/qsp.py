@@ -41,32 +41,16 @@ def array_number(x, unit):
   return buffer
 
 
-class Reaction:
-  def __init__(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
-    self.compartment = compartment
-    self.reactants = reactants
-    self.products = products
-    self.forward = forward
-    self.side_compartment = side_compartment
-    self.side_products = side_products
+
+
+def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
+  rate = np.power(system.x[:, compartment], reactants).prod() * forward - np.power(system.x[:, compartment], products).prod() * backward
+  delta = (products - reactants) * rate * t
+  system.x[:, compartment] += delta
   
-  def apply(self, system, t):
-    rate = np.power(system.x[:, compartment], self.reactants).prod() * self.forward - np.power(system.x[:, compartment], self.products).prod() * self.backward
-    delta = (self.products - self.reactants) * rate * t
-    delta_side = self.side_products * rate * t
-    
-    system.x[:, compartment] += delta
+  if side_compartment is not None:
+    delta_side = side_products * rate * t
     system.x[:, side_compartment] += delta_side
-
-
-class Process:
-  def __init__(self, rate_func, change_func):
-    self.rate_func = rate_func
-    self.change_func = change_func
-  
-  def apply(self, system, t):
-    rate = self.rate_func(system)
-    self.change_func(system, rate * t)
 
 
 class System:
@@ -80,16 +64,16 @@ class System:
     self.variables = variables
     self.n_variables = len(variables)
     
-    self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float)
-    self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float)
+    self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.ml
+    self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # in 1/units.h
     self.reactions = []
     self.processes = []
     
     self.t = 0
-    self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float)
-    self.z = np.zeros(self.n_variables, dtype = float)
+    self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
+    self.z = np.zeros(self.n_variables, dtype = float) # any object
     self.history = None
-  
+
   def get_V(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
@@ -100,20 +84,60 @@ class System:
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
     self.V[analyte, compartment] = value
+  
+  # set compartment_dest as None if it is a clearance
+  def add_flow(self, analyte, compartment_source, compartment_dest, rate):
+    rate = rate.number(units.ml/units.h)
+    analyte = self.analytes.index(analyte)
+    compartment_source = self.compartments.index(compartment_source)
+    self.Q[analyte, compartment_source, compartment_source] -= rate / self.V[analyte, compartment_source]
+    if compartment_dest is not None:
+      compartment_dest = self.compartments.index(compartment_dest)
+      self.Q[analyte, compartment_source, compartment_dest] += rate / self.V[analyte, compartment_dest]
+  
+  def add_reaction(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
+    compartment = self.compartments.index(compartment)
+    reactants = dict2array(reactants, self.analytes)
+    products = dict2array(products, self.analytes)
+    forward = forward.number(units.nM / units.h / units.nM**(reactants.astype(int).sum()))
+    if backward is not None:
+      backward = backward.number(units.nM / units.h / units.nM**(products.astype(int).sum()))
+    if side_compartment is not None:
+      assert side_products is not None, "side compartment is given, but products not provided!"
+      side_compartment = self.compartments.index(side_compartment)
+    if side_products is not None:
+      assert side_compartment is not None, "side products are given, but compartment not specified!"
+      side_products = dict2array(side_products, self.analytes)
+    
+    reaction = functools.partial(reaction_general, system, compartment, reactants, products, forward, backward, side_compartment, side_products)
+    self.reactions.append(reaction)
+  
+  def add_process(self, apply_func):
+    process = functools.partial(apply_func, self)
+    self.processes.append(process)
 
+
+
+  
   def get_x(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
     return self.x[analyte, compartment] * units.mM
   
-  def set_x(self, analyte, compartment, concentration):
-    concentration = concentration.number(units.nM)
+  def set_x(self, analyte, compartment, value):
+    value = value.number(units.nM)
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
-    self.x[analyte, compartment] = concentration
+    self.x[analyte, compartment] = value
+  
+  def add_x(self, analyte, compartment, value):
+    value = value.number(units.nM)
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    self.x[analyte, compartment] += value
   
   def clear_x(self):
-    self.x = np.zeros([self.n_analytes, self.n_compartments])
+    self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float)
   
   
   
@@ -131,9 +155,9 @@ class System:
       for analyte in flowing_analytes:
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Qs[analyte]))
       for reaction in self.reactions:
-        reaction.apply(self, self.t - t_)
+        reaction(self.t - t_)
       for process in self.processes:
-        process.apply(self, self.t - t_)
+        process((self.t - t_) * units.h)
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
@@ -184,37 +208,9 @@ class System:
     self.t = 0
     self.history = []
   
-  # set compartment_dest as None if it is a clearance
-  def add_flow(self, analyte, compartment_source, compartment_dest, rate):
-    rate = rate.number(units.ml/units.h)
-    analyte = self.analytes.index(analyte)
-    compartment_source = self.compartments.index(compartment_source)
-    self.flows[analyte, compartment_source, compartment_source] -= rate
-    self.Qs[analyte, compartment_source, compartment_source] -= rate / self.volumes[analyte, compartment_source]
-    if compartment_dest is not None:
-      compartment_dest = self.compartments.index(compartment_dest)
-      self.flows[analyte, compartment_source, compartment_dest] += rate
-      self.Qs[analyte, compartment_source, compartment_dest] += rate / self.volumes[analyte, compartment_dest]
   
-  def add_reaction(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
-    compartment = self.compartments.index(compartment)
-    reactants = dict2array(reactants, self.analytes)
-    products = dict2array(products, self.analytes)
-    forward = forward.number(units.nM / units.h / units.nM**(reactants.astype(int).sum()))
-    if backward is not None:
-      backward = backward.number(units.nM / units.h / units.nM**(products.astype(int).sum()))
-    if side_compartment is not None:
-      assert side_products is not None, "side compartment is given, but products not provided!"
-      side_compartment = self.compartments.index(side_compartment)
-    if side_products is not None:
-      assert side_compartment is not None, "side products are given, but compartment not specified!"
-      side_products = dict2array(side_products, self.analytes)
-    
-    reaction = Reaction(compartment, reactants, products, forward, backward, side_compartment, side_products)
-    self.reactions.append(reaction)
   
-  def add_process(self, process):
-    self.processes.append(process)
+  
   
   def print(self):
     volumes = pd.DataFrame(self.volumes, index = self.analytes, columns = self.compartments)
