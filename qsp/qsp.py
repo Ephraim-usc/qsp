@@ -204,7 +204,7 @@ class System:
       Q = self.Q[i,:,:]
       if not Q.any():
         continue
-      Q = pd.DataFrame(Q, index = self.analytes, columns = self.compartments)
+      Q = pd.DataFrame(Q, index = self.compartments, columns = self.compartments)
       print(f"<Q matrix for {analyte}>", flush = True)
       print(Q, flush = True)
       #for j, compartment in enumerate(self.compartments):
