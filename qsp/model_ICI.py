@@ -47,7 +47,7 @@ PD1.update({"on": 0.34 * 1/units.nM/units.d, "off": 0.106 / units.h, "internaliz
 
 
 Tx = {}
-Tx.update({"foldchange": 0.01, "cleavage_central": 0.05 / units.d, "cleavage_tumor": 0.2 / units.d})
+Tx.update({"foldchange": 0.001, "cleavage_central": 0.05 / units.d, "cleavage_tumor": 0.2 / units.d})
 
 
 MC38 = {}
