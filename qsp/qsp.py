@@ -146,6 +146,34 @@ class System:
     variable = self.variables.index(variable)
     self.z[variable] = value
   
+  def print(self):
+    V = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
+    print("<volumes>", flush = True)
+    print(V, flush = True)
+    print(" ", flush = True)
+    
+    for i, analyte in enumerate(self.analytes):
+      Q = self.Q[i,:,:]
+      if not Q.any():
+        continue
+      Q = pd.DataFrame(Q, index = self.compartments, columns = self.compartments)
+      print(f"<Q matrix for {analyte}>", flush = True)
+      print(Q, flush = True)
+      print(" ", flush = True)
+      #for j, compartment in enumerate(self.compartments):
+      #  Q = array2dict(np.round(flows[j,:], 6), self.compartments, trim = True)
+      #  print(f"{compartment} {flow}", flush = True)
+      #print(" ", flush = True)
+    
+    print(f"<{len(self.reactions)} reactions>", flush = True)
+    print(f"<{len(self.processes)} processes>", flush = True)
+    print(" ", flush = True)
+    
+    x = pd.DataFrame(self.x, index = self.analytes, columns = self.compartments)
+    print("<x>", flush = True)
+    print(x, flush = True)
+    print(" ", flush = True)
+  
   
   def clear_t(self):
     self.t = 0
@@ -176,50 +204,31 @@ class System:
         break
     pbar.close()
   
-  def plot(self, compartments):
+  def plot(self, compartments, output = None):
     compartments = [self.compartments.index(compartment) for compartment in compartments]
-    fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), squeeze = False)
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    Xmax = max([t for t, x in self.history])
+    Ymax = max([x.max() for t, x in self.history]); Ymax = 10**np.ceil(np.log10(Ymax))
+    
+    fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), figsize = (4*len(compartments), 3), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
       for analyte in range(len(self.analytes)):
         X = [t for t, x in self.history]
         Y = [x[analyte, compartment] for t, x in self.history]
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
-        ax.axhline(y = 1, color = 'lightgrey', lw = 1)
-        ax.axhline(y = 10, color = 'lightgrey', lw = 1)
-        ax.axhline(y = 100, color = 'lightgrey', lw = 1)
-        ax.axhline(y = 1000, color = 'lightgrey', lw = 1)
-        ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.2f}nM")
-      ax.set_yscale('symlog', linthresh = 1)
-      ax.set_yticks([0, 1, 10, 100, 1000, 10000])
+        if AVG > 0:
+          ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.3}nM", color = colors[analyte])
+      ax.set_xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
+      ax.set_xlim(0, Xmax)
+      ax.set_yscale('symlog', linthresh = 1e-2)
+      ax.set_yticks([1e-2, 1e-1, 0, 1, 10, 100, 1000, 10000, 1e5, 1e6])
+      ax.set_ylim(0, Ymax)
+      ax.grid(axis = "y", color = "grey", linewidth = 1)
       ax.set_title(self.compartments[compartment])
-      ax.legend(prop={'size': 6})
-    fig.show()
-  
-  def print(self):
-    V = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
-    print("<volumes>", flush = True)
-    print(V, flush = True)
-    print(" ", flush = True)
+      ax.legend(loc = "upper right", prop={'size': 6})
     
-    for i, analyte in enumerate(self.analytes):
-      Q = self.Q[i,:,:]
-      if not Q.any():
-        continue
-      Q = pd.DataFrame(Q, index = self.compartments, columns = self.compartments)
-      print(f"<Q matrix for {analyte}>", flush = True)
-      print(Q, flush = True)
-      print(" ", flush = True)
-      #for j, compartment in enumerate(self.compartments):
-      #  Q = array2dict(np.round(flows[j,:], 6), self.compartments, trim = True)
-      #  print(f"{compartment} {flow}", flush = True)
-      #print(" ", flush = True)
-    
-    print(f"<{len(self.reactions)} reactions>", flush = True)
-    print(f"<{len(self.processes)} processes>", flush = True)
-    print(" ", flush = True)
-    
-    x = pd.DataFrame(self.x, index = self.analytes, columns = self.compartments)
-    print("<x>", flush = True)
-    print(x, flush = True)
-    print(" ", flush = True)
+    if output is None:
+      fig.show()
+    else:
+      fig.savefig(output, dpi = 300)
