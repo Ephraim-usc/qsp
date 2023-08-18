@@ -115,9 +115,7 @@ class System:
   def add_process(self, process_func):
     process = functools.partial(process_func, self)
     self.processes.append(process)
-
-
-
+  
   
   def get_x(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
@@ -197,7 +195,7 @@ class System:
     fig.show()
   
   def print(self):
-    volumes = pd.DataFrame(self.volumes, index = self.analytes, columns = self.compartments)
+    volumes = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
     print("<volumes>", flush = True)
     print(volumes, flush = True)
     print(" ", flush = True)
