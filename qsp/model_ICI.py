@@ -28,10 +28,8 @@ def PD1_dynamics(system, t):
 
 PD1 = {}
 PD1.update({"central": (1e4 * 1000/units.microliter) / units.avagadro}); PD1.update({"tumor": PD1["central"] * 4.3})
-PD1.update({"on": 0.34 * 1/units.nM/units.d, "off": 0.106 / units.h, "internalization": 0.0194/ units.h})
-PD1.update({"death": 0.02 / units.d})
-PD1.update({"growth": PD1["central"] * PD1["death"]})
 PD1.update({"dynamics": PD1_dynamics})
+PD1.update({"on": 0.34 * 1/units.nM/units.d, "off": 0.106 / units.h, "internalization": 0.0194/ units.h})
 
 
 Tx = {}
