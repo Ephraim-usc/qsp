@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import unum
 import unum.units as units
 
+units.microgram = unum.new_unit('microgram', 1e-6 * units.g)
+
 units.l = unum.new_unit('l', 1e-3 * units.m ** 3)
 units.ml = unum.new_unit('ml', 1e-3 * units.l)
 units.microliter = unum.new_unit('microliter', 1e-6 * units.l)
