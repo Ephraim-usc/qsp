@@ -42,7 +42,10 @@ def array2dict(x, names, trim = False):
 
 
 def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
-  rate = np.power(system.x[:, compartment], reactants).prod() * forward - np.power(system.x[:, compartment], products).prod() * backward
+  rate = np.power(system.x[:, compartment], reactants).prod() * forward
+  if backward is not None:
+    rate -= np.power(system.x[:, compartment], products).prod() * backward
+  
   delta = (products - reactants) * rate * t
   system.x[:, compartment] += delta
   
