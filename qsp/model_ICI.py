@@ -28,19 +28,18 @@ mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/un
 
 def PD1_dynamics(system, t):
   death = 0.02 / units.d
-  growth = death * (1e4 * 1000/units.microliter) / units.avagadro
-  TPemax = 94.7
-  TPec50 = 1.46 * units.nM
-
+  MAX = 94.7
+  EC50 = 1.46 * units.nM
+  
   for compartment in ["central", "tumor_interstitial"]:
     x_target = system.get_x("target", compartment)
     x_complex = system.get_x("target-masked", compartment) + system.get_x("target-unmasked", compartment)
-    rate = growth * (1 + TPemax * x_complex / (TPec50 + x_complex)) - death * x_target
+    rate = PD1[compartment] * (1 + MAX * x_complex / (EC50 + x_complex)) - death * x_target
     system.add_x("target", compartment, rate * t)
 
 
 PD1 = {}
-PD1.update({"central": (1e4 * 1000/units.microliter) / units.avagadro}); PD1.update({"tumor": PD1["central"] * 4.3})
+PD1.update({"central": (1e4 * 1000/units.microliter) / units.avagadro}); PD1.update({"tumor_interstitial": PD1["central"] * 4.3})
 PD1.update({"dynamics": PD1_dynamics})
 PD1.update({"on": 0.34 * 1/units.nM/units.d, "off": 0.106 / units.h, "internalization": 0.0194/ units.h})
 
@@ -111,12 +110,9 @@ def model(host, target, mask, tumor):
     system.add_flow(analyte, "central", None, host["volume_central"] * target["internalization"])
     system.add_flow(analyte, "tumor_interstitial", None, tumor["volume"] * tumor["volume_interstitial_proportion"] * target["internalization"])
   
-  # nonlinear clearance reaction
-  
-  
   # initial concentrations
   system.set_x("target", "central", target["central"])
-  system.set_x("target", "tumor_interstitial", target["tumor"])
+  system.set_x("target", "tumor_interstitial", target["tumor_interstitial"])
   system.set_x("FcRn", "tumor_endosomal", host["FcRn"])
   
   return system
