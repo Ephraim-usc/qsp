@@ -34,7 +34,7 @@ def PD1_dynamics(system, t):
   for compartment in ["central", "tumor_interstitial"]:
     x_target = system.get_x("target", compartment)
     x_complex = system.get_x("target-masked", compartment) + system.get_x("target-unmasked", compartment)
-    rate = PD1[compartment] * (1 + MAX * x_complex / (EC50 + x_complex)) - death * x_target
+    rate = death * PD1[compartment] * (1 + MAX * x_complex / (EC50 + x_complex)) - death * x_target
     system.add_x("target", compartment, rate * t)
 
 
