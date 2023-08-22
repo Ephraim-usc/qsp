@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 import unum
 import unum.units as units
@@ -206,9 +207,12 @@ class System:
         break
     pbar.close()
   
-  def plot(self, compartments, output = None):
+  def plot(self, compartments, colors = None, linestyles = None, output = None):
+    if colors is None:
+      colors = mcolors.TABLEAU_COLORS.values()
+    if linestyles is None:
+      linestyles = ["solid"] * 10
     compartments = [self.compartments.index(compartment) for compartment in compartments]
-    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
     Xmax = max([t for t, x in self.history])
     Ymax = max([x.max() for t, x in self.history]); Ymax = 10**np.ceil(np.log10(Ymax))
     
@@ -220,7 +224,7 @@ class System:
         Y = [x[analyte, compartment] for t, x in self.history]
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG > 0:
-          ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.3}nM", color = colors[analyte])
+          ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.3}nM", color = colors[analyte], linestyle = linestyles[analyte])
       ax.set_xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
       ax.set_xlim(0, Xmax)
       ax.set_yscale('symlog', linthresh = 1e-2)
