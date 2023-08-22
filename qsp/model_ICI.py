@@ -104,7 +104,7 @@ def model(host, target, mask, tumor):
   
   # PD1 association
   for compartment in ["central", "tumor_interstitial"]:
-    system.add_reaction(compartment, {"bimasked":1, "target":1}, {"target-bymasked":1}, target["on"] * mask["foldchange"], target["off"])
+    system.add_reaction(compartment, {"bimasked":1, "target":1}, {"target-monomasked":1}, target["on"] * mask["foldchange"], target["off"])
     system.add_reaction(compartment, {"monomasked":1, "target":1}, {"target-monomasked":1}, target["on"] * (0.5 + 0.5 * mask["foldchange"]), target["off"])
     system.add_reaction(compartment, {"unmasked":1, "target":1}, {"target-unmasked":1}, target["on"], target["off"])
   
