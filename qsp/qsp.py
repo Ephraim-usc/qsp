@@ -5,6 +5,7 @@ import functools
 
 from scipy.linalg import expm
 from tqdm import tqdm
+from time import time
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -193,16 +194,22 @@ class System:
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
     
     pbar = tqdm(total = t_end, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
-    pbar.update(self.t)
+    pbar.update(self.t); A, B, C = 0.0, 0.0, 0.0
     while True:
       t_ = self.t
       self.t = min(self.t + t_step, t_end)
       for analyte in flowing_analytes:
+        A -= time.time()
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Q[analyte]))
+        A += time.time()
       for reaction in self.reactions:
+        B -= time.time()
         reaction(self.t - t_)
+        B += time.time()
       for process in self.processes:
+        C -= time.time()
         process((self.t - t_) * units.h)
+        C += time.time()
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
@@ -210,6 +217,7 @@ class System:
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
     pbar.close()
+    print(f"time in computing flows: {A}\ntime in computing reactions: {B}\ntime in computing processes: {C}\n", flush = True)
   
   def plot(self, compartments, colors = None, linestyles = None, output = None):
     if colors is None:
