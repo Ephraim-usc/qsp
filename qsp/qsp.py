@@ -5,7 +5,7 @@ import functools
 
 from scipy.linalg import expm
 from tqdm import tqdm
-from time import time
+from time import time as tt
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -199,17 +199,17 @@ class System:
       t_ = self.t
       self.t = min(self.t + t_step, t_end)
       for analyte in flowing_analytes:
-        A -= time.time()
+        A -= tt()
         self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Q[analyte]))
-        A += time.time()
+        A += tt()
       for reaction in self.reactions:
-        B -= time.time()
+        B -= tt()
         reaction(self.t - t_)
-        B += time.time()
+        B += tt()
       for process in self.processes:
-        C -= time.time()
+        C -= tt()
         process((self.t - t_) * units.h)
-        C += time.time()
+        C += tt()
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
