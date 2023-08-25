@@ -257,10 +257,6 @@ def model(host, target, linker, drug):
     system.add_x("drug", f"{organ}_{tissue}", DAR * rate * t)
     system.add_z("DAR", - DAR * rate * t)
   
-  for organ in organs:
-    system.add_reaction(f"{organ}_endosomal", degradation_endosomal)
-    system.add_reaction(f"{organ}_cellular", degradation_cellular)
-  
   system.add_process(degradation)
   system.add_process(dissociation)
   
