@@ -243,7 +243,7 @@ def model(host, target, linker, drug):
     DAR = system.get_z("DAR")
     for organ in organs:
       for tissue in ["endosomal", "cellular"]:
-        rate = linker["degradation_{tissue}"] * system.get_x("adc", f"{organ}_{tissue}")
+        rate = linker[f"degradation_{tissue}"] * system.get_x("adc", f"{organ}_{tissue}")
         system.add_x("adc", f"{organ}_{tissue}", - rate * t)
         system.add_x("drug", f"{organ}_{tissue}", DAR * rate * t)
   
@@ -259,6 +259,8 @@ def model(host, target, linker, drug):
   
   system.add_process(degradation)
   system.add_process(dissociation)
+
+  system.set_z("DAR", 4.5)
   
   return system
 
