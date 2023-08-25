@@ -253,8 +253,8 @@ def model(host, target, linker, drug):
       rate = linker["dissociation"](DAR) * system.get_x("adc", "plasma")
     else:
       rate = linker["dissociation"] * system.get_x("adc", "plasma")
-    system.add_x("adc", f"{organ}_{tissue}", - rate * t)
-    system.add_x("drug", f"{organ}_{tissue}", DAR * rate * t)
+    system.add_x("adc", "plasma", - rate * t)
+    system.add_x("drug", "plasma", DAR * rate * t)
     system.add_z("DAR", - DAR * rate * t)
   
   system.add_process(degradation)
