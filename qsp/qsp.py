@@ -149,6 +149,10 @@ class System:
     variable = self.variables.index(variable)
     self.z[variable] = value
   
+  def add_z(self, variable, value):
+    variable = self.variables.index(variable)
+    self.z[variable] += value
+  
   def print(self):
     V = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
     print("<volumes>", flush = True)
