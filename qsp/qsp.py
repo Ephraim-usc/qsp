@@ -268,6 +268,6 @@ class System:
       maxs.append(Y.max())
       hfws.append(halfwidth)
     
-    buffer = pd.DataFrame({"compartment":self.compartments, "average":avgs, "maximum":maxs, "halfwidth":hfws})
+    buffer = pd.DataFrame({"average":avgs, "maximum":maxs, "halfwidth":hfws}, index = self.compartments)
     return buffer
 
