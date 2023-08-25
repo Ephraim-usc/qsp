@@ -217,11 +217,11 @@ class System:
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
     pbar.close()
-    print(f"time in computing flows: {A}\ntime in computing reactions: {B}\ntime in computing processes: {C}\n", flush = True)
+    print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing processes: {C:.8f}s\n", flush = True)
   
   def plot(self, compartments, colors = None, linestyles = None, output = None):
     if colors is None:
-      colors = mcolors.TABLEAU_COLORS.values()
+      colors = list(mcolors.TABLEAU_COLORS.values())
     if linestyles is None:
       linestyles = ["solid"] * 10
     compartments = [self.compartments.index(compartment) for compartment in compartments]
@@ -250,3 +250,24 @@ class System:
       fig.show()
     else:
       fig.savefig(output, dpi = 300)
+  
+  def summary(self, analyte):
+    analyte = self.analytes.index(analyte)
+    avgs = []; maxs = []; hfws = []
+    for compartment in range(self.n_compartments):
+      X = np.array([t for t, x in self.history])
+      Y = np.array([x[analyte, compartment] for t, x in self.history])
+      steps = X[1:] - X[:-1]
+      widths = (np.append(0, steps) + np.append(steps, 0))/2
+      idx = np.argsort(Y)[::-1]
+      cumsums = np.cumsum((Y * widths)[idx])
+      tmp = np.where(cumsums >= cumsums[-1]/2)[0].min() # minimum number of intervals needed to have 50% of the AUC
+      halfwidth = widths[idx[:tmp]].sum()
+      
+      avgs.append((widths*Y).sum() / (X[-1] - X[0]))
+      maxs.append(Y.max())
+      hfws.append(halfwidth)
+    
+    buffer = pd.DataFrame({"compartment":self.compartments, "average":avgs, "maximum":maxs, "halfwidth":hfws})
+    return buffer
+
