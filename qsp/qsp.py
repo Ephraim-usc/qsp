@@ -54,7 +54,8 @@ def reaction_general(system, compartment, reactants, products, forward, backward
   system.x[:, compartment] += delta
   
   if side_compartment is not None:
-    delta_side = side_products * rate * t
+    volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
+    delta_side = side_products * rate * t * volumes_ratio
     system.x[:, side_compartment] += delta_side
 
 
