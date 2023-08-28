@@ -208,7 +208,7 @@ def model(host, target, linker, drug):
   # target binding and internalization
   for organ in organs:
     system.set_x("target", f"{organ}_interstitial", target[f"num_{organ}"] * host[f"cell_density_{organ}"] / units.avagadro)
-    system.add_reaction(f"{organ}_interstitial", {"adc":1, "target":1}, {"target-adc":1}, target["on"] * mask["foldchange"], target["off"])
+    system.add_reaction(f"{organ}_interstitial", {"adc":1, "target":1}, {"target-adc":1}, target["on"], target["off"])
     system.add_reaction(f"{organ}_interstitial", {"target-adc":1}, {"target":1}, target["int"], side_compartment = f"{organ}_cellular", side_products = {"adc":1})
   
   # fast drug equilibrium between tissues
