@@ -154,7 +154,7 @@ MMAE.update({"liver_clearance":liver_clearance_MMAE})
 ################### the model ###################
 
 def model(host, target, linker, drug):
-  analytes = ["adc", "drug", "target", "target_adc", "FcRn", "FcRn-adc"]
+  analytes = ["adc", "drug", "target", "target-adc", "FcRn", "FcRn-adc"]
   variables = ["DAR"]
   system = System(analytes, compartments, variables)
   
