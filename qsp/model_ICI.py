@@ -44,8 +44,8 @@ PD1.update({"dynamics": PD1_dynamics})
 PD1.update({"on": 0.34 * 1/units.nM/units.d, "off": 0.106 / units.h, "internalization": 0.0194/ units.h})
 
 
-Tx_M1 = {"foldchange": 1/57, "cleavage_central": 0.0527 / units.d, "cleavage_tumor": 0.1783 / units.d}
-Tx_M2 = {"foldchange": 1/220, "cleavage_central": 0.0527 / units.d, "cleavage_tumor": 0.1783 / units.d}
+Tx_M1 = {"foldchange": 1/220, "cleavage_central": 0.0527 / units.d, "cleavage_tumor": 0.1783 / units.d}
+Tx_M2 = {"foldchange": 1/57, "cleavage_central": 0.0527 / units.d, "cleavage_tumor": 0.1783 / units.d}
 
 
 MC38 = {}
