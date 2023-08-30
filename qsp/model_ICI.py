@@ -6,35 +6,54 @@ analytes = ["bimasked", "monomasked", "unmasked", "target", "target-bimasked", "
 compartments = ["central", "peripheral", "tumor_plasma", "tumor_endosomal", "tumor_interstitial"]
 
 
-def nonlinear_clearance(system, t):
+def nonlinear_clearance_mouse(system, t):
   molecular_weight = 150000 * units.g/units.mol
-  MAX = 0.518 * units.microgram/units.d / molecular_weight
+  EMAX = 0.518 * units.microgram/units.d / molecular_weight
   EC50 = 0.366 * units.microgram/units.ml / molecular_weight
   
   for analyte in ["bimasked", "monomasked", "unmasked"]:
     x = system.get_x(analyte, "central")
-    rate = - MAX * x / (x + EC50) / system.get_volume(analyte, "central")
+    rate = - EMAX * x / (x + EC50) / system.get_volume(analyte, "central")
+    system.add_x(analyte, "central", rate * t)
+
+def nonlinear_clearance_human(system, t):
+  molecular_weight = 150000 * units.g/units.mol
+  EMAX = 114 * units.microgram/units.d / molecular_weight
+  EC50 = 0.078 * units.microgram/units.ml / molecular_weight
+  
+  for analyte in ["bimasked", "monomasked", "unmasked"]:
+    x = system.get_x(analyte, "central")
+    rate = - EMAX * x / (x + EC50) / system.get_volume(analyte, "central")
     system.add_x(analyte, "central", rate * t)
 
 mouse = {}
 mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * units.ml})
 mouse.update({"distribution": 4.82 * units.ml/units.d})
 mouse.update({"clearance": 0.334 * units.ml/units.d})
-mouse.update({"nonlinear_clearance": nonlinear_clearance})
+mouse.update({"nonlinear_clearance": nonlinear_clearance_mouse})
 mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
 mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/units.d, "FcRn-off": 6.55 / units.h})
 
+human = {}
+human.update({"volume_central": 2877 * units.ml, "volume_peripheral": 2857 * units.ml})
+human.update({"distribution": 384 * units.ml/units.d})
+human.update({"clearance": 167 * units.ml/units.d})
+human.update({"nonlinear_clearance": nonlinear_clearance_human})
+human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+human.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
+human.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 792 * 1/units.nM/units.d, "FcRn-off": 23.9 / units.h})
+
 
 def PD1_dynamics(system, t):
   death = 0.02 / units.d
-  MAX = 94.7
+  EMAX = 94.7
   EC50 = 1.46 * units.nM
   
   for compartment in ["central", "tumor_interstitial"]:
     x_target = system.get_x("target", compartment)
     x_complex = system.get_x("target-bimasked", compartment) + system.get_x("target-monomasked", compartment) + system.get_x("target-unmasked", compartment)
-    rate = death * PD1[compartment] * (1 + MAX * x_complex / (EC50 + x_complex)) - death * x_target
+    rate = death * PD1[compartment] * (1 + EMAX * x_complex / (EC50 + x_complex)) - death * x_target
     system.add_x("target", compartment, rate * t)
 
 
