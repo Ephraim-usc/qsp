@@ -33,7 +33,7 @@ mouse.update({"clearance": 0.334 * units.ml/units.d})
 mouse.update({"nonlinear_clearance": nonlinear_clearance_mouse})
 mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
-mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/units.d, "FcRn-off": 6.55 / units.h})
+mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/units.h, "FcRn-off": 6.55 / units.h})
 
 human = {}
 human.update({"volume_central": 2877 * units.ml, "volume_peripheral": 2857 * units.ml})
@@ -42,7 +42,7 @@ human.update({"clearance": 167 * units.ml/units.d})
 human.update({"nonlinear_clearance": nonlinear_clearance_human})
 human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 human.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
-human.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.792 * 1/units.nM/units.d, "FcRn-off": 23.9 / units.h})
+human.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.792 * 1/units.nM/units.h, "FcRn-off": 23.9 / units.h})
 
 
 def PD1_dynamics(system, t):
