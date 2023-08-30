@@ -46,17 +46,19 @@ def array2dict(x, names, trim = False):
 
 
 def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
-  rate = np.power(system.x[:, compartment], reactants).prod() * forward
+  x = system.x[:, compartment]
+  rate = np.power(x, reactants).prod() * forward
   if backward is not None:
-    rate -= np.power(system.x[:, compartment], products).prod() * backward
+    rate -= np.power(x, products).prod() * backward
   
-  delta = (products - reactants) * rate * t
-  system.x[:, compartment] += delta
+  delta = (products - reactants) * rate
+  t_max = (np.maximum(x, 1e-100) / np.maximum(-delta, 1e-200)).min(); t = min(t, t_max)
   
+  system.x[:, compartment] += delta * t
   if side_compartment is not None:
     volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
-    delta_side = side_products * rate * t * volumes_ratio
-    system.x[:, side_compartment] += delta_side
+    delta_side = side_products * rate * volumes_ratio
+    system.x[:, side_compartment] += delta_side * t
 
 
 class System:
