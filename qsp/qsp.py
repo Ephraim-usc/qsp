@@ -4,6 +4,8 @@ import pandas as pd
 import functools
 
 from scipy.linalg import expm
+from scipy.optimize import fsolve
+
 from tqdm import tqdm
 from time import time as tt
 
