@@ -56,7 +56,7 @@ def reaction_general(system, compartment, reactants, products, forward, backward
     rate = lambda delta: np.power(x + difference * delta, reactants).prod() * forward - np.power(x + difference * delta, products).prod() * backward
   
   delta_lin = rate(0) * t
-  delta_eq = fsolve(rate, 0.0)[0]
+  delta_eq = fsolve(rate, 0.0, xtol=1e-06)[0]
   if abs(delta_lin) < abs(delta_eq):
     delta = delta_lin
   else:
