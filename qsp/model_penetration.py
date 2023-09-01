@@ -77,8 +77,8 @@ def model(host, target, tumor):
   system.add_flow("antibody", "central", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
   system.add_flow("antibody", "tumor_plasma", "central", tumor["volume"] * tumor["plasma_flow_density"] * (1 - tumor["lymphatic_flow_ratio"]))
   
-  system.add_flow("antibody", "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
-  system.add_flow("antibody", "tumor_interstitial", "central", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
+  system.add_flow("antibody", "tumor_plasma", "tumor_interstitial_0", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
+  system.add_flow("antibody", "tumor_interstitial_0", "central", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
   
   # endosomal take-up and degradation
   system.add_flow("antibody", "tumor_plasma", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
