@@ -250,7 +250,10 @@ class System:
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG > 0:
           ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.3}nM", color = colors[analyte], linestyle = linestyles[analyte])
-      ax.set_xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
+      if Xmax > 100:
+        ax.set_xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
+      else:
+        ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
       ax.set_xlim(0, Xmax)
       ax.set_yscale('symlog', linthresh = 1e-2)
       ax.set_yticks([1e-2, 1e-1, 0, 1, 10, 100, 1000, 10000, 1e5, 1e6])
