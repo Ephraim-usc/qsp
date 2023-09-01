@@ -2,7 +2,7 @@ from .qsp import *
 
 ### this model is mostly from ...
 
-n_layers = 3
+n_layers = 10
 analytes = ["antibody", "target", "target-antibody", "FcRn", "FcRn-antibody"]
 compartments = ["central", "peripheral", "tumor_plasma", "tumor_endosomal"]
 compartments += [f"tumor_interstitial_{i}" for i in range(n_layers)]
@@ -42,19 +42,19 @@ human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 human.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
 human.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.792 * 1/units.nM/units.h, "FcRn-off": 23.9 / units.h})
 
-cell_density = 3e8 / units.ml
+tumor_cell_density = 3e8 / units.ml
 
 HER2 = {}
 HER2.update({"num": 8e5})
-HER2.update({"affinity": 1e-8 * units.M})
+HER2.update({"affinity": 1e-8 * units.molar})
 HER2.update({"off": 0.106 / units.h, "internalization": 0.0 / units.h})
 HER2.update({"on": HER2["off"] / HER2["affinity"]})
 
 MC38 = {}
 MC38.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_endosomal_proportion": 0.005})
-MC38.update({"area": 1 * units.cm**2, "depth": 1e-2 * units.cm})
+MC38.update({"area": 1 * units.cm**2, "depth_layer": 0.1 * units.cm})
 MC38.update({"plasma_flow_density": 12.7 / units.h})
-
+MC38.update({"diffusion": 10 * units.micrometer**2 / units.s})
 
 def model(host, target, tumor):
   system = System(analytes, compartments)
@@ -65,7 +65,7 @@ def model(host, target, tumor):
     system.set_volume(analyte, "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
     system.set_volume(analyte, "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"])
     for i in range(3):
-      system.set_volume(analyte, f"tumor_interstitial_{i}", tumor["area"] * tumor["depth"])
+      system.set_volume(analyte, f"tumor_interstitial_{i}", tumor["area"] * tumor["depth_layer"])
   
   # distribution and clearance
   system.add_flow("antibody", "central", "peripheral", host["distribution"])
@@ -77,33 +77,26 @@ def model(host, target, tumor):
   system.add_flow("antibody", "central", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
   system.add_flow("antibody", "tumor_plasma", "central", tumor["volume"] * tumor["plasma_flow_density"])
   
-  # endosomal take-up, degradation, and recycle
+  # endosomal take-up and degradation
   system.add_flow("antibody", "tumor_plasma", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
   system.add_flow("antibody", "tumor_interstitial_0", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
-  
   system.add_flow("antibody", "tumor_endosomal", None, tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_degradation"])
   
+  # recycle by FcRn
+  system.set_x("FcRn", "tumor_endosomal", host["FcRn"])
   system.add_reaction("tumor_endosomal", {"antibody":1, "FcRn":1}, {"FcRn-antibody":1}, host["FcRn-on"], backward = host["FcRn-off"])
   system.add_reaction("tumor_endosomal", {"FcRn-antibody":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * host["vascular_recycle"], side_compartment = "tumor_plasma", side_products = {"antibody":1})
   system.add_reaction("tumor_endosomal", {"FcRn-antibody":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = "tumor_interstitial_0", side_products = {"antibody":1})
 
   # diffusion in tumor interstitial
-  for i in range(9):
-    system.add_flow("antibody", "tumor_plasma", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
+  for i in range(n_layers - 1):
+    system.add_flow("antibody", f"tumor_interstitial_{i}", f"tumor_interstitial_{i+1}", tumor["diffusion"] * tumor["area"] / tumor["depth_layer"])
+    system.add_flow("antibody", f"tumor_interstitial_{i+1}", f"tumor_interstitial_{i}", tumor["diffusion"] * tumor["area"] / tumor["depth_layer"])
   
-  # PD1 association
-  for compartment in ["central", "tumor_interstitial"]:
-    system.add_reaction(compartment, {"bimasked":1, "target":1}, {"target-bimasked":1}, target["on"] * mask["foldchange"], target["off"])
-    system.add_reaction(compartment, {"monomasked":1, "target":1}, {"target-monomasked":1}, target["on"] * (0.5 + 0.5 * mask["foldchange"]), target["off"])
-    system.add_reaction(compartment, {"unmasked":1, "target":1}, {"target-unmasked":1}, target["on"], target["off"])
-  
-  # internalization
+  # interaction with target
   for i in range(n_layers):
-    system.add_flow(analyte, f"tumor_interstitial_{i}", None, tumor["area"] * tumor["depth"] * target["internalization"])
-  
-  # initial concentrations
-  system.set_x("target", "central", target["central"])
-  system.set_x("target", "tumor_interstitial", target["tumor_interstitial"])
-  system.set_x("FcRn", "tumor_endosomal", host["FcRn"])
+    system.set_x("target", f"tumor_interstitial_{i}", target["num"] * cell_density / units.avagadro)
+    system.add_reaction(f"tumor_interstitial_{i}", {"antibody":1, "target":1}, {"target-antibody":1}, target["off"]/target["affinity"], target["off"])
+    system.add_flow(analyte, f"tumor_interstitial_{i}", None, tumor["area"] * tumor["depth_layer"] * target["internalization"])
   
   return system
