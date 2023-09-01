@@ -10,12 +10,12 @@ compartments += [f"tumor_interstitial_{i}" for i in range(n_layers)]
 
 def nonlinear_clearance_mouse(system, t):
   x = system.get_x("antibody", "central")
-  rate = - mouse["nonlinear_clearance_EMAX"] * x / (x + mouse["nonlinear_clearance_EC50"]) / system.get_volume(analyte, "central")
+  rate = - mouse["nonlinear_clearance_EMAX"] * x / (x + mouse["nonlinear_clearance_EC50"]) / system.get_volume("antibody", "central")
   system.add_x("antibody", "central", rate * t)
 
 def nonlinear_clearance_human(system, t):
   x = system.get_x("antibody", "central")
-  rate = - human["nonlinear_clearance_EMAX"] * x / (x + human["nonlinear_clearance_EC50"]) / system.get_volume(analyte, "central")
+  rate = - human["nonlinear_clearance_EMAX"] * x / (x + human["nonlinear_clearance_EC50"]) / system.get_volume("antibody", "central")
   system.add_x("antibody", "central", rate * t)
 
 molecular_weight = 150000 * units.g/units.mol
@@ -64,7 +64,7 @@ def model(host, target, tumor):
     system.set_volume(analyte, "peripheral", host["volume_peripheral"])
     system.set_volume(analyte, "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
     system.set_volume(analyte, "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"])
-    for i in range(3):
+    for i in range(n_layers):
       system.set_volume(analyte, f"tumor_interstitial_{i}", tumor["area"] * tumor["depth_layer"])
   
   # distribution and clearance
