@@ -52,7 +52,7 @@ HER2.update({"on": HER2["off"] / HER2["affinity"]})
 
 MC38 = {}
 MC38.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_endosomal_proportion": 0.005})
-MC38.update({"area": 1 * units.cm**2, "depth_layer": 0.1 * units.cm})
+MC38.update({"area": 1 * units.cm**2, "depth_layer": 0.01 * units.cm})
 MC38.update({"plasma_flow_density": 12.7 / units.h})
 MC38.update({"diffusion": 10 * units.micrometer**2 / units.s})
 
