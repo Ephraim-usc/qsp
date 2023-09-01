@@ -25,6 +25,7 @@ units.ml = unum.new_unit('ml', 1e-3 * units.l)
 units.microliter = unum.new_unit('microliter', 1e-6 * units.l)
 units.pl = unum.new_unit('pl', 1e-12 * units.l)
 
+units.molar = unum.new_unit('molar', 1 * units.mol / units.l)
 units.micromolar = unum.new_unit('micromolar', 1e-6 * units.mol / units.l)
 units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
 
