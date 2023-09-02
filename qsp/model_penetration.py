@@ -54,7 +54,12 @@ MC38 = {}
 MC38.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_endosomal_proportion": 0.005})
 MC38.update({"area": 1 * units.cm**2, "depth_layer": 0.01 * units.cm})
 MC38.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
+MC38.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 MC38.update({"diffusion": 10 * units.micrometer**2 / units.s})
+
+
+
+
 
 def model(host, target, tumor):
   system = System(analytes, compartments)
@@ -79,6 +84,9 @@ def model(host, target, tumor):
   
   system.add_flow("antibody", "tumor_plasma", "tumor_interstitial_0", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
   system.add_flow("antibody", "tumor_interstitial_0", "central", tumor["volume"] * tumor["plasma_flow_density"] * tumor["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
+  
+  system.add_flow("antibody", "tumor_plasma", "tumor_interstitial_0", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+  system.add_flow("antibody", "tumor_interstitial_0", "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
   
   # endosomal take-up and degradation
   system.add_flow("antibody", "tumor_plasma", "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"] * host["endosomal_pinocytosis"])
