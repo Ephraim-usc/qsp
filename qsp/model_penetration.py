@@ -108,6 +108,6 @@ def model(host, target, tumor):
   for i in range(n_layers):
     system.set_x("target", f"tumor_interstitial_{i}", target["num"] * tumor_cell_density / units.avagadro)
     system.add_reaction(f"tumor_interstitial_{i}", {"antibody":1, "target":1}, {"target-antibody":1}, target["off"]/target["affinity"], target["off"])
-    system.add_flow(analyte, f"tumor_interstitial_{i}", None, tumor["area"] * tumor["depth_layer"] * target["internalization"])
+    system.add_reaction(f"tumor_interstitial_{i}", {"target-antibody":1}, {"target":1}, target["internalization"])
   
   return system
