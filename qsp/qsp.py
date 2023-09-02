@@ -50,7 +50,7 @@ def array2dict(x, names, trim = False):
   return buffer
 
 
-def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
+def reaction_general_(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
   x = system.x[:, compartment]
   difference = products - reactants
   if backward is None:
@@ -66,6 +66,30 @@ def reaction_general(system, compartment, reactants, products, forward, backward
     delta = delta_eq
   
   system.x[:, compartment] += difference * delta
+  if side_compartment is not None:
+    volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
+    system.x[:, side_compartment] += side_products * volumes_ratio * delta
+
+
+def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
+  x = system.x[:, compartment]
+  formula = products - reactants
+  
+  if backward is None:
+    delta_lin = np.power(x, reactants).prod() * forward * t
+    delta_eq = (x[reactants>0] / reactants[reactants>0]).min()
+  else:
+    delta_lin = (np.power(x, reactants).prod() * forward - np.power(x, products).prod() * backward) * t
+    a = -(x[products>0] / products[products>0]).min()
+    b = (x[reactants>0] / reactants[reactants>0]).min()
+    delta_eq = brentq(lambda delta: np.power(x + formula * delta, formula).prod() * backward/forward - 1, a + 1e-8, b - 1e-8)
+  
+  if abs(delta_lin) < abs(delta_eq):
+    delta = delta_lin
+  else:
+    delta = delta_eq
+  
+  system.x[:, compartment] += formula * delta
   if side_compartment is not None:
     volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
     system.x[:, side_compartment] += side_products * volumes_ratio * delta
