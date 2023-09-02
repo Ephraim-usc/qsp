@@ -4,6 +4,7 @@ import pandas as pd
 import functools
 
 from scipy.linalg import expm
+from scipy.optimize import brentq
 from scipy.optimize import fsolve
 
 from tqdm import tqdm
