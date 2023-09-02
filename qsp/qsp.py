@@ -83,7 +83,7 @@ def reaction_general(system, compartment, reactants, products, forward, backward
     delta_lin = (np.power(x, reactants).prod() * forward - np.power(x, products).prod() * backward) * t
     a = -(x[products>0] / products[products>0]).min()
     b = (x[reactants>0] / reactants[reactants>0]).min()
-    delta_eq = brentq(lambda delta: np.power(x + formula * delta, formula).prod() * backward/forward - 1, a + 1e-8, b - 1e-8)
+    delta_eq = brentq(lambda delta: np.power(x + formula * delta, formula).prod() * backward/forward - 1, a, b)
   
   if abs(delta_lin) < abs(delta_eq):
     delta = delta_lin
