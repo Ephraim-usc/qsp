@@ -217,13 +217,13 @@ def model(host, target, linker, payload, mask):
       system.add_reaction(f"{organ}_endosomal", {analyte:1, "FcRn":1}, {f"FcRn-{analyte}":1}, host["FcRn_on"], backward = host["FcRn_off"])
       system.add_reaction(f"{organ}_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * host["vascular_recycle"], side_compartment = f"{organ}_plasma", side_products = {analyte:1})
       system.add_reaction(f"{organ}_endosomal", {f"FcRn-{analyte}":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = f"{organ}_interstitial", side_products = {analyte:1})
-
+  
   
   # target binding and internalization
   for organ in organs:
-    system.add_reaction(f"{organ}_interstitial", {"bimasked":1, "target":1}, {f"target-{analyte}":1}, target["on"] * mask["foldchange"], target["off"])
-    system.add_reaction(f"{organ}_interstitial", {"bimasked":1, "target":1}, {f"target-{analyte}":1}, target["on"] * (0.5 + 0.5 * mask["foldchange"]), target["off"])
-    system.add_reaction(f"{organ}_interstitial", {"bimasked":1, "target":1}, {f"target-{analyte}":1}, target["on"], target["off"])
+    system.add_reaction(f"{organ}_interstitial", {"bimasked":1, "target":1}, {f"target-bimasked":1}, target["on"] * mask["foldchange"], target["off"])
+    system.add_reaction(f"{organ}_interstitial", {"monomasked":1, "target":1}, {f"target-monomasked":1}, target["on"] * (0.5 + 0.5 * mask["foldchange"]), target["off"])
+    system.add_reaction(f"{organ}_interstitial", {"unmasked":1, "target":1}, {f"target-unmasked":1}, target["on"], target["off"])
     for analyte in ["bimasked", "monomasked", "unmasked"]:
       system.add_reaction(f"{organ}_interstitial", {f"target-{analyte}":1}, {"target":1}, target["int"], side_compartment = f"{organ}_cellular", side_products = {analyte:1})
   
