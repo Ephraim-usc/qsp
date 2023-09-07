@@ -209,8 +209,8 @@ def model(host, target, linker, payload, mask):
   
   
   # cleavage of mask
-  system.add_reaction("central", {"bimasked":1}, {"monomasked":1}, 2 * mask["cleavage_central"])
-  system.add_reaction("central", {"monomasked":1}, {"unmasked":1}, mask["cleavage_central"])
+  system.add_reaction("plasma", {"bimasked":1}, {"monomasked":1}, 2 * mask["cleavage_central"])
+  system.add_reaction("plasma", {"monomasked":1}, {"unmasked":1}, mask["cleavage_central"])
   
   
   # dissociatoin and degradation
