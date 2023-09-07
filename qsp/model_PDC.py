@@ -91,6 +91,7 @@ human.update({"FcRn": FcRn, "FcRn_on": FcRn_on, "FcRn_off": FcRn_off})
 # organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
 nums_CD71 = np.array([1e3, 1e5, 1e3, 1e4, 0, 1e5, 1e4, 1e4, 1e3, 1e4, 1e4, 1e3, 0, 0, 0])
 nums_CD166 = np.array([0, 1e5, 1e3, 1e5, 0, 0, 1e5, 1e5, 1e5, 1e5, 1e3, 1e5, 1e5, 0, 0])
+nums_CD166 = np.array([1e3, 1e4, 1e5, 1e3, 0, 0, 1e3, 1e4, 1e4, 1e4, 1e4, 1e3, 0, 0, 0])
 
 nums_zero = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 nums_HER2 = np.array([1e4, 1e4, 1e4, 1e4, 0, 1e3, 0, 1e3, 1e3, 1e3, 1e3, 0, 1e3, 0, 0])
@@ -125,6 +126,9 @@ CD71.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 
 CD166 = {f"num_{organ}":num for organ, num in zip(organs, nums_CD166)}
 CD166.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
+
+AXL = {f"num_{organ}":num for organ, num in zip(organs, nums_AXL)}
+AXL.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 
 
 ################### linkers ###################
