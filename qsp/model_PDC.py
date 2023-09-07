@@ -165,7 +165,7 @@ def model(host, target, linker, payload):
   for analyte in analytes:
     for compartment in compartments:
       system.set_volume(analyte, compartment, host[f"volume_{compartment}"])
-
+  
   for analyte in ["bimasked", "monomasked", "unmasked"]:
     # plasma and BC circles
     system.add_flow(analyte, "plasma", "lung_plasma", host["plasma_flow_lung"])
@@ -202,6 +202,7 @@ def model(host, target, linker, payload):
       system.add_reaction(f"{organ}_interstitial", {analyte:1, "target":1}, {f"target-{analyte}":1}, target["on"], target["off"])
       system.add_reaction(f"{organ}_interstitial", {f"target-{analyte}":1}, {"target":1}, target["int"], side_compartment = f"{organ}_cellular", side_products = {analyte:1})
   
+  
   # dissociatoin and degradation
   def degradation(system, t):
     DAR = system.get_z("DAR")
@@ -226,70 +227,22 @@ def model(host, target, linker, payload):
   
   system.add_process(degradation)
   system.add_process(dissociation)
-  
-  
-  # initial concentrations
-  for organ in organs:
-    system.set_x("FcRn", f"{organ}_endosomal", host["FcRn"])
-  for organ in organs:
-    system.set_x("target", f"{organ}_interstitial", target[f"num_{organ}"] * host[f"cell_density_{organ}"] / units.avagadro)
-  
-
 
   
-  # plasma and BC circles of adc and payload
-  system.add_flow("adc", "plasma", "lung_plasma", host["plasma_flow_lung"])
+  # payload plasma and BC circles, and fast equilibrium between tissues
   system.add_flow("payload", "plasma", "lung_plasma", host["plasma_flow_lung"])
-  system.add_flow("adc", "BC", "lung_BC", host["BC_flow_lung"])
   system.add_flow("payload", "BC", "lung_BC", host["BC_flow_lung"])
-  
   for organ in [organ for organ in organs if organ not in ["lung"]]:
-    system.add_flow("adc", "lung_plasma", f"{organ}_plasma", host[f"plasma_flow_{organ}"])
     system.add_flow("payload", "lung_plasma", f"{organ}_plasma", host[f"plasma_flow_{organ}"])
-    system.add_flow("adc", "lung_BC", f"{organ}_BC", host[f"BC_flow_{organ}"])
     system.add_flow("payload", "lung_BC", f"{organ}_BC", host[f"BC_flow_{organ}"])
-  
   for organ in ["SI", "LI", "spleen", "pancreas"]:
-    system.add_flow("adc", f"{organ}_plasma", "liver_plasma", host[f"plasma_flow_{organ}"] - host[f"lymphatic_flow_{organ}"])
     system.add_flow("payload", f"{organ}_plasma", "liver_plasma", host[f"plasma_flow_{organ}"])
-    system.add_flow("adc", f"{organ}_BC", "liver_BC", host[f"BC_flow_{organ}"])
-    system.add_flow("payload", f"{organ}_BC", "liver_BC", host[f"BC_flow_{organ}"])
-    
-    system.add_flow("adc", "liver_plasma", "plasma", host[f"plasma_flow_{organ}"] - host[f"lymphatic_flow_{organ}"])
     system.add_flow("payload", "liver_plasma", "plasma", host[f"plasma_flow_{organ}"])
-    system.add_flow("adc", "liver_BC", "BC", host[f"BC_flow_{organ}"])
+    system.add_flow("payload", f"{organ}_BC", "liver_BC", host[f"BC_flow_{organ}"])
     system.add_flow("payload", "liver_BC", "BC", host[f"BC_flow_{organ}"])
-  
   for organ in [organ for organ in organs if organ not in ["lung"] + ["SI", "LI", "spleen", "pancreas"]]:
-    system.add_flow("adc", f"{organ}_plasma", "plasma", host[f"plasma_flow_{organ}"] - host[f"lymphatic_flow_{organ}"])
     system.add_flow("payload", f"{organ}_plasma", "plasma", host[f"plasma_flow_{organ}"])
-    system.add_flow("adc", f"{organ}_BC", "BC", host[f"BC_flow_{organ}"])
     system.add_flow("payload", f"{organ}_BC", "BC", host[f"BC_flow_{organ}"])
-  
-  # lymphatic circle of adc
-  for organ in organs:
-    system.add_flow("adc", f"{organ}_plasma", f"{organ}_interstitial", host[f"lymphatic_flow_{organ}"] * (1 - host[f"vascular_reflection_{organ}"]))
-    system.add_flow("adc", f"{organ}_interstitial", "lymph", host[f"lymphatic_flow_{organ}"] * (1 - host["lymphatic_reflection"]))
-    system.add_flow("adc", "lymph", "plasma", host[f"lymphatic_flow_{organ}"]) # the article used a different measure, which I think is weird
-  
-  # endosomal take-up and plasma recycle
-  for organ in organs:
-    v = system.get_volume("adc", f"{organ}_endosomal")
-    system.add_flow("adc", f"{organ}_plasma", f"{organ}_endosomal", host["endosomal_pinocytosis"] * v)
-    system.add_flow("adc", f"{organ}_interstitial", f"{organ}_endosomal", host["endosomal_pinocytosis"] * v)
-    
-    system.set_x("FcRn", f"{organ}_endosomal", host["FcRn"])
-    system.add_reaction(f"{organ}_endosomal", {"adc":1, "FcRn":1}, {f"FcRn-adc":1}, host["FcRn_on"], backward = host["FcRn_off"])
-    system.add_reaction(f"{organ}_endosomal", {"FcRn-adc":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * host["vascular_recycle"], side_compartment = f"{organ}_plasma", side_products = {"adc":1})
-    system.add_reaction(f"{organ}_endosomal", {"FcRn-adc":1}, {"FcRn":1}, host["endosomal_pinocytosis"] * (1 - host["vascular_recycle"]), side_compartment = f"{organ}_interstitial", side_products = {"adc":1})
-  
-  # target binding and internalization
-  for organ in organs:
-    system.set_x("target", f"{organ}_interstitial", target[f"num_{organ}"] * host[f"cell_density_{organ}"] / units.avagadro)
-    system.add_reaction(f"{organ}_interstitial", {"adc":1, "target":1}, {"target-adc":1}, target["on"], target["off"])
-    system.add_reaction(f"{organ}_interstitial", {"target-adc":1}, {"target":1}, target["int"], side_compartment = f"{organ}_cellular", side_products = {"adc":1})
-  
-  # fast payload equilibrium between tissues
   for organ in organs:
     system.add_flow("payload", f"{organ}_plasma", f"{organ}_endosomal", host[f"plasma_flow_{organ}"] * payload["unbound_plasma"] * 1000)
     system.add_flow("payload", f"{organ}_interstitial", f"{organ}_endosomal", host[f"plasma_flow_{organ}"] * 1000)
@@ -300,43 +253,27 @@ def model(host, target, linker, payload):
   v = host["volume_BC"]
   system.add_flow("payload", "plasma", "BC", payload["permeability_BC"] * v * payload["unbound_plasma"])
   system.add_flow("payload", "BC", "plasma", payload["permeability_BC"] * v * payload["unbound_BC"])
-  
   for organ in organs:
     v = host[f"volume_{organ}_BC"]
     system.add_flow("payload", f"{organ}_plasma", f"{organ}_BC", payload["permeability_BC"] * v * payload["unbound_plasma"])
     system.add_flow("payload", f"{organ}_BC", f"{organ}_plasma", payload["permeability_BC"] * v * payload["unbound_BC"])
-  
   for organ in organs:
     v = host[f"volume_{organ}_cellular"]
     system.add_flow("payload", f"{organ}_interstitial", f"{organ}_cellular", payload[f"permeability_{organ}"] * v)
     system.add_flow("payload", f"{organ}_cellular", f"{organ}_interstitial", payload[f"permeability_{organ}"] * v * payload[f"unbound_{organ}"])
   
+  
   # liver clearance
   v = host["volume_liver_interstitial"]
   system.add_flow("payload", "liver_interstitial", None, payload["liver_clearance"] * v)
   
-  # dissociatoin and degradation
-  def degradation(system, t):
-    DAR = system.get_z("DAR")
-    for organ in organs:
-      for tissue in ["endosomal", "cellular"]:
-        rate = linker[f"degradation_{tissue}"] * system.get_x("adc", f"{organ}_{tissue}")
-        system.add_x("adc", f"{organ}_{tissue}", - rate * t)
-        system.add_x("payload", f"{organ}_{tissue}", DAR * rate * t)
   
-  def dissociation(system, t):
-    DAR = system.get_z("DAR")
-    if callable(linker["dissociation"]):
-      rate = linker["dissociation"](DAR)
-    else:
-      rate = linker["dissociation"]
-    system.add_x("adc", "plasma", - rate * system.get_x("adc", "plasma") * t)
-    system.add_x("payload", "plasma", DAR * rate * system.get_x("adc", "plasma") * t)
-    system.add_z("DAR", - DAR * rate * t)
+  # initial concentrations
+  for organ in organs:
+    system.set_x("FcRn", f"{organ}_endosomal", host["FcRn"])
+  for organ in organs:
+    system.set_x("target", f"{organ}_interstitial", target[f"num_{organ}"] * host[f"cell_density_{organ}"] / units.avagadro)
   
-  system.add_process(degradation)
-  system.add_process(dissociation)
-
+  
   system.set_z("DAR", 4.5)
-  
   return system
