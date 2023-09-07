@@ -79,17 +79,20 @@ def reaction_general(system, compartment, reactants, products, forward, backward
   with np.errstate(divide='ignore', invalid='ignore'):
     if backward is None:
       delta_lin = np.power(x, reactants).prod() * forward * t
-      delta_eq = (x[reactants>0] / reactants[reactants>0]).min()
     else:
       delta_lin = (np.power(x, reactants).prod() * forward - np.power(x, products).prod() * backward) * t
+    
+    if delta_lin == 0:
+      return
+    
+    if backward is None:
+      delta_eq = (x[reactants>0] / reactants[reactants>0]).min()
+    else:
       a = -(x[products>0] / products[products>0]).min()
       b = (x[reactants>0] / reactants[reactants>0]).min()
       delta_eq = brentq(lambda delta: np.power(x + formula * delta, formula).prod() * backward/forward - 1, a, b)
-  
-  if abs(delta_lin) < abs(delta_eq):
-    delta = delta_lin
-  else:
-    delta = delta_eq
+    
+    delta = delta_eq if abs(delta_lin) > abs(delta_eq) else delta_lin
   
   system.x[:, compartment] += formula * delta
   if side_compartment is not None:
