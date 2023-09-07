@@ -155,10 +155,15 @@ MMAE.update({"unbound_plasma":unbound_plasma_MMAE, "unbound_BC":unbound_BC_MMAE}
 MMAE.update({"liver_clearance":liver_clearance_MMAE})
 
 
+################### masks ###################
+Tx_M1 = {"foldchange": 1/220, "cleavage_central": 0.0527 / units.d, "cleavage_tumor": 0.1783 / units.d}
+Tx_M2 = {"foldchange": 1/57, "cleavage_central": 0.0527 / units.d, "cleavage_tumor": 0.1783 / units.d}
+
+
 
 ################### the model ###################
 
-def model(host, target, linker, payload):
+def model(host, target, linker, payload, mask):
   variables = ["DAR"]
   system = System(analytes, compartments, variables)
   
@@ -201,6 +206,11 @@ def model(host, target, linker, payload):
     # target binding and internalization
       system.add_reaction(f"{organ}_interstitial", {analyte:1, "target":1}, {f"target-{analyte}":1}, target["on"], target["off"])
       system.add_reaction(f"{organ}_interstitial", {f"target-{analyte}":1}, {"target":1}, target["int"], side_compartment = f"{organ}_cellular", side_products = {analyte:1})
+  
+  
+  # cleavage of mask
+  system.add_reaction("central", {"bimasked":1}, {"monomasked":1}, 2 * mask["cleavage_central"])
+  system.add_reaction("central", {"monomasked":1}, {"unmasked":1}, mask["cleavage_central"])
   
   
   # dissociatoin and degradation
@@ -261,7 +271,6 @@ def model(host, target, linker, payload):
     v = host[f"volume_{organ}_cellular"]
     system.add_flow("payload", f"{organ}_interstitial", f"{organ}_cellular", payload[f"permeability_{organ}"] * v)
     system.add_flow("payload", f"{organ}_cellular", f"{organ}_interstitial", payload[f"permeability_{organ}"] * v * payload[f"unbound_{organ}"])
-  
   
   # liver clearance
   v = host["volume_liver_interstitial"]
