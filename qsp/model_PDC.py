@@ -231,8 +231,8 @@ def model(host, target, linker, payload, mask):
       rate = linker["dissociation"]
     for analyte in ["bimasked", "monomasked", "unmasked"]:
       for compartment in compartments:
-        system.add_x(analyte, compartment, - rate * system.get_x(analyte, "plasma") * t)
-        system.add_x("payload", compartment, DAR * rate * system.get_x(analyte, "plasma") * t)
+        system.add_x(analyte, compartment, - rate * system.get_x(analyte, compartment) * t)
+        system.add_x("payload", compartment, DAR * rate * system.get_x(analyte, compartment) * t)
     system.add_z("DAR", - DAR * rate * t)
   
   system.add_process(degradation)
