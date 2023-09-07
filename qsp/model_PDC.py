@@ -89,11 +89,15 @@ human.update({"FcRn": FcRn, "FcRn_on": FcRn_on, "FcRn_off": FcRn_off})
 
 ################### targets ###################
 # organs = ["heart", "lung", "muscle", "skin", "adipose", "bone", "brain", "kidney", "liver", "SI", "LI", "pancreas", "thymus", "spleen", "other"]
+nums_CD71 = np.array([1e3, 1e5, 1e3, 1e4, 0, 1e5, 1e4, 1e4, 1e3, 1e4, 1e4, 1e3, 0, 0, 0])
+nums_CD166 = np.array([0, 1e5, 1e3, 1e5, 0, 0, 1e5, 1e5, 1e5, 1e5, 1e3, 1e5, 1e5, 0, 0])
+
 nums_zero = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 nums_HER2 = np.array([1e4, 1e4, 1e4, 1e4, 0, 1e3, 0, 1e3, 1e3, 1e3, 1e3, 0, 1e3, 0, 0])
 nums_CAIX = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1e5, 1e5, 0, 0, 0, 0, 0])
 nums_EGFR = np.array([1e3, 1e5, 1e3, 1e5, 1e3, 0, 1e3, 1e4, 1e4, 1e3, 1e4, 1e4, 1e4, 0, 0])
 nums_mesothelin = np.array([0, 1e5, 0, 1e3, 0, 0, 0, 0, 0, 0, 1e4, 0, 0, 0, 0])
+
 
 # from Singh et al. 2020
 on_HER2 = 0.03 / units.nM / units.h
