@@ -120,6 +120,13 @@ EGFR.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 mesothelin = {f"num_{organ}":num for organ, num in zip(organs, nums_mesothelin)}
 mesothelin.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
 
+CD71 = {f"num_{organ}":num for organ, num in zip(organs, nums_CD71)}
+CD71.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
+
+CD166 = {f"num_{organ}":num for organ, num in zip(organs, nums_CD166)}
+CD166.update({"on":on_HER2, "off":off_HER2, "int":int_HER2})
+
+
 ################### linkers ###################
 # dissociation_vc = 0.323 / units.d # from Adam P. Singh et al. 2020
 
