@@ -3,11 +3,12 @@ from .qsp import *
 ### this model is mostly from ...
 
 cells = ["C", "Teff", "Treg"]
+targets = ["A", "B"]
 drugs = ["bimasked", "leftmasked", "rightmasked", "unmasked"]
 C_conjugates = [f"{Ag}-{drug}" for drug in drugs for Ag in ["A", "B", "AA", "AB", "BB"]]
 T_conjugates = [f"{drug}-{CD3}" for drug in drugs for CD3 in ["CD3eff", "CD3reg"]]
 trimers = [f"{Ag}-{drug}-{CD3}" for drug in drugs for Ag in ["A", "B", "AA", "AB", "BB"] for CD3 in ["CD3eff", "CD3reg"]]
-analytes = cells + drugs + C_conjugates + T_conjugates + trimers
+analytes = cells + targets + drugs + C_conjugates + T_conjugates + trimers
 
 
 ############ constants ############
@@ -133,16 +134,68 @@ def model(host, TCE, A, B, tumor, organs):
     system.add_flow("antibody", "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
     system.add_flow("antibody", "tumor_interstitial", "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
   
-  # target binding in organs
-  for organ in organs:
-    pass
-  
+  # target binding
+  for drug in ["bimasked", "leftmasked", "rightmasked", "unmasked"]:
+    if drug == "bimasked":
+      on_CD3 = TCE["on_A"] * TCE["breath_CD3_l"] * TCE["breath_CD3_r"]
+      on_A = TCE["on_A"] * TCE["breath_A_l"] * TCE["breath_A_r"]
+      on_B = TCE["on_B"] * TCE["breath_B_l"] * TCE["breath_B_r"]
+    if drug == "leftmasked":
+      on_CD3 = TCE["on_A"] * TCE["breath_CD3_l"]
+      on_A = TCE["on_A"] * TCE["breath_A_l"]
+      on_B = TCE["on_B"] * TCE["breath_B_l"]
+    if drug == "rightmasked":
+      on_CD3 = TCE["on_A"] * TCE["breath_CD3_r"]
+      on_A = TCE["on_A"] * TCE["breath_A_r"]
+      on_B = TCE["on_B"] * TCE["breath_B_r"]
+    if drug == "unmasked":
+      on_CD3 = TCE["on_A"]
+      on_A = TCE["on_A"]
+      on_B = TCE["on_B"]
 
-  
-  # interaction with target
-  for i in range(n_layers):
-    system.set_x("target", f"tumor_interstitial_{i}", target["num"] * tumor_cell_density / units.avagadro)
-    system.add_reaction(f"tumor_interstitial_{i}", {"antibody":1, "target":1}, {"target-antibody":1}, target["off"]/target["affinity"], target["off"])
-    system.add_reaction(f"tumor_interstitial_{i}", {"target-antibody":1}, {"target":1}, target["internalization"])
+    # in organs
+    for organ in organs:
+      system.add_reaction(f"{organ['name']}_interstitial", {f"{drug}":1, "A":1}, {f"{drug}-A":1}, on_A, TCE["off_A"])
+      system.add_reaction(f"{organ['name']}_interstitial", {f"{drug}":1, "B":1}, {f"{drug}-B":1}, on_B, TCE["off_B"])
+      system.add_reaction(f"{organ['name']}_interstitial", {f"{drug}-A":1, "A":1}, {f"{drug}-AA":1}, on_A * TCE["avidity"], TCE["off_A"])
+      system.add_reaction(f"{organ['name']}_interstitial", {f"{drug}-A":1, "B":1}, {f"{drug}-AB":1}, on_B * TCE["avidity"], TCE["off_B"])
+      system.add_reaction(f"{organ['name']}_interstitial", {f"{drug}-B":1, "A":1}, {f"{drug}-AB":1}, on_A * TCE["avidity"], TCE["off_A"])
+      system.add_reaction(f"{organ['name']}_interstitial", {f"{drug}-B":1, "B":1}, {f"{drug}-BB":1}, on_B * TCE["avidity"], TCE["off_B"])
+    
+    # in tumor
+    system.add_reaction("tumor_interstitial", {f"{drug}":1, "A":1}, {f"{drug}-A":1}, on_A, TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"{drug}":1, "B":1}, {f"{drug}-B":1}, on_B, TCE["off_B"])
+    system.add_reaction("tumor_interstitial", {f"{drug}-A":1, "A":1}, {f"{drug}-AA":1}, on_A * TCE["avidity"], TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"{drug}-A":1, "B":1}, {f"{drug}-AB":1}, on_B * TCE["avidity"], TCE["off_B"])
+    system.add_reaction("tumor_interstitial", {f"{drug}-B":1, "A":1}, {f"{drug}-AB":1}, on_A * TCE["avidity"], TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"{drug}-B":1, "B":1}, {f"{drug}-BB":1}, on_B * TCE["avidity"], TCE["off_B"])
+    
+    system.add_reaction("tumor_interstitial", {f"CD3eff":1, f"{drug}":1}, {f"CD3eff-{drug}":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff":1, f"{drug}-A":1}, {f"CD3eff-{drug}-A":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff":1, f"{drug}-B":1}, {f"CD3eff-{drug}-B":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff":1, f"{drug}-AA":1}, {f"CD3eff-{drug}-AA":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff":1, f"{drug}-AB":1}, {f"CD3eff-{drug}-AB":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff":1, f"{drug}-BB":1}, {f"CD3eff-{drug}-BB":1}, on_CD3, TCE["off_CD3"])
+    
+    system.add_reaction("tumor_interstitial", {f"CD3reg":1, f"{drug}":1}, {f"CD3reg-{drug}":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg":1, f"{drug}-A":1}, {f"CD3reg-{drug}-A":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg":1, f"{drug}-B":1}, {f"CD3reg-{drug}-B":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg":1, f"{drug}-AA":1}, {f"CD3reg-{drug}-AA":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg":1, f"{drug}-AB":1}, {f"CD3reg-{drug}-AB":1}, on_CD3, TCE["off_CD3"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg":1, f"{drug}-BB":1}, {f"CD3reg-{drug}-BB":1}, on_CD3, TCE["off_CD3"])
+    
+    system.add_reaction("tumor_interstitial", {f"CD3eff-{drug}":1, "A":1}, {f"{drug}-A":1}, on_A, TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff-{drug}":1, "B":1}, {f"{drug}-B":1}, on_B, TCE["off_B"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff-{drug}-A":1, "A":1}, {f"{drug}-AA":1}, on_A * TCE["avidity"], TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff-{drug}-A":1, "B":1}, {f"{drug}-AB":1}, on_B * TCE["avidity"], TCE["off_B"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff-{drug}-B":1, "A":1}, {f"{drug}-AB":1}, on_A * TCE["avidity"], TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"CD3eff-{drug}-B":1, "B":1}, {f"{drug}-BB":1}, on_B * TCE["avidity"], TCE["off_B"])
+    
+    system.add_reaction("tumor_interstitial", {f"CD3reg-{drug}":1, "A":1}, {f"{drug}-A":1}, on_A, TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg-{drug}":1, "B":1}, {f"{drug}-B":1}, on_B, TCE["off_B"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg-{drug}-A":1, "A":1}, {f"{drug}-AA":1}, on_A * TCE["avidity"], TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg-{drug}-A":1, "B":1}, {f"{drug}-AB":1}, on_B * TCE["avidity"], TCE["off_B"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg-{drug}-B":1, "A":1}, {f"{drug}-AB":1}, on_A * TCE["avidity"], TCE["off_A"])
+    system.add_reaction("tumor_interstitial", {f"CD3reg-{drug}-B":1, "B":1}, {f"{drug}-BB":1}, on_B * TCE["avidity"], TCE["off_B"])
   
   return system
