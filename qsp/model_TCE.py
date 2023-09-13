@@ -10,20 +10,32 @@ trimers = [f"{Ag}-{drug}-{CD3}" for drug in drugs for Ag in ["A", "B", "AA", "AB
 others =  [f"FcRn-{drug}" for drug in drugs]
 analytes = cells + drugs + C_conjugates + T_conjugates + trimers + others
 
-compartments = ["central", "peripheral", "organ", "tumor_plasma", "tumor_endosomal", "tumor_interstitial"]
+compartments = ["central", "peripheral", "organ_plasma", "organ_endosomal", "organ_interstitial", "tumor_plasma", "tumor_interstitial"]
 
+
+############ constants ############
+
+molecular_weight = 150000 * units.g/units.mol
+tumor_cell_density = 3e8 / units.ml
+
+def Hill(EMAX, EC50, coefficient, x):
+  if coefficient == 1:
+    return EMAX/(1 + (x/EC50))
+  else:
+    return EMAX/(1 + (x/EC50) ** coefficient)
+
+
+############ host ############
 
 def nonlinear_clearance_mouse(system, t):
   x = system.get_x("antibody", "central")
-  rate = - mouse["nonlinear_clearance_EMAX"] * x / (x + mouse["nonlinear_clearance_EC50"]) / system.get_volume("antibody", "central")
+  rate = - Hill(mouse["nonlinear_clearance_EMAX"], mouse["nonlinear_clearance_EC50"], 1, x)
   system.add_x("antibody", "central", rate * t)
 
 def nonlinear_clearance_human(system, t):
   x = system.get_x("antibody", "central")
-  rate = - human["nonlinear_clearance_EMAX"] * x / (x + human["nonlinear_clearance_EC50"]) / system.get_volume("antibody", "central")
+  rate = - Hill(human["nonlinear_clearance_EMAX"], human["nonlinear_clearance_EC50"], 1, x)
   system.add_x("antibody", "central", rate * t)
-
-molecular_weight = 150000 * units.g/units.mol
 
 mouse = {}
 mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * units.ml})
@@ -47,7 +59,8 @@ human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 human.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
 human.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.792 * 1/units.nM/units.h, "FcRn-off": 23.9 / units.h})
 
-tumor_cell_density = 3e8 / units.ml
+
+############ antigens ############
 
 HER2 = {}
 HER2.update({"num": 8e5})
@@ -55,33 +68,47 @@ HER2.update({"affinity": 1e-8 * units.molar})
 HER2.update({"off": 0.106 / units.h, "internalization": 0.0 / units.h})
 HER2.update({"on": HER2["off"] / HER2["affinity"]})
 
+
+############ tumors ############
+
 MC38 = {}
-MC38.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_endosomal_proportion": 0.005})
-MC38.update({"area": 1 * units.cm**2, "depth_layer": 0.01 * units.cm})
+MC38.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
 MC38.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 MC38.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 MC38.update({"diffusion": 10 * units.micrometer**2 / units.s})
 
 
+############ organs ############
+
+SI = {"name": "SI"}
+SI.update({"volume_plasma": 6.15 * units.ml, "volume_endosomal": 1.93 * units.ml, "volume_interstitial_proportion": 67.1 * units.ml})
+SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 
 
 
-def model(host, target, tumor):
+
+############ model ############
+
+def model(host, target, tumor, organs):
   system = System(analytes, compartments)
   
   for analyte in analytes:
     system.set_volume(analyte, "central", host["volume_central"])
     system.set_volume(analyte, "peripheral", host["volume_peripheral"])
     system.set_volume(analyte, "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
-    system.set_volume(analyte, "tumor_endosomal", tumor["volume"] * tumor["volume_endosomal_proportion"])
-    for i in range(n_layers):
-      system.set_volume(analyte, f"tumor_interstitial_{i}", tumor["area"] * tumor["depth_layer"])
+    system.set_volume(analyte, "tumor_interstitial", tumor["volume"] * tumor["volume_interstitial_proportion"])
+    for organ in organs:
+      system.set_volume(analyte, f"{organ["name"]}_plasma", organ["volume"] * organ["volume_plasma_proportion"])
+      system.set_volume(analyte, f"{organ["name"]}_endosomal", organ["volume"] * organ["volume_endosomal_proportion"])
+      system.set_volume(analyte, f"{organ["name"]}_interstitial", organ["volume"] * organ["volume_interstitial_proportion"])
   
   # distribution and clearance
   system.add_flow("antibody", "central", "peripheral", host["distribution"])
   system.add_flow("antibody", "peripheral", "central", host["distribution"])
   system.add_flow("antibody", "central", None, host["clearance"])
   system.add_process(host["nonlinear_clearance"])
+  
+
   
   # tumor plasma and lymphatic flow
   system.add_flow("antibody", "central", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
