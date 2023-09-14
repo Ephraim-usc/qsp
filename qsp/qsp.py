@@ -100,7 +100,7 @@ def reaction_general(system, compartment, reactants, products, forward, backward
     volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
     system.x[:, side_compartment] += side_products * volumes_ratio * delta
 
-
+"""
 class CRS: # chemical reaction system
   def __init__(self, n_analytes):
     self.S = np.zeros(shape = (0, n_analytes)) # n_reactions x n_analytes matrix of stoichiometrics
@@ -136,15 +136,15 @@ class CRS: # chemical reaction system
   
   def run(self, x, t):
     return solve_ivp(lambda t, x: self.rate(x), t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
+"""
 
-
-class Syndec: # synthesis and decomposition reactions
+class RS: # synthesis and decomposition reactions
   def __init__(self, n_analytes):
     self.n = n_analytes
     self.Q = np.zeros([n_analytes, n_analytes]) # linear term coefficients
     self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
   
-  def add_reaction(self, reactants, products, forward, backward):
+  def add_simple(self, reactants, products, forward, backward):
     if len(reactants) == 1:
       self.Q[reactants, reactants] -= forward
       self.Q[products, reactants] += forward
@@ -183,7 +183,7 @@ class System:
     self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.ml
     self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # in 1/units.h
     self.reactions = []
-    self.stoichs = [[] for compartment in self.compartments]
+    self.RS = [RS(self.n_analytes) for compartment in self.compartments]
     self.processes = []
     
     self.t = 0
@@ -230,19 +230,16 @@ class System:
     reaction = functools.partial(reaction_general, self, compartment, reactants, products, forward, backward, side_compartment, side_products)
     self.reactions.append(reaction)
   
-  def add_CR(self, compartment, reactants, products, forward, backward = None):
+  def add_simple(self, compartment, reactants, products, forward, backward = None):
     compartment = self.compartments.index(compartment)
-    reactants = dict2array(reactants, self.analytes, dtype = int)
-    products = dict2array(products, self.analytes, dtype = int)
-    forward = forward.number(units.nM / units.h / units.nM**(reactants.sum()))
+    reactants = [self.analytes.index(reactant) for reactant in reactants]
+    products = [self.analytes.index(product) for product in products]
+    forward = forward.number(units.nM / units.h / units.nM**(len(reactants)))
     if backward is None:
       backward = 0.0
     else:
-      backward = backward.number(units.nM / units.h / units.nM**(products.sum()))
-    self.crss[compartment].add_CR(reactants, products, forward, backward)
-    
-    
-  
+      backward = backward.number(units.nM / units.h / units.nM**(len(products)))
+    self.RS[compartment].add_simple(reactants, products, forward, backward)
   
   def add_process(self, process_func):
     process = functools.partial(process_func, self)
