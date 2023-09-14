@@ -38,7 +38,7 @@ class nonlinear_clearance:
     s = x.sum()
     if s == 0:
       return
-    rate = - Hill(EMAX, EC50, 1, s) * (x/s)
+    rate = - Hill(self.EMAX, self.EC50, 1, s) * (x/s)
     system.x[self.analytes, self.compartment] += rate * t.number(units.h)
 
 mouse = {}
