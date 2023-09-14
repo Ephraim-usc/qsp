@@ -169,7 +169,9 @@ class RS: # reaction system
     return self.Q + np.multiply(self.QQ, x[None,:,None]).sum(axis = 2) + np.multiply(self.QQ, x[None,None,:]).sum(axis = 1)
   
   def solve(self, x, t):
-    return solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "Radau").y[:,0]
+    x_ = solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
+    x_[x_ < 0] = 0
+    return x_
 
 
 class System:
@@ -350,7 +352,7 @@ class System:
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
     pbar.close()
-    print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing processes: {C:.8f}s\n", flush = True)
+    print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\n", flush = True\ntime in computing processes: {D:.8f}s\n", flush = True)
   
   def plot(self, compartments, colors = None, linestyles = None, output = None):
     if colors is None:
