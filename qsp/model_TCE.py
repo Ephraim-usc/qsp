@@ -2,7 +2,7 @@ from .qsp import *
 
 ### this model is mostly from ...
 
-cells = ["C", "Teff", "Treg"]
+CD3s = ["CD3eff", "CD3reg"]
 targets = ["A", "B"]
 drugs = ["bimasked", "leftmasked", "rightmasked", "unmasked"]
 C_conjugates = [f"{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AA", "AB", "BB"]]
