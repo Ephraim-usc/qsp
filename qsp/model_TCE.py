@@ -8,7 +8,7 @@ drugs = ["bimasked", "leftmasked", "rightmasked", "unmasked"]
 C_conjugates = [f"{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AA", "AB", "BB"]]
 T_conjugates = [f"{CD3}-{drug}" for drug in drugs for CD3 in ["CD3eff", "CD3reg"]]
 trimers = [f"{CD3}-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AA", "AB", "BB"] for CD3 in ["CD3eff", "CD3reg"]]
-analytes = cells + targets + drugs + C_conjugates + T_conjugates + trimers
+analytes = CD3s + targets + drugs + C_conjugates + T_conjugates + trimers
 
 
 ############ constants ############
