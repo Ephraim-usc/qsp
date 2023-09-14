@@ -14,7 +14,6 @@ analytes = CD3s + targets + drugs + C_conjugates + T_conjugates + trimers
 ############ constants ############
 
 molecular_weight = 150000 * units.g/units.mol
-tumor_cell_density = 3e8 / units.ml
 
 def Hill(EMAX, EC50, coefficient, x):
   if coefficient == 1:
@@ -72,11 +71,6 @@ V1.update({"breath_CD3_r": 1, "breath_A_r": 0.01, "breath_B_r": 0.01})
 V1.update({"cleavage_plasma_l": 0.0527 / units.d, "cleavage_plasma_r": 0.0527 / units.d})
 V1.update({"cleavage_tumor_l": 0.1783 / units.d, "cleavage_tumor_r": 0.1783 / units.d})
 
-############ antigens ############
-
-EGFR = {"num_tumor": None, "num_SI": None}
-CAIX = {"num_tumor": None, "num_SI": None}
-
 
 ############ tumors ############
 
@@ -85,6 +79,8 @@ MC38.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07,
 MC38.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 MC38.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 MC38.update({"diffusion": 10 * units.micrometer**2 / units.s})
+MC38.update({"cell_density": 3e8 / units.ml})
+MC38.update({"num_A": 3000, "num_B": 1000000})
 
 
 ############ organs ############
@@ -92,13 +88,13 @@ MC38.update({"diffusion": 10 * units.micrometer**2 / units.s})
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_endosomal": 1.93 * units.ml, "volume_interstitial": 67.1 * units.ml})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-
-
+SI.update({"cell_density": 1e8 / units.ml})
+SI.update({"num_A": 1000, "num_B": 100000})
 
 
 ############ model ############
 
-def model(host, TCE, A, B, tumor, organs):
+def model(host, TCE, tumor, organs):
   compartments = ["central", "peripheral", "tumor_plasma", "tumor_interstitial"] + [f"{organ['name']}_{tissue}" for organ in organs for tissue in ["plasma", "interstitial"]]
   system = System(analytes, compartments)
   
@@ -197,5 +193,13 @@ def model(host, TCE, A, B, tumor, organs):
       system.add_simple("tumor_interstitial", [f"{CD3}-{drug}-A", "B"], [f"{CD3}-{drug}-AB"], on_B * TCE["avidity"], TCE["off_B"])
       system.add_simple("tumor_interstitial", [f"{CD3}-{drug}-B", "A"], [f"{CD3}-{drug}-AB"], on_A * TCE["avidity"], TCE["off_A"])
       system.add_simple("tumor_interstitial", [f"{CD3}-{drug}-B", "B"], [f"{CD3}-{drug}-BB"], on_B * TCE["avidity"], TCE["off_B"])
+  
+  
+  # initial concentrations
+  system.add_x("A", "tumor_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
+  system.add_x("B", "tumor_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
+  for organ in organs:
+    system.add_x("A", f"{organ['name']}_interstitial", organ["num_A"] * organ["cell_density"] / units.avagadro)
+    system.add_x("B", f"{organ['name']}_interstitial", organ["num_B"] * organ["cell_density"] / units.avagadro)
   
   return system
