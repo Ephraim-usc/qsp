@@ -105,23 +105,68 @@ class CRS: # chemical reaction system
   def __init__(self, n_analytes):
     self.S = np.zeros(shape = (0, n_analytes)) # n_reactions x n_analytes matrix of stoichiometrics
     self.R = np.zeros(shape = (0, n_analytes)) # 2*n_reactions x n_analytes matrix of reactions (on both sides)
+    self.K = np.zeros(shape = 0) # length 2*n_reactions array of log reaction rate constants
     self.logK = np.zeros(shape = 0) # length 2*n_reactions array of log reaction rate constants
   
   def add_CR(self, reactants, products, forward, backward):
     self.S = np.vstack([self.S, products - reactants])
     self.R = np.vstack([self.R, reactants, products])
+    self.K = np.append(self.K, [forward, backward])
     with np.errstate(divide='ignore'):
       self.logK = np.append(self.logK, [np.log(forward), np.log(backward)])
   
-  def rate(self, x):
+  def rate_(self, x):
     with np.errstate(divide='ignore'):
       logx = np.nan_to_num(np.log(x), neginf = -1e100)
     rate = np.exp(self.logK + np.dot(self.R, logx))
     rate = rate[::2] - rate[1::2]
     return np.dot(rate, self.S)
   
+  def rate(self, x):
+    rate = self.K * np.power(x, self.R).prod(axis = 1)
+    rate = rate[::2] - rate[1::2]
+    return np.dot(rate, self.S)
+  
+  def jac(self, x):
+    np.power(x, self.R) * (self.R / x)
+    
+    rate = self.K * np.power(x, self.R).prod(axis = 1)
+    rate = rate[::2] - rate[1::2]
+    return np.dot(rate, self.S)
+  
   def run(self, x, t):
-    return solve_ivp(lambda t, x: self.rate(x), t_span = (0, t), y0 = x, t_eval=[t], method = "Radau").y
+    return solve_ivp(lambda t, x: self.rate(x), t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
+
+
+class Syndec: # synthesis and decomposition reactions
+  def __init__(self, n_analytes):
+    self.n = n_analytes
+    self.Q = np.zeros([n_analytes, n_analytes]) # linear term coefficients
+    self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
+  
+  def add_reaction(self, reactants, products, forward, backward):
+    if len(reactants) == 1:
+      self.Q[reactants, reactants] -= forward
+      self.Q[products, reactants] += forward
+    else:
+      self.QQ[reactants, reactants[0], reactants[1]] -= forward
+      self.QQ[products, reactants[0], reactants[1]] += forward
+    
+    if len(products) == 1:
+      self.Q[products, products] -= backward
+      self.Q[reactants, products] += backward
+    else:
+      self.Q[products, products[0], products[1]] -= backward
+      self.Q[reactants, products[0], products[1]] += backward
+  
+  def rate(self, _, x):
+    return np.dot(self.Q, x) + np.multiply(self.QQ, np.outer(x, x)).sum(axis = (1,2))
+  
+  def jac(self, _, x):
+    return self.Q + np.multiply(self.QQ, x[None,:,None]).sum(axis = 2) + np.multiply(self.QQ, x[None,None,:]).sum(axis = 1)
+  
+  def solve(self, x, t):
+    return solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "Radau").y[:,0]
 
 
 class System:
