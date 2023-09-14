@@ -301,6 +301,7 @@ class System:
       #print(" ", flush = True)
     
     print(f"<{len(self.reactions)} reactions>", flush = True)
+    print(f"<{len([compartment for compartment in range(self.n_compartments) if self.RS[compartment].active])} reactive compartments>", flush = True)
     print(f"<{len(self.processes)} processes>", flush = True)
     print(" ", flush = True)
     
