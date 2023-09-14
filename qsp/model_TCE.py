@@ -133,6 +133,19 @@ def model(host, TCE, A, B, tumor, organs):
     system.add_flow(drug, "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
     system.add_flow(drug, "tumor_interstitial", "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
   
+  
+  # mask cleavage
+  system.add_simple("central", ["bimasked"], ["rightmasked"], TCE["cleavage_plasma_l"])
+  system.add_simple("central", ["bimasked"], ["leftmasked"], TCE["cleavage_plasma_r"])
+  system.add_simple("central", ["leftmasked"], ["unmasked"], TCE["cleavage_plasma_l"])
+  system.add_simple("central", ["rightmasked"], ["unmasked"], TCE["cleavage_plasma_r"])
+  
+  system.add_simple("tumor_interstitial", ["bimasked"], ["rightmasked"], TCE["cleavage_tumor_l"])
+  system.add_simple("tumor_interstitial", ["bimasked"], ["leftmasked"], TCE["cleavage_tumor_r"])
+  system.add_simple("tumor_interstitial", ["leftmasked"], ["unmasked"], TCE["cleavage_tumor_l"])
+  system.add_simple("tumor_interstitial", ["rightmasked"], ["unmasked"], TCE["cleavage_tumor_r"])
+  
+  
   # target binding
   for drug in ["bimasked", "leftmasked", "rightmasked", "unmasked"]:
     if drug == "bimasked":
