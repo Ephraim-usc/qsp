@@ -138,13 +138,16 @@ class CRS: # chemical reaction system
     return solve_ivp(lambda t, x: self.rate(x), t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
 """
 
-class RS: # synthesis and decomposition reactions
+class RS: # reaction system
   def __init__(self, n_analytes):
+    self.active = False
     self.n = n_analytes
     self.Q = np.zeros([n_analytes, n_analytes]) # linear term coefficients
     self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
   
   def add_simple(self, reactants, products, forward, backward):
+    self.active = True
+    
     if len(reactants) == 1:
       self.Q[reactants, reactants] -= forward
       self.Q[products, reactants] += forward
@@ -318,7 +321,7 @@ class System:
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
     
     pbar = tqdm(total = t_end, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
-    pbar.update(self.t); A, B, C = 0.0, 0.0, 0.0
+    pbar.update(self.t); A, B, C, D = 0.0, 0.0, 0.0, 0.0
     while True:
       t_ = self.t
       self.t = min(self.t + t_step, t_end)
@@ -330,10 +333,15 @@ class System:
         B -= tt()
         reaction(self.t - t_)
         B += tt()
-      for process in self.processes:
+      for compartment in range(self.n_compartments):
         C -= tt()
-        process((self.t - t_) * units.h)
+        if self.RS[compartment].active:
+          self.x[:, compartment] = self.RS[compartment].solve(self.x[:, compartment], self.t - t_)
         C += tt()
+      for process in self.processes:
+        D -= tt()
+        process((self.t - t_) * units.h)
+        D += tt()
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
         self.history.append((self.t, self.x.copy()))
