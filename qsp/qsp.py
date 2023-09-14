@@ -107,10 +107,11 @@ class CRS: # chemical reaction system
     self.R = np.zeros(shape = (0, n_analytes)) # 2*n_reactions x n_analytes matrix of reactions (on both sides)
     self.logK = np.zeros(shape = 0) # length 2*n_reactions array of log reaction rate constants
   
-  def add_CR(reactants, products, forward, backward):
+  def add_CR(self, reactants, products, forward, backward):
     self.S = np.vstack([self.S, products - reactants])
     self.R = np.vstack([self.R, reactants, products])
-    self.logK = np.append(self.logK, [math.log(forward), math.log(backward)])
+    with np.errstate(divide='ignore'):
+      self.logK = np.append(self.logK, [np.log(forward), np.log(backward)])
   
   def rate(self, x):
     with np.errstate(divide='ignore'):
@@ -120,8 +121,7 @@ class CRS: # chemical reaction system
     return np.dot(rate, self.S)
   
   def run(self, x, t):
-    tmp = lambda t, x: self.rate(x) 
-    solve_ivp(tmp, [0, t], x, t_eval=[t])
+    return solve_ivp(lambda t, x: self.rate(x), t_span = (0, t), y0 = x, t_eval=[t], method = "Radau").y
 
 
 class System:
