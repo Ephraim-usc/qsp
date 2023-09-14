@@ -6,6 +6,7 @@ import functools
 from scipy.linalg import expm
 from scipy.optimize import brentq
 from scipy.optimize import fsolve
+from scipy.integrate import solve_ivp
 
 from tqdm import tqdm
 from time import time as tt
@@ -106,7 +107,7 @@ class CRS: # chemical reaction system
     self.R = np.zeros(shape = (0, n_analytes)) # 2*n_reactions x n_analytes matrix of reactions (on both sides)
     self.logK = np.zeros(shape = 0) # length 2*n_reactions array of log reaction rate constants
   
-  def add_reaction(reactants, products, forward, backward):
+  def add_CR(reactants, products, forward, backward):
     self.S = np.vstack([self.S, products - reactants])
     self.R = np.vstack([self.R, reactants, products])
     self.logK = np.append(self.logK, [math.log(forward), math.log(backward)])
@@ -117,6 +118,10 @@ class CRS: # chemical reaction system
     rate = np.exp(self.logK + np.dot(self.R, logx))
     rate = rate[::2] - rate[1::2]
     return np.dot(rate, self.S)
+  
+  def run(self, x, t):
+    tmp = lambda t, x: self.rate(x) 
+    solve_ivp(tmp, [0, t], x, t_eval=[t])
 
 
 class System:
@@ -161,7 +166,8 @@ class System:
     if compartment_dest is not None:
       compartment_dest = self.compartments.index(compartment_dest)
       self.Q[analyte, compartment_source, compartment_dest] += rate / self.V[analyte, compartment_dest]
-  
+
+  # this function is for backward compatibility only
   def add_reaction(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
     compartment = self.compartments.index(compartment)
     reactants = dict2array(reactants, self.analytes, dtype = int)
@@ -179,7 +185,7 @@ class System:
     reaction = functools.partial(reaction_general, self, compartment, reactants, products, forward, backward, side_compartment, side_products)
     self.reactions.append(reaction)
   
-  def add_reaction(self, compartment, reactants, products, forward, backward = None):
+  def add_CR(self, compartment, reactants, products, forward, backward = None):
     compartment = self.compartments.index(compartment)
     reactants = dict2array(reactants, self.analytes, dtype = int)
     products = dict2array(products, self.analytes, dtype = int)
@@ -188,7 +194,7 @@ class System:
       backward = 0.0
     else:
       backward = backward.number(units.nM / units.h / units.nM**(products.sum()))
-    self.crss[compartment].add_reaction(reactants, products, forward, backward)
+    self.crss[compartment].add_CR(reactants, products, forward, backward)
     
     
   
