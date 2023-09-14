@@ -100,6 +100,25 @@ def reaction_general(system, compartment, reactants, products, forward, backward
     system.x[:, side_compartment] += side_products * volumes_ratio * delta
 
 
+class CRS: # chemical reaction system
+  def __init__(self, n_analytes):
+    self.S = np.zeros(shape = (0, n_analytes)) # n_reactions x n_analytes matrix of stoichiometrics
+    self.R = np.zeros(shape = (0, n_analytes)) # 2*n_reactions x n_analytes matrix of reactions (on both sides)
+    self.logK = np.zeros(shape = 0) # length 2*n_reactions array of log reaction rate constants
+  
+  def add_reaction(reactants, products, forward, backward):
+    self.S = np.vstack([self.S, products - reactants])
+    self.R = np.vstack([self.R, reactants, products])
+    self.logK = np.append(self.logK, [math.log(forward), math.log(backward)])
+  
+  def rate(self, x):
+    with np.errstate(divide='ignore'):
+      logx = np.nan_to_num(np.log(x), neginf = -1e100)
+    rate = np.exp(self.logK + np.dot(self.R, logx))
+    rate = rate[::2] - rate[1::2]
+    return np.dot(rate, self.S)
+
+
 class System:
   def __init__(self, analytes, compartments, variables = None):
     self.analytes = analytes
@@ -114,6 +133,7 @@ class System:
     self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.ml
     self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # in 1/units.h
     self.reactions = []
+    self.stoichs = [[] for compartment in self.compartments]
     self.processes = []
     
     self.t = 0
@@ -158,6 +178,20 @@ class System:
     
     reaction = functools.partial(reaction_general, self, compartment, reactants, products, forward, backward, side_compartment, side_products)
     self.reactions.append(reaction)
+  
+  def add_reaction(self, compartment, reactants, products, forward, backward = None):
+    compartment = self.compartments.index(compartment)
+    reactants = dict2array(reactants, self.analytes, dtype = int)
+    products = dict2array(products, self.analytes, dtype = int)
+    forward = forward.number(units.nM / units.h / units.nM**(reactants.sum()))
+    if backward is None:
+      backward = 0.0
+    else:
+      backward = backward.number(units.nM / units.h / units.nM**(products.sum()))
+    self.crss[compartment].add_reaction(reactants, products, forward, backward)
+    
+    
+  
   
   def add_process(self, process_func):
     process = functools.partial(process_func, self)
