@@ -146,19 +146,19 @@ def model(host, TCE, tumor, organs):
   # target binding
   for drug in ["bimasked", "leftmasked", "rightmasked", "unmasked"]:
     if drug == "bimasked":
-      on_CD3 = TCE["on_A"] * TCE["breath_CD3_l"] * TCE["breath_CD3_r"]
+      on_CD3 = TCE["on_CD3"] * TCE["breath_CD3_l"] * TCE["breath_CD3_r"]
       on_A = TCE["on_A"] * TCE["breath_A_l"] * TCE["breath_A_r"]
       on_B = TCE["on_B"] * TCE["breath_B_l"] * TCE["breath_B_r"]
     if drug == "leftmasked":
-      on_CD3 = TCE["on_A"] * TCE["breath_CD3_l"]
+      on_CD3 = TCE["on_CD3"] * TCE["breath_CD3_l"]
       on_A = TCE["on_A"] * TCE["breath_A_l"]
       on_B = TCE["on_B"] * TCE["breath_B_l"]
     if drug == "rightmasked":
-      on_CD3 = TCE["on_A"] * TCE["breath_CD3_r"]
+      on_CD3 = TCE["on_CD3"] * TCE["breath_CD3_r"]
       on_A = TCE["on_A"] * TCE["breath_A_r"]
       on_B = TCE["on_B"] * TCE["breath_B_r"]
     if drug == "unmasked":
-      on_CD3 = TCE["on_A"]
+      on_CD3 = TCE["on_CD3"]
       on_A = TCE["on_A"]
       on_B = TCE["on_B"]
     
