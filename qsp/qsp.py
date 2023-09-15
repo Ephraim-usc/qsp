@@ -366,24 +366,35 @@ class System:
     pbar.close()
     print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\ntime in computing processes: {D:.8f}s\n", flush = True)
   
-  def plot(self, compartments, colors = None, linestyles = None, output = None):
+  def plot(self, compartments, groups = None, labels = None, colors = None, linestyles = None, output = None):
+    compartments = [self.compartments.index(compartment) for compartment in compartments]
+    
+    if groups is None:
+      groups = [[i] for i in range(self.n_analytes)]
+    else:
+      groups = [[self.analytes.index(analyte) for analyte in group] for group in groups]
+    
+    if labels is None:
+      labels = [" + ".join([self.analytes[analyte] for analyte in group]) for group in groups]
+    
     if colors is None:
       colors = list(mcolors.TABLEAU_COLORS.values())
     if linestyles is None:
       linestyles = ["solid"] * 10
-    compartments = [self.compartments.index(compartment) for compartment in compartments]
+    
     Xmax = max([t for t, x in self.history])
-    Ymax = max([x.max() for t, x in self.history]); Ymax = 10**np.ceil(np.log10(Ymax))
+    Ymax = max([x[group, compartment].sum() for t, x in self.history for group in groups for compartment in compartments])
+    Ymax = 10**np.ceil(np.log10(Ymax))
     
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), figsize = (4*len(compartments), 3), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
-      for analyte in range(len(self.analytes)):
+      for group, label, color, linestyle in zip(groups, labels, colors, linestyles):
         X = [t for t, x in self.history]
-        Y = [x[analyte, compartment] for t, x in self.history]
+        Y = [x[group, compartment].sum() for t, x in self.history]
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG > 0:
-          ax.plot(X, Y, label = f"{self.analytes[analyte]}, avg={AVG:.3}nM", color = colors[analyte], linestyle = linestyles[analyte])
+          ax.plot(X, Y, label = f"{label}, avg={AVG:.3}nM", color = color, linestyle = linestyle)
       if Xmax > 100:
         ax.set_xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
       else:
@@ -400,6 +411,7 @@ class System:
       fig.show()
     else:
       fig.savefig(output, dpi = 300)
+      plt.close(fig)
   
   def summary(self, analyte):
     analyte = self.analytes.index(analyte)
