@@ -51,7 +51,7 @@ def array2dict(x, names, trim = False):
     buffer = {name:x_ for name, x_ in zip(names, x)}
   return buffer
 
-
+"""
 def reaction_general_(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
   x = system.x[:, compartment]
   difference = products - reactants
@@ -71,7 +71,7 @@ def reaction_general_(system, compartment, reactants, products, forward, backwar
   if side_compartment is not None:
     volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
     system.x[:, side_compartment] += side_products * volumes_ratio * delta
-
+"""
 
 def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
   x = system.x[:, compartment]
@@ -145,6 +145,12 @@ class RS: # reaction system
     self.Q = np.zeros([n_analytes, n_analytes]) # linear term coefficients
     self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
   
+  def refresh(self):
+    self.linear_o, self.linear_i = np.where(self.Q != 0)
+    self.linear_k = self.Q[self.Q != 0]
+    self.quadratic_o, self.quadratic_i, self.quadratic_j = np.where(self.QQ != 0)
+    self.quadratic_k = self.QQ[self.QQ != 0]
+  
   def add_simple(self, reactants, products, forward, backward):
     self.active = True
     
@@ -161,17 +167,26 @@ class RS: # reaction system
     else:
       self.Q[products, products[0], products[1]] -= backward
       self.Q[reactants, products[0], products[1]] += backward
+    
+    self.refresh()
   
   def rate(self, _, x):
-    return np.dot(self.Q, x) + np.multiply(self.QQ, np.outer(x, x)).sum(axis = (1,2))
+    global A
+    A += 1
+    buffer = np.zeros(self.n)
+    np.add.at(buffer, self.linear_o, self.linear_k * x[self.linear_i])
+    np.add.at(buffer, self.quadratic_o, self.quadratic_k * x[self.quadratic_i] * x[self.quadratic_j])
+    return buffer
   
   def jac(self, _, x):
-    return self.Q + np.multiply(self.QQ, x[None,:,None]).sum(axis = 2) + np.multiply(self.QQ, x[None,None,:]).sum(axis = 1)
+    buffer = np.zeros((self.n, self.n))
+    np.add.at(buffer, (self.linear_o, self.linear_i), self.linear_k)
+    np.add.at(buffer, (self.quadratic_o, self.quadratic_i), self.quadratic_k * x[self.quadratic_j])
+    np.add.at(buffer, (self.quadratic_o, self.quadratic_j), self.quadratic_k * x[self.quadratic_i])
+    return buffer
   
   def solve(self, x, t):
-    x_ = solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
-    x_[x_ < 0] = 0
-    return x_
+    return solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
 
 
 class System:
