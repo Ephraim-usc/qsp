@@ -171,8 +171,6 @@ class RS: # reaction system
     self.refresh()
   
   def rate(self, _, x):
-    global A
-    A += 1
     buffer = np.zeros(self.n)
     np.add.at(buffer, self.linear_o, self.linear_k * x[self.linear_i])
     np.add.at(buffer, self.quadratic_o, self.quadratic_k * x[self.quadratic_i] * x[self.quadratic_j])
