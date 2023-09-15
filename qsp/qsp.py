@@ -352,7 +352,7 @@ class System:
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
     pbar.close()
-    print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\n", flush = True\ntime in computing processes: {D:.8f}s\n", flush = True)
+    print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\ntime in computing processes: {D:.8f}s\n", flush = True)
   
   def plot(self, compartments, colors = None, linestyles = None, output = None):
     if colors is None:
