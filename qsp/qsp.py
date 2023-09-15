@@ -185,7 +185,7 @@ class RS: # reaction system
     np.add.at(buffer, (self.quadratic_o, self.quadratic_j), self.quadratic_k * x[self.quadratic_i])
     return buffer
   
-  def solve(self, x, t):
+  def __call__(self, x, t):
     return solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
 
 
@@ -261,8 +261,7 @@ class System:
       backward = backward.number(units.nM / units.h / units.nM**(len(products)))
     self.RS[compartment].add_simple(reactants, products, forward, backward)
   
-  def add_process(self, process_func):
-    process = functools.partial(process_func, self)
+  def add_process(self, process):
     self.processes.append(process)
   
   
@@ -354,11 +353,11 @@ class System:
       for compartment in range(self.n_compartments):
         C -= tt()
         if self.RS[compartment].active:
-          self.x[:, compartment] = self.RS[compartment].solve(self.x[:, compartment], self.t - t_)
+          self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], self.t - t_)
         C += tt()
       for process in self.processes:
         D -= tt()
-        process((self.t - t_) * units.h)
+        process(self, (self.t - t_) * units.h)
         D += tt()
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
