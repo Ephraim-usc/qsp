@@ -181,13 +181,13 @@ def model(host, TCE, tumor, organs):
   
   
   # initial concentrations
-  system.add_x("CD3eff", "tumor_interstitial", 124 * (4.3 * 400/units.microliter) / units.avagadro)
-  system.add_x("CD3reg", "tumor_interstitial", 124 * (4.3 * 600/units.microliter) / units.avagadro)
+  system.add_x("CD3eff", "tumor_interstitial", 124000 * (4.3 * 400/units.microliter) / units.avagadro)
+  system.add_x("CD3reg", "tumor_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
   system.add_x("A", "tumor_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
   system.add_x("B", "tumor_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
   for organ in organs:
-    system.add_x("CD3eff", f"{organ['name']}_interstitial", 124 * (400/units.microliter) / units.avagadro)
-    system.add_x("CD3reg", f"{organ['name']}_interstitial", 124 * (600/units.microliter) / units.avagadro)
+    system.add_x("CD3eff", f"{organ['name']}_interstitial", 124000 * (400/units.microliter) / units.avagadro)
+    system.add_x("CD3reg", f"{organ['name']}_interstitial", 124000 * (600/units.microliter) / units.avagadro)
     system.add_x("A", f"{organ['name']}_interstitial", organ["num_A"] * organ["cell_density"] / units.avagadro)
     system.add_x("B", f"{organ['name']}_interstitial", organ["num_B"] * organ["cell_density"] / units.avagadro)
   
