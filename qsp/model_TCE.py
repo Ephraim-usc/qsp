@@ -60,16 +60,26 @@ human.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation"
 human.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.792 * 1/units.nM/units.h, "FcRn-off": 23.9 / units.h})
 
 
-############ antigens ############
+############ drug ############
 
-V1 = {}
-V1.update({"on_CD3": 0.34 * 1/units.nM/units.d, "on_A": 0.34 * 1/units.nM/units.d, "on_B": 0.34 * 1/units.nM/units.d})
-V1.update({"avidity": 1000})
-V1.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
+basics = {}
+basics.update({"on_CD3": 0.34 * 1/units.nM/units.d, "on_A": 0.34 * 1/units.nM/units.d, "on_B": 0.34 * 1/units.nM/units.d})
+basics.update({"avidity": 1000})
+basics.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
+basics.update({"cleavage_plasma_l": 0.0527 / units.d, "cleavage_plasma_r": 0.0527 / units.d})
+basics.update({"cleavage_tumor_l": 0.1783 / units.d, "cleavage_tumor_r": 0.1783 / units.d})
+
+V1 = basics.copy()
 V1.update({"breath_CD3_l": 0.01, "breath_A_l": 1, "breath_B_l": 1})
 V1.update({"breath_CD3_r": 1, "breath_A_r": 0.01, "breath_B_r": 0.01})
-V1.update({"cleavage_plasma_l": 0.0527 / units.d, "cleavage_plasma_r": 0.0527 / units.d})
-V1.update({"cleavage_tumor_l": 0.1783 / units.d, "cleavage_tumor_r": 0.1783 / units.d})
+
+V2 = basics.copy()
+V2.update({"breath_CD3_l": 0.01, "breath_A_l": 1, "breath_B_l": 0.01})
+V2.update({"breath_CD3_r": 1, "breath_A_r": 0.01, "breath_B_r": 1})
+
+V3 = basics.copy()
+V3.update({"breath_CD3_l": 0.01, "breath_A_l": 0.01, "breath_B_l": 1})
+V3.update({"breath_CD3_r": 1, "breath_A_r": 1, "breath_B_r": 0.01})
 
 
 ############ tumors ############
@@ -162,6 +172,9 @@ def model(host, TCE, tumor, organs):
       on_A = TCE["on_A"]
       on_B = TCE["on_B"]
     
+    for CD3 in ["CD3eff", "CD3reg"]:
+      system.add_simple("central", [f"{CD3}", f"{drug}"], [f"{CD3}-{drug}"], on_CD3, TCE["off_CD3"])
+    
     for organ in [tumor] + organs:
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "A"], [f"{drug}-A"], on_A, TCE["off_A"])
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "B"], [f"{drug}-B"], on_B, TCE["off_B"])
@@ -181,6 +194,17 @@ def model(host, TCE, tumor, organs):
   
   
   # initial concentrations
+  Treg_density_blood = 138070411 / (6 * units.l)
+  Treg_density_lymph = 107544935 / (0.021 * units.l)
+  Treg_density_peripheral = 2.317e11 / (62.24 * units.l)
+  Treg_density_tumor = 9303338 / (1 * units.l)
+  
+  system.add_x("CD3eff", "center", 124000 * Treg_density_blood / units.avagadro)
+  system.add_x("CD3reg", "center", 124000 * (Treg_density_blood*0.6) / units.avagadro)
+  
+  system.add_x("CD3eff", "peripheral", 124000 * Treg_density_peripheral / units.avagadro)
+  system.add_x("CD3reg", "peripheral", 124000 * (Treg_density_peripheral*0.6) / units.avagadro)
+  
   system.add_x("CD3eff", "tumor_interstitial", 124000 * (4.3 * 400/units.microliter) / units.avagadro)
   system.add_x("CD3reg", "tumor_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
   system.add_x("A", "tumor_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
