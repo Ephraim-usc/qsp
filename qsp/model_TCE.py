@@ -199,8 +199,8 @@ def model(host, TCE, tumor, organs):
   Treg_density_peripheral = 2.317e11 / (62.24 * units.l)
   Treg_density_tumor = 9303338 / (1 * units.l)
   
-  system.add_x("CD3eff", "center", 124000 * Treg_density_blood / units.avagadro)
-  system.add_x("CD3reg", "center", 124000 * (Treg_density_blood*0.6) / units.avagadro)
+  system.add_x("CD3eff", "central", 124000 * Treg_density_blood / units.avagadro)
+  system.add_x("CD3reg", "central", 124000 * (Treg_density_blood*0.6) / units.avagadro)
   
   system.add_x("CD3eff", "peripheral", 124000 * Treg_density_peripheral / units.avagadro)
   system.add_x("CD3reg", "peripheral", 124000 * (Treg_density_peripheral*0.6) / units.avagadro)
