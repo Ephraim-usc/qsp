@@ -4,7 +4,7 @@ from .qsp import *
 
 CD3s = ["CD3eff", "CD3reg"]
 targets = ["A", "B"]
-drugs = ["bimasked", "leftmasked", "rightmasked", "unmasked"]
+drugs = ["mm", "mn", "nm", "nn"]
 C_conjugates = [f"{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
 T_conjugates = [f"{CD3}-{drug}" for drug in drugs for CD3 in ["CD3eff", "CD3reg"]]
 trimers = [f"{CD3}-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"] for CD3 in ["CD3eff", "CD3reg"]]
@@ -32,7 +32,7 @@ class nonlinear_clearance:
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      self.analytes = [system.analytes.index(analyte) for analyte in ["bimasked", "leftmasked", "rightmasked", "unmasked"]]
+      self.analytes = [system.analytes.index(analyte) for analyte in ["mm", "mn", "nm", "nn"]]
       self.compartment = system.compartments.index("central")
     x = system.x[self.analytes, self.compartment]
     s = x.sum()
@@ -47,8 +47,6 @@ mouse.update({"distribution": 4.82 * units.ml/units.d})
 mouse.update({"clearance": 0.334 * units.ml/units.d})
 mouse.update({"nonlinear_clearance": nonlinear_clearance(0.518 * units.microgram/units.d / molecular_weight, 0.366 * units.microgram/units.ml / molecular_weight)})
 mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-mouse.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
-mouse.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.0806 * 1/units.nM/units.h, "FcRn-off": 6.55 / units.h})
 
 human = {}
 human.update({"volume_central": 2877 * units.ml, "volume_peripheral": 2857 * units.ml})
@@ -56,30 +54,29 @@ human.update({"distribution": 384 * units.ml/units.d})
 human.update({"clearance": 167 * units.ml/units.d})
 human.update({"nonlinear_clearance": nonlinear_clearance(114 * units.microgram/units.d / molecular_weight, 0.078 * units.microgram/units.ml / molecular_weight)})
 human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-human.update({"endosomal_pinocytosis": 0.0366 / units.h, "endosomal_degradation": 42.9 / units.h, "vascular_recycle": 0.715})
-human.update({"FcRn": 49.8 * units.micromolar, "FcRn-on": 0.792 * 1/units.nM/units.h, "FcRn-off": 23.9 / units.h})
 
 
 ############ drug ############
 
-basics = {}
-basics.update({"on_CD3": 0.34 * 1/units.nM/units.d, "on_A": 0.34 * 1/units.nM/units.d, "on_B": 0.34 * 1/units.nM/units.d})
-basics.update({"avidity": 1000})
-basics.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
-basics.update({"cleavage_plasma_l": 0.0527 / units.d, "cleavage_plasma_r": 0.0527 / units.d})
-basics.update({"cleavage_tumor_l": 0.1783 / units.d, "cleavage_tumor_r": 0.1783 / units.d})
+R72 = {}
+R72.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
+R72.update({"on_CD3": R72["off_CD3"] / 90 * units.nM, 
+            "on_A": R72["off_A"] / 203 * units.nM, 
+            "on_B": R72["off_B"] / 1.07 * units.nM})
+R72.update({"avidity": 1000})
+R72.update({"breath_CD3": 90/846, "breath_A": 203/916, "breath_B": 1})
+R72.update({"cleavage_plasma_CD3": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0527 / units.d})
+R72.update({"cleavage_tumor_CD3": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 / units.d, "cleavage_tumor_B": 0.1783 / units.d})
 
-V1 = basics.copy()
-V1.update({"breath_CD3_l": 0.01, "breath_A_l": 1, "breath_B_l": 1})
-V1.update({"breath_CD3_r": 1, "breath_A_r": 0.01, "breath_B_r": 0.01})
-
-V2 = basics.copy()
-V2.update({"breath_CD3_l": 0.01, "breath_A_l": 1, "breath_B_l": 0.01})
-V2.update({"breath_CD3_r": 1, "breath_A_r": 0.01, "breath_B_r": 1})
-
-V3 = basics.copy()
-V3.update({"breath_CD3_l": 0.01, "breath_A_l": 0.01, "breath_B_l": 1})
-V3.update({"breath_CD3_r": 1, "breath_A_r": 1, "breath_B_r": 0.01})
+R77 = {}
+R77.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
+R77.update({"on_CD3": R72["off_CD3"] / 25 * units.nM, 
+            "on_A": R72["off_A"] / 11 * units.nM, 
+            "on_B": R72["off_B"] / 189 * units.nM})
+R77.update({"avidity": 1000})
+R77.update({"breath_CD3": 25/527, "breath_A": 11/243, "breath_B": 1})
+R77.update({"cleavage_plasma_CD3": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0527 / units.d})
+R77.update({"cleavage_tumor_CD3": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 / units.d, "cleavage_tumor_B": 0.1783 / units.d})
 
 
 ############ tumors ############
@@ -142,35 +139,24 @@ def model(host, TCE, tumor, organs):
   
   
   # mask cleavage
-  system.add_simple("central", ["bimasked"], ["rightmasked"], TCE["cleavage_plasma_l"])
-  system.add_simple("central", ["bimasked"], ["leftmasked"], TCE["cleavage_plasma_r"])
-  system.add_simple("central", ["leftmasked"], ["unmasked"], TCE["cleavage_plasma_l"])
-  system.add_simple("central", ["rightmasked"], ["unmasked"], TCE["cleavage_plasma_r"])
+  system.add_simple("central", ["mm"], ["nm"], TCE["cleavage_plasma_CD3"])
+  system.add_simple("central", ["mm"], ["mn"], TCE["cleavage_plasma_A"])
+  system.add_simple("central", ["mn"], ["nn"], TCE["cleavage_plasma_CD3"])
+  system.add_simple("central", ["nm"], ["nn"], TCE["cleavage_plasma_A"])
   
-  system.add_simple("tumor_interstitial", ["bimasked"], ["rightmasked"], TCE["cleavage_tumor_l"])
-  system.add_simple("tumor_interstitial", ["bimasked"], ["leftmasked"], TCE["cleavage_tumor_r"])
-  system.add_simple("tumor_interstitial", ["leftmasked"], ["unmasked"], TCE["cleavage_tumor_l"])
-  system.add_simple("tumor_interstitial", ["rightmasked"], ["unmasked"], TCE["cleavage_tumor_r"])
+  system.add_simple("tumor_interstitial", ["mm"], ["nm"], TCE["cleavage_tumor_CD3"])
+  system.add_simple("tumor_interstitial", ["mm"], ["mn"], TCE["cleavage_tumor_A"])
+  system.add_simple("tumor_interstitial", ["mn"], ["nn"], TCE["cleavage_tumor_CD3"])
+  system.add_simple("tumor_interstitial", ["nm"], ["nn"], TCE["cleavage_tumor_A"])
   
   
   # target binding
-  for drug in ["bimasked", "leftmasked", "rightmasked", "unmasked"]:
-    if drug == "bimasked":
-      on_CD3 = TCE["on_CD3"] * TCE["breath_CD3_l"] * TCE["breath_CD3_r"]
-      on_A = TCE["on_A"] * TCE["breath_A_l"] * TCE["breath_A_r"]
-      on_B = TCE["on_B"] * TCE["breath_B_l"] * TCE["breath_B_r"]
-    if drug == "leftmasked":
-      on_CD3 = TCE["on_CD3"] * TCE["breath_CD3_l"]
-      on_A = TCE["on_A"] * TCE["breath_A_l"]
-      on_B = TCE["on_B"] * TCE["breath_B_l"]
-    if drug == "rightmasked":
-      on_CD3 = TCE["on_CD3"] * TCE["breath_CD3_r"]
-      on_A = TCE["on_A"] * TCE["breath_A_r"]
-      on_B = TCE["on_B"] * TCE["breath_B_r"]
-    if drug == "unmasked":
-      on_CD3 = TCE["on_CD3"]
-      on_A = TCE["on_A"]
-      on_B = TCE["on_B"]
+  for drug in drugs:
+    on_CD3, on_A, on_B = TCE["on_CD3"], TCE["on_A"], TCE["on_B]
+    if drug[0] == "m":
+      on_CD3 *= TCE["breath_CD3"]
+    if drug[1] == "m":
+      on_A *= TCE["breath_A"]
     
     for CD3 in ["CD3eff", "CD3reg"]:
       system.add_simple("central", [f"{CD3}", f"{drug}"], [f"{CD3}-{drug}"], on_CD3, TCE["off_CD3"])
