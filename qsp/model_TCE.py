@@ -81,22 +81,36 @@ R77.update({"cleavage_tumor_CD3": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 /
 
 ############ tumors ############
 
-MC38 = {"name": "tumor"}
-MC38.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
-MC38.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
-MC38.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
-MC38.update({"diffusion": 10 * units.micrometer**2 / units.s})
-MC38.update({"cell_density": 3e8 / units.ml})
-MC38.update({"num_A": 3000, "num_B": 1000000})
+UT44 = {"name": "tumor"}
+UT44.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
+UT44.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
+UT44.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
+UT44.update({"diffusion": 10 * units.micrometer**2 / units.s})
+UT44.update({"cell_density": 3e8 / units.ml})
+UT44.update({"num_A": 7e5, "num_B": 1.45e6})
+
+FTC238 = {"name": "tumor"}
+FTC238.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
+FTC238.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
+FTC238.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
+FTC238.update({"diffusion": 10 * units.micrometer**2 / units.s})
+FTC238.update({"cell_density": 3e8 / units.ml})
+FTC238.update({"num_A": 1e5, "num_B": 1e5})
 
 
 ############ organs ############
 
+lung = {"name": "lung"}
+lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
+lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+lung.update({"cell_density": 1e8 / units.ml})
+lung.update({"num_A": 133439, "num_B": 1019})
+
 SI = {"name": "SI"}
-SI.update({"volume_plasma": 6.15 * units.ml, "volume_endosomal": 1.93 * units.ml, "volume_interstitial": 67.1 * units.ml})
+SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 SI.update({"cell_density": 1e8 / units.ml})
-SI.update({"num_A": 1000, "num_B": 100000})
+SI.update({"num_A": 57075, "num_B": 39649})
 
 
 ############ model ############
@@ -152,7 +166,7 @@ def model(host, TCE, tumor, organs):
   
   # target binding
   for drug in drugs:
-    on_CD3, on_A, on_B = TCE["on_CD3"], TCE["on_A"], TCE["on_B]
+    on_CD3, on_A, on_B = TCE["on_CD3"], TCE["on_A"], TCE["on_B"]
     if drug[0] == "m":
       on_CD3 *= TCE["breath_CD3"]
     if drug[1] == "m":
