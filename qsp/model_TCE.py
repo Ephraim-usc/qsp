@@ -60,9 +60,9 @@ human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 
 R72 = {}
 R72.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
-R72.update({"on_CD3": R72["off_CD3"] / 90 * units.nM, 
-            "on_A": R72["off_A"] / 203 * units.nM, 
-            "on_B": R72["off_B"] / 1.07 * units.nM})
+R72.update({"on_CD3": R72["off_CD3"] / (90 * units.nM), 
+            "on_A": R72["off_A"] / (203 * units.nM), 
+            "on_B": R72["off_B"] / (1.07 * units.nM)})
 R72.update({"avidity": 1000})
 R72.update({"breath_CD3": 90/846, "breath_A": 203/916, "breath_B": 1})
 R72.update({"cleavage_plasma_CD3": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0527 / units.d})
@@ -70,9 +70,9 @@ R72.update({"cleavage_tumor_CD3": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 /
 
 R77 = {}
 R77.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
-R77.update({"on_CD3": R72["off_CD3"] / 25 * units.nM, 
-            "on_A": R72["off_A"] / 11 * units.nM, 
-            "on_B": R72["off_B"] / 189 * units.nM})
+R77.update({"on_CD3": R72["off_CD3"] / (25 * units.nM), 
+            "on_A": R72["off_A"] / (11 * units.nM), 
+            "on_B": R72["off_B"] / (189 * units.nM)})
 R77.update({"avidity": 1000})
 R77.update({"breath_CD3": 25/527, "breath_A": 11/243, "breath_B": 1})
 R77.update({"cleavage_plasma_CD3": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0527 / units.d})
