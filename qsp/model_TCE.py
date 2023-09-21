@@ -133,20 +133,19 @@ def model(host, TCE, tumor, organs):
       system.set_volume(analyte, f"{organ['name']}_plasma", organ["volume_plasma"])
       system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
 
-  # central clearance
-  system.add_flow(drug, "plasma", None, host["clearance"])
-  #system.add_process(host["nonlinear_clearance"]) # this may not apply properly to low doses
   
-  # organ flow
   for drug in drugs:
+    # central clearance
+    system.add_flow(drug, "plasma", None, host["clearance"])
+    
+    # organ flow
     for organ in [other]+organs:
       system.add_flow(drug, "plasma", f"{organ['name']}_plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", "plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", f"{organ['name']}_interstitial", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
       system.add_flow(drug, f"{organ['name']}_interstitial", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
-  
-  # tumor flow
-  for drug in drugs:
+    
+    # tumor flow
     system.add_flow(drug, "plasma", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
     system.add_flow(drug, "tumor_plasma", "plasma", tumor["volume"] * tumor["plasma_flow_density"])
     system.add_flow(drug, "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
