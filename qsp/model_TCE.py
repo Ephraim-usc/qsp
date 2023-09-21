@@ -133,7 +133,7 @@ def model(host, TCE, tumor, organs):
     system.add_flow(drug, "central", "peripheral", host["distribution"])
     system.add_flow(drug, "peripheral", "central", host["distribution"])
     system.add_flow(drug, "central", None, host["clearance"])
-  system.add_process(host["nonlinear_clearance"])
+  #system.add_process(host["nonlinear_clearance"]) # this may not apply properly to low doses
   
   # organ flow
   for drug in drugs:
