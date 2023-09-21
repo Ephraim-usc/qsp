@@ -400,8 +400,8 @@ class System:
       else:
         ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
       ax.set_xlim(0, Xmax)
-      ax.set_yscale('symlog', linthresh = 1e-2)
-      ax.set_yticks([1e-2, 1e-1, 0, 1, 10, 100, 1000, 10000, 1e5, 1e6])
+      ax.set_yscale('symlog', linthresh = 1e-3)
+      ax.set_yticks([1e-3, 1e-2, 1e-1, 0, 1, 10, 100, 1000, 10000, 1e5, 1e6])
       ax.set_ylim(0, Ymax)
       ax.grid(axis = "y", color = "grey", linewidth = 1)
       ax.set_title(self.compartments[compartment])
