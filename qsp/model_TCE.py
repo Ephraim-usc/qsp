@@ -163,6 +163,12 @@ def model(host, TCE, tumor, organs):
   system.add_simple("tumor_interstitial", ["mn"], ["nn"], TCE["cleavage_tumor_CD3"])
   system.add_simple("tumor_interstitial", ["nm"], ["nn"], TCE["cleavage_tumor_A"])
   
+  for organ in [other] + organs:
+    system.add_simple(f"{organ['name']}_interstitial", ["mm"], ["nm"], TCE["cleavage_plasma_CD3"])
+    system.add_simple(f"{organ['name']}_interstitial", ["mm"], ["mn"], TCE["cleavage_plasma_A"])
+    system.add_simple(f"{organ['name']}_interstitial", ["mn"], ["nn"], TCE["cleavage_plasma_CD3"])
+    system.add_simple(f"{organ['name']}_interstitial", ["nm"], ["nn"], TCE["cleavage_plasma_A"])
+  
   
   # target binding
   for drug in drugs:
