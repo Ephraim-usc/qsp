@@ -100,7 +100,7 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 
 ############ organs ############
 
-other = {"name": "lung"}
+other = {"name": "other"}
 other.update({"volume_plasma": 400 * units.ml, "volume_interstitial": 2600 * units.ml})
 other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 other.update({"cell_density": 1e8 / units.ml})
@@ -122,7 +122,7 @@ SI.update({"num_A": 57075, "num_B": 39649})
 ############ model ############
 
 def model(host, TCE, tumor, organs):
-  compartments = ["plasma", "tumor_plasma", "tumor_interstitial"] + [f"{organ['name']}_{tissue}" for organ in [other]+organs for tissue in ["plasma", "interstitial"]]
+  compartments = ["plasma"] + [f"{organ['name']}_{tissue}" for organ in [tumor]+[other]+organs for tissue in ["plasma", "interstitial"]]
   system = System(analytes, compartments)
   
   for analyte in analytes:
@@ -132,7 +132,7 @@ def model(host, TCE, tumor, organs):
     for organ in [other]+organs:
       system.set_volume(analyte, f"{organ['name']}_plasma", organ["volume_plasma"])
       system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
-
+  
   
   for drug in drugs:
     # central clearance
