@@ -33,7 +33,7 @@ class nonlinear_clearance:
     if self.system is not system:
       self.system = system
       self.analytes = [system.analytes.index(analyte) for analyte in ["mm", "mn", "nm", "nn"]]
-      self.compartment = system.compartments.index("central")
+      self.compartment = system.compartments.index("plasma")
     x = system.x[self.analytes, self.compartment]
     s = x.sum()
     if s == 0:
@@ -100,6 +100,12 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 
 ############ organs ############
 
+other = {"name": "lung"}
+other.update({"volume_plasma": 400 * units.ml, "volume_interstitial": 2600 * units.ml})
+other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+other.update({"cell_density": 1e8 / units.ml})
+other.update({"num_A": 100000, "num_B": 0})
+
 lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
@@ -116,47 +122,42 @@ SI.update({"num_A": 57075, "num_B": 39649})
 ############ model ############
 
 def model(host, TCE, tumor, organs):
-  compartments = ["central", "peripheral", "tumor_plasma", "tumor_interstitial"] + [f"{organ['name']}_{tissue}" for organ in organs for tissue in ["plasma", "interstitial"]]
+  compartments = ["plasma", "tumor_plasma", "tumor_interstitial"] + [f"{organ['name']}_{tissue}" for organ in [other]+organs for tissue in ["plasma", "interstitial"]]
   system = System(analytes, compartments)
   
   for analyte in analytes:
-    system.set_volume(analyte, "central", host["volume_central"])
-    system.set_volume(analyte, "peripheral", host["volume_peripheral"])
+    system.set_volume(analyte, "plasma", host["volume_central"])
     system.set_volume(analyte, "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
     system.set_volume(analyte, "tumor_interstitial", tumor["volume"] * tumor["volume_interstitial_proportion"])
-    for organ in organs:
+    for organ in [other]+organs:
       system.set_volume(analyte, f"{organ['name']}_plasma", organ["volume_plasma"])
       system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
-  
-  # distribution and clearance
-  for drug in drugs:
-    system.add_flow(drug, "central", "peripheral", host["distribution"])
-    system.add_flow(drug, "peripheral", "central", host["distribution"])
-    system.add_flow(drug, "central", None, host["clearance"])
+
+  # central clearance
+  system.add_flow(drug, "plasma", None, host["clearance"])
   #system.add_process(host["nonlinear_clearance"]) # this may not apply properly to low doses
   
   # organ flow
   for drug in drugs:
-    for organ in organs:
-      system.add_flow(drug, "central", f"{organ['name']}_plasma", organ["plasma_flow"])
-      system.add_flow(drug, f"{organ['name']}_plasma", "central", organ["plasma_flow"])
-      system.add_flow(drug, "central", f"{organ['name']}_plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"])
+    for organ in [other]+organs:
+      system.add_flow(drug, "plasma", f"{organ['name']}_plasma", organ["plasma_flow"])
+      system.add_flow(drug, f"{organ['name']}_plasma", "plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", f"{organ['name']}_interstitial", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
-      system.add_flow(drug, f"{organ['name']}_interstitial", "central", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
+      system.add_flow(drug, f"{organ['name']}_interstitial", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
   
   # tumor flow
   for drug in drugs:
-    system.add_flow(drug, "central", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
-    system.add_flow(drug, "tumor_plasma", "central", tumor["volume"] * tumor["plasma_flow_density"])
+    system.add_flow(drug, "plasma", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
+    system.add_flow(drug, "tumor_plasma", "plasma", tumor["volume"] * tumor["plasma_flow_density"])
     system.add_flow(drug, "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
     system.add_flow(drug, "tumor_interstitial", "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
   
   
   # mask cleavage
-  system.add_simple("central", ["mm"], ["nm"], TCE["cleavage_plasma_CD3"])
-  system.add_simple("central", ["mm"], ["mn"], TCE["cleavage_plasma_A"])
-  system.add_simple("central", ["mn"], ["nn"], TCE["cleavage_plasma_CD3"])
-  system.add_simple("central", ["nm"], ["nn"], TCE["cleavage_plasma_A"])
+  system.add_simple("plasma", ["mm"], ["nm"], TCE["cleavage_plasma_CD3"])
+  system.add_simple("plasma", ["mm"], ["mn"], TCE["cleavage_plasma_A"])
+  system.add_simple("plasma", ["mn"], ["nn"], TCE["cleavage_plasma_CD3"])
+  system.add_simple("plasma", ["nm"], ["nn"], TCE["cleavage_plasma_A"])
   
   system.add_simple("tumor_interstitial", ["mm"], ["nm"], TCE["cleavage_tumor_CD3"])
   system.add_simple("tumor_interstitial", ["mm"], ["mn"], TCE["cleavage_tumor_A"])
@@ -173,9 +174,9 @@ def model(host, TCE, tumor, organs):
       on_A *= TCE["breath_A"]
     
     for CD3 in ["CD3eff", "CD3reg"]:
-      system.add_simple("central", [f"{CD3}", f"{drug}"], [f"{CD3}-{drug}"], on_CD3, TCE["off_CD3"])
+      system.add_simple("plasma", [f"{CD3}", f"{drug}"], [f"{CD3}-{drug}"], on_CD3, TCE["off_CD3"])
     
-    for organ in [tumor] + organs:
+    for organ in [tumor] + [other]+organs:
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "A"], [f"{drug}-A"], on_A, TCE["off_A"])
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "B"], [f"{drug}-B"], on_B, TCE["off_B"])
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * TCE["avidity"], TCE["off_B"])
@@ -199,17 +200,14 @@ def model(host, TCE, tumor, organs):
   Treg_density_peripheral = 2.317e11 / (62.24 * units.l)
   Treg_density_tumor = 9303338 / (1 * units.l)
   
-  system.add_x("CD3eff", "central", 124000 * (Treg_density_blood*0.6) / units.avagadro)
-  system.add_x("CD3reg", "central", 124000 * Treg_density_blood / units.avagadro)
-  
-  system.add_x("CD3eff", "peripheral", 124000 * (Treg_density_peripheral*0.6) / units.avagadro)
-  system.add_x("CD3reg", "peripheral", 124000 * Treg_density_peripheral / units.avagadro)
+  system.add_x("CD3eff", "plasma", 124000 * (Treg_density_blood*0.6) / units.avagadro)
+  system.add_x("CD3reg", "plasma", 124000 * Treg_density_blood / units.avagadro)
   
   system.add_x("CD3eff", "tumor_interstitial", 124000 * (4.3 * 400/units.microliter) / units.avagadro)
   system.add_x("CD3reg", "tumor_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
   system.add_x("A", "tumor_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
   system.add_x("B", "tumor_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
-  for organ in organs:
+  for organ in [other]+organs:
     system.add_x("CD3eff", f"{organ['name']}_interstitial", 124000 * (400/units.microliter) / units.avagadro)
     system.add_x("CD3reg", f"{organ['name']}_interstitial", 124000 * (600/units.microliter) / units.avagadro)
     system.add_x("A", f"{organ['name']}_interstitial", organ["num_A"] * organ["cell_density"] / units.avagadro)
