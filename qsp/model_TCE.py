@@ -101,7 +101,7 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 ############ organs ############
 
 other = {"name": "other"}
-other.update({"volume_plasma": 400 * units.ml, "volume_interstitial": 2600 * units.ml})
+other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 6000 * units.ml})
 other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 other.update({"cell_density": 1e8 / units.ml})
 other.update({"num_A": 100000, "num_B": 0})
