@@ -2,12 +2,11 @@ from .qsp import *
 
 ### this model is mostly from ...
 
-CD3s = ["CD3eff", "CD3reg"]
-targets = ["A", "B"]
-drugs = ["mm", "mn", "nm", "nn"]
+targets = ["C", "A", "B"]
+drugs = [f"{c}{a}{b}" for c in ["m", "n"] for a in ["m", "n"] for b in ["m", "n"]]
 C_conjugates = [f"{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
-T_conjugates = [f"{CD3}-{drug}" for drug in drugs for CD3 in ["CD3eff", "CD3reg"]]
-trimers = [f"{CD3}-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"] for CD3 in ["CD3eff", "CD3reg"]]
+T_conjugates = [f"C-{drug}" for drug in drugs]
+trimers = [f"C-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
 analytes = CD3s + targets + drugs + C_conjugates + T_conjugates + trimers
 
 
@@ -58,25 +57,49 @@ human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 
 ############ drug ############
 
+off_avg = 0.106 / units.h
+
+class cleavage:
+  def __init__(self, compartments, rate_C, rate_A, rate_B):
+    self.system = None
+    self.compartments = compartments
+
+    Q = np.zeros([8, 8])
+    rate_C = rate_C.number(1/units.h)
+    rate_A = rate_A.number(1/units.h)
+    rate_B = rate_B.number(1/units.h)
+    Q[[4,5,6,7], [0,1,2,3]] += rate_C; Q[[0,1,2,3], [0,1,2,3]] -= rate_C
+    Q[[2,3,6,7], [0,1,4,5]] += rate_A; Q[[0,1,4,5], [0,1,4,5]] -= rate_A
+    Q[[1,3,5,7], [0,2,4,6]] += rate_B; Q[[0,2,4,6], [0,2,4,6]] -= rate_B
+    self.Q = Q
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      self.analytes_ = [system.analytes.index(analyte) for analyte in drugs]
+      self.compartment_ = [system.compartments.index(compartment) for compartment in self.compartments)]
+    
+    for compartment in self.compartments_:
+      x = system.x[self.analytes_, compartment]
+      system.x[self.analytes_, compartment] = expm(self.Q * t.number(units.h)) @ x
+
+
 R72 = {}
-R72.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
-R72.update({"on_CD3": R72["off_CD3"] / (90 * units.nM), 
-            "on_A": R72["off_A"] / (203 * units.nM), 
-            "on_B": R72["off_B"] / (1.07 * units.nM)})
+R72.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
+R72.update({"affm_C": 90 * units.nM, "affm_A": 203 * units.nM, "affm_B": 1.07 * units.nM})
+R72.update({"affn_C": 846 * units.nM, "affn_A": 916 * units.nM, "affn_B": 1.07 * units.nM})
 R72.update({"avidity": 1000})
-R72.update({"breath_CD3": 90/846, "breath_A": 203/916, "breath_B": 1})
-R72.update({"cleavage_plasma_CD3": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0527 / units.d})
-R72.update({"cleavage_tumor_CD3": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 / units.d, "cleavage_tumor_B": 0.1783 / units.d})
+R72["cleavage_plasma"] = cleavage(["plasma"] + [f"" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
+R72["cleavage_tumor"] = cleavage("", rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.0 / units.d)
+
 
 R77 = {}
-R77.update({"off_CD3": 0.106 / units.h, "off_A": 0.106 / units.h, "off_B": 0.106 / units.h})
-R77.update({"on_CD3": R72["off_CD3"] / (25 * units.nM), 
-            "on_A": R72["off_A"] / (11 * units.nM), 
-            "on_B": R72["off_B"] / (189 * units.nM)})
+R77.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
+R77.update({"affm_C": 25 * units.nM, "affm_A": 11 * units.nM, "affm_B": 189 * units.nM})
+R77.update({"affn_C": 527 * units.nM, "affn_A": 243 * units.nM, "affn_B": math.inf * units.nM})
 R77.update({"avidity": 1000})
-R77.update({"breath_CD3": 25/527, "breath_A": 11/243, "breath_B": 1})
-R77.update({"cleavage_plasma_CD3": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0527 / units.d})
-R77.update({"cleavage_tumor_CD3": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 / units.d, "cleavage_tumor_B": 0.1783 / units.d})
+R77.update({"cleavage_plasma_C": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0 / units.d})
+R77.update({"cleavage_tumor_C": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 / units.d, "cleavage_tumor_B": 0.1783 / units.d})
 
 
 ############ tumors ############
@@ -139,7 +162,7 @@ def model(host, TCE, tumor, organs):
     system.add_flow(drug, "plasma", None, host["clearance"])
     
     # organ flow
-    for organ in [other]+organs:
+    for organ in [other] + organs:
       system.add_flow(drug, "plasma", f"{organ['name']}_plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", "plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", f"{organ['name']}_interstitial", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
@@ -153,6 +176,9 @@ def model(host, TCE, tumor, organs):
   
   
   # mask cleavage
+  for a in ["m", "n"]:
+    for b in [""]
+  
   system.add_simple("plasma", ["mm"], ["nm"], TCE["cleavage_plasma_CD3"])
   system.add_simple("plasma", ["mm"], ["mn"], TCE["cleavage_plasma_A"])
   system.add_simple("plasma", ["mn"], ["nn"], TCE["cleavage_plasma_CD3"])
