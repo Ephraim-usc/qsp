@@ -7,7 +7,7 @@ drugs = [f"{c}{a}{b}" for c in ["m", "n"] for a in ["m", "n"] for b in ["m", "n"
 C_conjugates = [f"{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
 T_conjugates = [f"C-{drug}" for drug in drugs]
 trimers = [f"C-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
-analytes = CD3s + targets + drugs + C_conjugates + T_conjugates + trimers
+analytes = targets + drugs + C_conjugates + T_conjugates + trimers
 
 organs = ["other", "lung", "SI"]
 
@@ -79,7 +79,7 @@ class cleavage:
     if self.system is not system:
       self.system = system
       self.analytes_ = [system.analytes.index(analyte) for analyte in drugs]
-      self.compartment_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments)]
+      self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
     
     for compartment in self.compartments_:
       x = system.x[self.analytes_, compartment]
