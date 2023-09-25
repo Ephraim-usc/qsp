@@ -202,10 +202,10 @@ def model(host, TCE, tumor, organs):
       system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-B"], [f"C-{drug}-B"], on_C, off_C)
       system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-AB"], [f"C-{drug}-AB"], on_C, off_C)
       
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "A"], [f"{drug}-A"], on_A, off_A)
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "B"], [f"{drug}-B"], on_B, off_B)
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity, off_A)
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "A"], [f"C-{drug}-A"], on_A, off_A)
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "B"], [f"C-{drug}-B"], on_B, off_B)
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-A", "B"], [f"C-{drug}-AB"], on_B * avidity, off_B)
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity, off_A)
   
   
   # initial concentrations
