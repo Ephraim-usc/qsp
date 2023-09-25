@@ -80,20 +80,20 @@ class cleavage:
       self.system = system
       self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
       
-      self.analyteses = []
-      self.analyteses.append([system.analytes.index(f"{drug}") for drug in drugs])
-      self.analyteses.append([system.analytes.index(f"{drug}-A") for drug in drugs])
-      self.analyteses.append([system.analytes.index(f"{drug}-B") for drug in drugs])
-      self.analyteses.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
-      self.analyteses.append([system.analytes.index(f"C-{drug}") for drug in drugs])
-      self.analyteses.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
-      self.analyteses.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
-      self.analyteses.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
+      self.analyteses_ = []
+      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
     
     for compartment in self.compartments_:
-      for analytes in self.analyteses:
-        x = system.x[self.analytes_, compartment]
-        system.x[self.analytes_, compartment] = expm(self.Q * t.number(units.h)) @ x
+      for analytes_ in self.analyteses_:
+        x = system.x[analytes_, compartment]
+        system.x[analytes_, compartment] = expm(self.Q * t.number(units.h)) @ x
 
 
 R72 = {}
