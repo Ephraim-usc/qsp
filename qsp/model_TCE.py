@@ -88,8 +88,8 @@ class cleavage:
 
 R72 = {}
 R72.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
-R72.update({"affm_C": 90 * units.nM, "affm_A": 203 * units.nM, "affm_B": 1.07 * units.nM})
-R72.update({"affn_C": 846 * units.nM, "affn_A": 916 * units.nM, "affn_B": 1.07 * units.nM})
+R72.update({"affm_C": 846 * units.nM, "affm_A": 916 * units.nM, "affm_B": 1.07 * units.nM})
+R72.update({"affn_C": 90 * units.nM, "affn_A": 203 * units.nM, "affn_B": 1.07 * units.nM})
 R72.update({"avidity": 1000})
 R72["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
 R72["cleavage_tumor"] = cleavage(["tumor_interstitial"], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.0 / units.d)
@@ -97,8 +97,8 @@ R72["cleavage_tumor"] = cleavage(["tumor_interstitial"], rate_C = 0.1783 / units
 
 R77 = {}
 R77.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
-R77.update({"affm_C": 25 * units.nM, "affm_A": 11 * units.nM, "affm_B": 189 * units.nM})
-R77.update({"affn_C": 527 * units.nM, "affn_A": 243 * units.nM, "affn_B": math.inf * units.nM})
+R77.update({"affm_C": 527 * units.nM, "affm_A": 243 * units.nM, "affm_B": 189 * units.nM})
+R77.update({"affn_C": 25 * units.nM, "affn_A": 11 * units.nM, "affn_B": math.inf * units.nM})
 R77.update({"avidity": 1000})
 R77["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
 R77["cleavage_tumor"] = cleavage(["tumor_interstitial"], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.1783 / units.d)
