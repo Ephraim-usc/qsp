@@ -78,12 +78,22 @@ class cleavage:
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      self.analytes_ = [system.analytes.index(analyte) for analyte in drugs]
       self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
+      
+      self.analyteses = []
+      self.analyteses.append([system.analytes.index(f"{drug}") for drug in drugs])
+      self.analyteses.append([system.analytes.index(f"{drug}-A") for drug in drugs])
+      self.analyteses.append([system.analytes.index(f"{drug}-B") for drug in drugs])
+      self.analyteses.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
+      self.analyteses.append([system.analytes.index(f"C-{drug}") for drug in drugs])
+      self.analyteses.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
+      self.analyteses.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
+      self.analyteses.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
     
     for compartment in self.compartments_:
-      x = system.x[self.analytes_, compartment]
-      system.x[self.analytes_, compartment] = expm(self.Q * t.number(units.h)) @ x
+      for analytes in self.analyteses:
+        x = system.x[self.analytes_, compartment]
+        system.x[self.analytes_, compartment] = expm(self.Q * t.number(units.h)) @ x
 
 
 R72 = {}
