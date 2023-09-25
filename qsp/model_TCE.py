@@ -9,6 +9,8 @@ T_conjugates = [f"C-{drug}" for drug in drugs]
 trimers = [f"C-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
 analytes = CD3s + targets + drugs + C_conjugates + T_conjugates + trimers
 
+organs = ["other", "lung", "SI"]
+
 
 ############ constants ############
 
@@ -77,7 +79,7 @@ class cleavage:
     if self.system is not system:
       self.system = system
       self.analytes_ = [system.analytes.index(analyte) for analyte in drugs]
-      self.compartment_ = [system.compartments.index(compartment) for compartment in self.compartments)]
+      self.compartment_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments)]
     
     for compartment in self.compartments_:
       x = system.x[self.analytes_, compartment]
@@ -89,8 +91,8 @@ R72.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
 R72.update({"affm_C": 90 * units.nM, "affm_A": 203 * units.nM, "affm_B": 1.07 * units.nM})
 R72.update({"affn_C": 846 * units.nM, "affn_A": 916 * units.nM, "affn_B": 1.07 * units.nM})
 R72.update({"avidity": 1000})
-R72["cleavage_plasma"] = cleavage(["plasma"] + [f"" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
-R72["cleavage_tumor"] = cleavage("", rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.0 / units.d)
+R72["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
+R72["cleavage_tumor"] = cleavage(["tumor_interstitial"], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.0 / units.d)
 
 
 R77 = {}
@@ -98,8 +100,8 @@ R77.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
 R77.update({"affm_C": 25 * units.nM, "affm_A": 11 * units.nM, "affm_B": 189 * units.nM})
 R77.update({"affn_C": 527 * units.nM, "affn_A": 243 * units.nM, "affn_B": math.inf * units.nM})
 R77.update({"avidity": 1000})
-R77.update({"cleavage_plasma_C": 0.0527 / units.d, "cleavage_plasma_A": 0.0527 / units.d, "cleavage_plasma_B": 0.0 / units.d})
-R77.update({"cleavage_tumor_C": 0.1783 / units.d, "cleavage_tumor_A": 0.1783 / units.d, "cleavage_tumor_B": 0.1783 / units.d})
+R77["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
+R77["cleavage_tumor"] = cleavage(["tumor_interstitial"], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.1783 / units.d)
 
 
 ############ tumors ############
@@ -176,53 +178,34 @@ def model(host, TCE, tumor, organs):
   
   
   # mask cleavage
-  for a in ["m", "n"]:
-    for b in [""]
-  
-  system.add_simple("plasma", ["mm"], ["nm"], TCE["cleavage_plasma_CD3"])
-  system.add_simple("plasma", ["mm"], ["mn"], TCE["cleavage_plasma_A"])
-  system.add_simple("plasma", ["mn"], ["nn"], TCE["cleavage_plasma_CD3"])
-  system.add_simple("plasma", ["nm"], ["nn"], TCE["cleavage_plasma_A"])
-  
-  system.add_simple("tumor_interstitial", ["mm"], ["nm"], TCE["cleavage_tumor_CD3"])
-  system.add_simple("tumor_interstitial", ["mm"], ["mn"], TCE["cleavage_tumor_A"])
-  system.add_simple("tumor_interstitial", ["mn"], ["nn"], TCE["cleavage_tumor_CD3"])
-  system.add_simple("tumor_interstitial", ["nm"], ["nn"], TCE["cleavage_tumor_A"])
-  
-  for organ in [other] + organs:
-    system.add_simple(f"{organ['name']}_interstitial", ["mm"], ["nm"], TCE["cleavage_plasma_CD3"])
-    system.add_simple(f"{organ['name']}_interstitial", ["mm"], ["mn"], TCE["cleavage_plasma_A"])
-    system.add_simple(f"{organ['name']}_interstitial", ["mn"], ["nn"], TCE["cleavage_plasma_CD3"])
-    system.add_simple(f"{organ['name']}_interstitial", ["nm"], ["nn"], TCE["cleavage_plasma_A"])
+  system.add_process(TCE["cleavage_plasma"])
+  system.add_process(TCE["cleavage_tumor"])
   
   
   # target binding
   for drug in drugs:
-    on_CD3, on_A, on_B = TCE["on_CD3"], TCE["on_A"], TCE["on_B"]
-    if drug[0] == "m":
-      on_CD3 *= TCE["breath_CD3"]
-    if drug[1] == "m":
-      on_A *= TCE["breath_A"]
+    off_C = TCE["off_C"]; on_C = TCE["off_C"] / TCE["affm_C"] if drug[0] == "m" else TCE["off_C"] / TCE["affn_C"]
+    off_A = TCE["off_A"]; on_A = TCE["off_A"] / TCE["affm_A"] if drug[1] == "m" else TCE["off_A"] / TCE["affn_A"]
+    off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["affm_B"] if drug[2] == "m" else TCE["off_B"] / TCE["affn_B"]
+    avidity = TCE["avidity"]
     
-    for CD3 in ["CD3eff", "CD3reg"]:
-      system.add_simple("plasma", [f"{CD3}", f"{drug}"], [f"{CD3}-{drug}"], on_CD3, TCE["off_CD3"])
+    system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
     
     for organ in [tumor] + [other] + organs:
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "A"], [f"{drug}-A"], on_A, TCE["off_A"])
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "B"], [f"{drug}-B"], on_B, TCE["off_B"])
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * TCE["avidity"], TCE["off_B"])
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * TCE["avidity"], TCE["off_A"])
+      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
+      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
+      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
+      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity, off_A)
       
-      for CD3 in ["CD3eff", "CD3reg"]:
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}", f"{drug}"], [f"{CD3}-{drug}"], on_CD3, TCE["off_CD3"])
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}", f"{drug}-A"], [f"{CD3}-{drug}-A"], on_CD3, TCE["off_CD3"])
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}", f"{drug}-B"], [f"{CD3}-{drug}-B"], on_CD3, TCE["off_CD3"])
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}", f"{drug}-AB"], [f"{CD3}-{drug}-AB"], on_CD3, TCE["off_CD3"])
-        
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}-{drug}", "A"], [f"{CD3}-{drug}-A"], on_A, TCE["off_A"])
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}-{drug}", "B"], [f"{CD3}-{drug}-B"], on_B, TCE["off_B"])
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}-{drug}-A", "B"], [f"{CD3}-{drug}-AB"], on_B * TCE["avidity"], TCE["off_B"])
-        system.add_simple(f"{organ['name']}_interstitial", [f"{CD3}-{drug}-B", "A"], [f"{CD3}-{drug}-AB"], on_A * TCE["avidity"], TCE["off_A"])
+      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
+      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-A"], [f"C-{drug}-A"], on_C, off_C)
+      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-B"], [f"C-{drug}-B"], on_C, off_C)
+      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-AB"], [f"C-{drug}-AB"], on_C, off_C)
+      
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "A"], [f"{drug}-A"], on_A, off_A)
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "B"], [f"{drug}-B"], on_B, off_B)
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
+      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity, off_A)
   
   
   # initial concentrations
@@ -231,19 +214,16 @@ def model(host, TCE, tumor, organs):
   Treg_density_peripheral = 2.317e11 / (62.24 * units.l)
   Treg_density_tumor = 9303338 / (1 * units.l)
   
-  system.add_x("CD3eff", "plasma", 124000 * (Treg_density_blood*0.6) / units.avagadro)
-  system.add_x("CD3reg", "plasma", 124000 * Treg_density_blood / units.avagadro)
+  system.add_x("C", "plasma", 124000 * Treg_density_blood / units.avagadro)
   system.add_x("A", "other_interstitial", other["num_A"] * other["cell_density"] / units.avagadro)
   system.add_x("B", "other_interstitial", other["num_B"] * other["cell_density"] / units.avagadro)
   
-  system.add_x("CD3eff", "tumor_interstitial", 124000 * (4.3 * 400/units.microliter) / units.avagadro)
-  system.add_x("CD3reg", "tumor_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
+  system.add_x("C", "tumor_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
   system.add_x("A", "tumor_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
   system.add_x("B", "tumor_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
   
   for organ in organs:
-    system.add_x("CD3eff", f"{organ['name']}_interstitial", 124000 * (400/units.microliter) / units.avagadro)
-    system.add_x("CD3reg", f"{organ['name']}_interstitial", 124000 * (600/units.microliter) / units.avagadro)
+    system.add_x("C", f"{organ['name']}_interstitial", 124000 * (600/units.microliter) / units.avagadro)
     system.add_x("A", f"{organ['name']}_interstitial", organ["num_A"] * organ["cell_density"] / units.avagadro)
     system.add_x("B", f"{organ['name']}_interstitial", organ["num_B"] * organ["cell_density"] / units.avagadro)
   
