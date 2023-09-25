@@ -147,14 +147,14 @@ SI.update({"num_A": 57075, "num_B": 39649})
 ############ model ############
 
 def model(host, TCE, tumor, organs):
-  compartments = ["plasma"] + [f"{organ['name']}_{tissue}" for organ in [tumor]+[other]+organs for tissue in ["plasma", "interstitial"]]
+  compartments = ["plasma"] + [f"{organ['name']}_{tissue}" for organ in [tumor] + organs for tissue in ["plasma", "interstitial"]]
   system = System(analytes, compartments)
   
   for analyte in analytes:
     system.set_volume(analyte, "plasma", host["volume_central"])
     system.set_volume(analyte, "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
     system.set_volume(analyte, "tumor_interstitial", tumor["volume"] * tumor["volume_interstitial_proportion"])
-    for organ in [other]+organs:
+    for organ in organs:
       system.set_volume(analyte, f"{organ['name']}_plasma", organ["volume_plasma"])
       system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
   
@@ -164,7 +164,7 @@ def model(host, TCE, tumor, organs):
     system.add_flow(drug, "plasma", None, host["clearance"])
     
     # organ flow
-    for organ in [other] + organs:
+    for organ in organs:
       system.add_flow(drug, "plasma", f"{organ['name']}_plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", "plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", f"{organ['name']}_interstitial", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
@@ -191,7 +191,7 @@ def model(host, TCE, tumor, organs):
     
     system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
     
-    for organ in [tumor] + [other] + organs:
+    for organ in [tumor] + organs:
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
@@ -215,8 +215,6 @@ def model(host, TCE, tumor, organs):
   Treg_density_tumor = 9303338 / (1 * units.l)
   
   system.add_x("C", "plasma", 124000 * Treg_density_blood / units.avagadro)
-  system.add_x("A", "other_interstitial", other["num_A"] * other["cell_density"] / units.avagadro)
-  system.add_x("B", "other_interstitial", other["num_B"] * other["cell_density"] / units.avagadro)
   
   system.add_x("C", "tumor_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
   system.add_x("A", "tumor_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
