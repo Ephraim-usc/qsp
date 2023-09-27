@@ -9,7 +9,6 @@ T_conjugates = [f"C-{drug}" for drug in drugs]
 trimers = [f"C-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
 analytes = targets + drugs + C_conjugates + T_conjugates + trimers
 
-organs = ["other", "lung", "SI"]
 
 
 ############ constants ############
@@ -101,8 +100,8 @@ R72.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
 R72.update({"affm_C": 846 * units.nM, "affm_A": 916 * units.nM, "affm_B": 1.07 * units.nM})
 R72.update({"affn_C": 90 * units.nM, "affn_A": 203 * units.nM, "affn_B": 1.07 * units.nM})
 R72.update({"avidity": 1000})
-R72["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
-R72["cleavage_tumor"] = cleavage(["tumor_interstitial"], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.0 / units.d)
+R72["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in system.organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
+R72["cleavage_tumor"] = cleavage([f"{tumor['name']}_interstitial" for tumor in system.tumors], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.0 / units.d)
 
 
 R77 = {}
@@ -110,8 +109,8 @@ R77.update({"off_C": off_avg, "off_A": off_avg, "off_B": off_avg})
 R77.update({"affm_C": 527 * units.nM, "affm_A": 243 * units.nM, "affm_B": 189 * units.nM})
 R77.update({"affn_C": 25 * units.nM, "affn_A": 11 * units.nM, "affn_B": math.inf * units.nM})
 R77.update({"avidity": 1000})
-R77["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
-R77["cleavage_tumor"] = cleavage(["tumor_interstitial"], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.1783 / units.d)
+R77["cleavage_plasma"] = cleavage(["plasma"] + [f"{organ}_interstitial" for organ in system.organs], rate_C = 0.0527 / units.d, rate_A = 0.0527 / units.d, rate_B = 0.0 / units.d)
+R77["cleavage_tumor"] = cleavage([f"{tumor['name']}_interstitial" for tumor in system.tumors], rate_C = 0.1783 / units.d, rate_A = 0.1783 / units.d, rate_B = 0.0 / units.d)
 
 
 ############ tumors ############
@@ -156,14 +155,17 @@ SI.update({"num_A": 57075, "num_B": 39649})
 
 ############ model ############
 
-def model(host, TCE, tumor, organs):
-  compartments = ["plasma"] + [f"{organ['name']}_{tissue}" for organ in [tumor] + organs for tissue in ["plasma", "interstitial"]]
+def model(host, TCE, tumors, organs):
+  compartments = ["plasma"] + [f"{organ['name']}_{tissue}" for organ in tumors + organs for tissue in ["plasma", "interstitial"]]
   system = System(analytes, compartments)
+  system.tumors = tumors
+  system.organs = organs
   
   for analyte in analytes:
     system.set_volume(analyte, "plasma", host["volume_central"])
-    system.set_volume(analyte, "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
-    system.set_volume(analyte, "tumor_interstitial", tumor["volume"] * tumor["volume_interstitial_proportion"])
+    for tumor in tumors:
+      system.set_volume(analyte, f"{tumor['name']}_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
+      system.set_volume(analyte, f"{tumor['name']}_interstitial", tumor["volume"] * tumor["volume_interstitial_proportion"])
     for organ in organs:
       system.set_volume(analyte, f"{organ['name']}_plasma", organ["volume_plasma"])
       system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
@@ -173,18 +175,19 @@ def model(host, TCE, tumor, organs):
     # central clearance
     system.add_flow(drug, "plasma", None, host["clearance"])
     
+    # tumor flow
+    for tumor in tumors:
+      system.add_flow(drug, "plasma", f"{tumor['name']}_plasma", tumor["volume"] * tumor["plasma_flow_density"])
+      system.add_flow(drug, f"{tumor['name']}_plasma", "plasma", tumor["volume"] * tumor["plasma_flow_density"])
+      system.add_flow(drug, f"{tumor['name']}_plasma", f"{tumor['name']}_interstitial", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+      system.add_flow(drug, f"{tumor['name']}_interstitial", f"{tumor['name']}_plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+    
     # organ flow
     for organ in organs:
       system.add_flow(drug, "plasma", f"{organ['name']}_plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", "plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", f"{organ['name']}_interstitial", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
       system.add_flow(drug, f"{organ['name']}_interstitial", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
-    
-    # tumor flow
-    system.add_flow(drug, "plasma", "tumor_plasma", tumor["volume"] * tumor["plasma_flow_density"])
-    system.add_flow(drug, "tumor_plasma", "plasma", tumor["volume"] * tumor["plasma_flow_density"])
-    system.add_flow(drug, "tumor_plasma", "tumor_interstitial", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-    system.add_flow(drug, "tumor_interstitial", "tumor_plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
   
   
   # mask cleavage
@@ -201,7 +204,7 @@ def model(host, TCE, tumor, organs):
     
     system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
     
-    for organ in [tumor] + organs:
+    for organ in tumors + organs:
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
       system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
