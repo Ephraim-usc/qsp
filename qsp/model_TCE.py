@@ -21,6 +21,22 @@ def Hill(EMAX, EC50, coefficient, x):
   else:
     return EMAX/(1 + (x/EC50) ** coefficient)
 
+class intratumoral_equilibrium:
+  def __init__(self):
+    self.system = None
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      
+      self.compartments_ = [system.compartments.index(f"{tumor['name']}_interstitial") for tumor in system.tumors]
+      self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs]
+    
+    for analyte_ in self.analytes_:
+      x = system.x[analyte_, self.compartments_]
+      volumes = system.V[analyte_, self.compartments_]
+      system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
+
 
 ############ host ############
 
@@ -171,7 +187,7 @@ SI.update({"num_A": 57075, "num_B": 39649})
 
 ############ model ############
 
-def model(host, TCE, tumors, organs):
+def model(host, TCE, tumors, organs, connect_tumors = False):
   compartments = ["plasma"] + [f"{organ['name']}_{tissue}" for organ in tumors + organs for tissue in ["plasma", "interstitial"]]
   system = System(analytes, compartments)
   system.tumors = tumors
@@ -204,6 +220,11 @@ def model(host, TCE, tumors, organs):
       system.add_flow(drug, f"{organ['name']}_plasma", "plasma", organ["plasma_flow"])
       system.add_flow(drug, f"{organ['name']}_plasma", f"{organ['name']}_interstitial", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
       system.add_flow(drug, f"{organ['name']}_interstitial", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
+  
+  
+  # exchange drugs between tumors if tumors are connected
+  if connect_tumors:
+    system.add_process(intratumor_equilibrium)
   
   
   # mask cleavage
@@ -245,9 +266,10 @@ def model(host, TCE, tumors, organs):
   
   system.add_x("C", "plasma", 124000 * Treg_density_blood / units.avagadro)
   
-  system.add_x("C", "tumor_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
-  system.add_x("A", "tumor_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
-  system.add_x("B", "tumor_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
+  for tumor in tumors:
+    system.add_x("C", f"{tumor['name']}_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
+    system.add_x("A", f"{tumor['name']}_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
+    system.add_x("B", f"{tumor['name']}_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
   
   for organ in organs:
     system.add_x("C", f"{organ['name']}_interstitial", 124000 * (600/units.microliter) / units.avagadro)
