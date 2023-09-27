@@ -176,7 +176,7 @@ lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 lung.update({"cell_density": 1e8 / units.ml})
-lung.update({"num_A": 133439, "num_B": 1019})
+lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
 
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
