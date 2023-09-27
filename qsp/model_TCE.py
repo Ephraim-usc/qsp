@@ -224,7 +224,7 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   
   # exchange drugs between tumors if tumors are connected
   if connect_tumors:
-    system.add_process(intratumor_equilibrium)
+    system.add_process(intratumoral_equilibrium)
   
   
   # mask cleavage
