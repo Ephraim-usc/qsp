@@ -184,7 +184,7 @@ class RS: # reaction system
     return buffer
   
   def __call__(self, x, t):
-    return solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "BDF").y[:,0]
+    return solve_ivp(self.rate, jac = self.jac, t_span = (0, t), y0 = x, t_eval=[t], method = "BDF", rtol = 0, atol = 1e-8).y[:,0]
 
 
 class System:
