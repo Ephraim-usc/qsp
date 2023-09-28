@@ -184,7 +184,7 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 other = {"name": "other"}
 other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
 other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 0 / units.ml})
+other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml})
 other.update({"num_A": 100000, "num_B": 0})
 
 lung = {"name": "lung"}
@@ -275,12 +275,8 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   
   
   # initial concentrations
-  Treg_density_blood = 138070411 / (6 * units.l)
-  Treg_density_lymph = 107544935 / (0.021 * units.l)
-  Treg_density_peripheral = 2.317e11 / (62.24 * units.l)
-  Treg_density_tumor = 9303338 / (1 * units.l)
-  
-  system.add_x("C", "plasma", 124000 * Treg_density_blood / units.avagadro)
+  T_cell_density_blood = 1e6 / units.ml
+  system.add_x("C", "plasma", 124000 * T_cell_density_blood / units.avagadro)
   
   for tumor in tumors:
     system.add_x("C", f"{tumor['name']}_interstitial", 124000 * tumor["T_cell_density"] / units.avagadro)
