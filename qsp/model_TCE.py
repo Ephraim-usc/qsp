@@ -167,7 +167,7 @@ UT44.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07,
 UT44.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 UT44.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 UT44.update({"diffusion": 10 * units.micrometer**2 / units.s})
-UT44.update({"cell_density": 3e8 / units.ml})
+UT44.update({"cell_density": 3e8 / units.ml, "T_cell_density": 3e7 / units.ml})
 UT44.update({"num_A": 7e5, "num_B": 1.45e6})
 
 FTC238 = {"name": "tumor"}
@@ -175,7 +175,7 @@ FTC238.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.0
 FTC238.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 FTC238.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 FTC238.update({"diffusion": 10 * units.micrometer**2 / units.s})
-FTC238.update({"cell_density": 3e8 / units.ml})
+FTC238.update({"cell_density": 3e8 / units.ml, "T_cell_density": 3e7 / units.ml})
 FTC238.update({"num_A": 1e5, "num_B": 1e5})
 
 
@@ -184,19 +184,19 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 other = {"name": "other"}
 other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
 other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-other.update({"cell_density": 1e8 / units.ml})
+other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 0 / units.ml})
 other.update({"num_A": 100000, "num_B": 0})
 
 lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-lung.update({"cell_density": 1e8 / units.ml})
+lung.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e7 / units.ml})
 lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
 
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-SI.update({"cell_density": 1e8 / units.ml})
+SI.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml})
 SI.update({"num_A": 57075, "num_B": 39649})
 
 
@@ -283,12 +283,12 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   system.add_x("C", "plasma", 124000 * Treg_density_blood / units.avagadro)
   
   for tumor in tumors:
-    system.add_x("C", f"{tumor['name']}_interstitial", 124000 * (4.3 * 600/units.microliter) / units.avagadro)
+    system.add_x("C", f"{tumor['name']}_interstitial", 124000 * tumor["T_cell_density"] / units.avagadro)
     system.add_x("A", f"{tumor['name']}_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
     system.add_x("B", f"{tumor['name']}_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
   
   for organ in organs:
-    system.add_x("C", f"{organ['name']}_interstitial", 124000 * (600/units.microliter) / units.avagadro)
+    system.add_x("C", f"{organ['name']}_interstitial", 124000 * organ["T_cell_density"] / units.avagadro)
     system.add_x("A", f"{organ['name']}_interstitial", organ["num_A"] * organ["cell_density"] / units.avagadro)
     system.add_x("B", f"{organ['name']}_interstitial", organ["num_B"] * organ["cell_density"] / units.avagadro)
   
