@@ -220,8 +220,8 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   
   for drug in drugs:
     # whole-body clearance
-    for compartment in comparments:
-      system.add_flow(drug, compartent, None, TCE["clearance"])
+    for compartment in compartments:
+      system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
     
     # tumor flow
     for tumor in tumors:
