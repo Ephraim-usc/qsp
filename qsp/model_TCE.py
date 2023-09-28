@@ -145,6 +145,21 @@ R77["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial"
                                  rate_B = 0.0 / units.d)
 
 
+VIB4 = {}
+VIB4.update({"off_C": 8.09e-3 / units.s, "off_A": 3e-3 / units.s, "off_B": 4.138e-4 / units.s})
+VIB4.update({"affm_C": 6.56e-8 * units.molar, "affm_A": 2e-8 * units.molar, "affm_B": 1.7e-9 * units.nM})
+VIB4.update({"affn_C": 3.059e-6 * units.nM, "affn_A": 3.34e-7 * units.molar, "affn_B": 1.7e-9 * units.nM})
+VIB4.update({"avidity": 20})
+VIB4.update({"clearance": math.log(2)/(40 * units.h)})
+VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+                                  rate_C = 0.0527 / units.d, 
+                                  rate_A = 0.0527 / units.d, 
+                                  rate_B = 0.0 / units.d)
+VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+                                 rate_C = 0.1783 / units.d, 
+                                 rate_A = 0.1783 / units.d, 
+                                 rate_B = 0.0 / units.d)
+
 ############ tumors ############
 
 UT44 = {"name": "tumor"}
@@ -167,7 +182,7 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 ############ organs ############
 
 other = {"name": "other"}
-other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 6000 * units.ml})
+other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
 other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 other.update({"cell_density": 1e8 / units.ml})
 other.update({"num_A": 100000, "num_B": 0})
@@ -204,8 +219,9 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   
   
   for drug in drugs:
-    # central clearance
-    system.add_flow(drug, "plasma", None, host["clearance"])
+    # whole-body clearance
+    for compartment in comparments:
+      system.add_flow(drug, compartent, None, TCE["clearance"])
     
     # tumor flow
     for tumor in tumors:
