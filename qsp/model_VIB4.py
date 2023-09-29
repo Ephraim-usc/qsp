@@ -53,7 +53,6 @@ class cleavage:
     Q = np.zeros([7, 7])
     rate_C = rate_C.number(1/units.h)
     rate_A = rate_A.number(1/units.h)
-    rate_B = rate_B.number(1/units.h)
     Q[[3,4,5], [0,1,2]] += rate_C; Q[[0,1,2], [0,1,2]] -= rate_C
     Q[[2,5], [0,3]] += rate_A; Q[[0,3], [0,3]] -= rate_A
     Q[[6], [0,3]] += rate_A
