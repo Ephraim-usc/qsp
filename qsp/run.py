@@ -61,7 +61,7 @@ for aff_a in [1e-12, 1e-11]:
 print(results)
 
 results = pd.DataFrame(columns = ["rate_C_plasma", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_C_plasma in [0.01, 0.02, 0.03, 0.04, 0.05]:
+for rate_C_plasma in [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]:
   TCE = VIB4.copy()
   TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = rate_C_plasma / units.d, 
@@ -77,7 +77,7 @@ for rate_C_plasma in [0.01, 0.02, 0.03, 0.04, 0.05]:
 print(results)
 
 results = pd.DataFrame(columns = ["rate_C_tumor", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_C_tumor in [0.01, 0.02, 0.03, 0.04, 0.05]:
+for rate_C_tumor in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]:
   TCE = VIB4.copy()
   VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
                                  rate_C = rate_C_tumor / units.d, 
@@ -93,7 +93,7 @@ for rate_C_tumor in [0.01, 0.02, 0.03, 0.04, 0.05]:
 print(results)
 
 results = pd.DataFrame(columns = ["rate_A_plasma", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_A_plasma in [0.01, 0.02, 0.03, 0.04, 0.05]:
+for rate_A_plasma in [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]:
   TCE = VIB4.copy()
   TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
@@ -109,7 +109,7 @@ for rate_A_plasma in [0.01, 0.02, 0.03, 0.04, 0.05]:
 print(results)
 
 results = pd.DataFrame(columns = ["rate_A_tumor", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_A_tumor in [0.01, 0.02, 0.03, 0.04, 0.05]:
+for rate_A_tumor in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]:
   TCE = VIB4.copy()
   VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
