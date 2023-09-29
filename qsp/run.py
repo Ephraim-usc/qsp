@@ -46,9 +46,15 @@ def plot(system, name):
               output = f"{name}_targets.png")
 
 
-system = model(human, VIB4, [double, single], [other, lung, SI], connect_tumors = True)
-system.add_x("mm", "plasma", 1 * units.nM)
-system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-plot(system, "VIB4_1nM")
-
-
+results = pd.DataFrame(columns = ["aff_a", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
+for aff_a in [1e-10, 1e-9, 1e-8, 1e-7]:
+  TCE = VIB4.copy()
+  TCE["aff_a"] = aff_a * units.molar
+  
+  system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
+  system.add_x("mm", "plasma", 1 * units.nM)
+  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+  plot(system, f"{aff_a}")
+  
+  summary = system.summary(trimers)
+  results.loc[results.shape[0]] = np.array([aff_a, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
