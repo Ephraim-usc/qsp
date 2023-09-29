@@ -50,12 +50,13 @@ class cleavage:
     self.system = None
     self.compartments = compartments
     
-    Q = np.zeros([6, 6])
+    Q = np.zeros([7, 7])
     rate_C = rate_C.number(1/units.h)
     rate_A = rate_A.number(1/units.h)
     rate_B = rate_B.number(1/units.h)
     Q[[3,4,5], [0,1,2]] += rate_C; Q[[0,1,2], [0,1,2]] -= rate_C
     Q[[2,5], [0,3]] += rate_A; Q[[0,3], [0,3]] -= rate_A
+    Q[[6], [0,3]] += rate_A
     self.Q = Q
   
   def __call__(self, system, t):
@@ -68,14 +69,14 @@ class cleavage:
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
       
       self.analyteses_ = []
-      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs] + [system.analytes.index("a")])
+      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs] + [system.analytes.index("a")])
+      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs] + [system.analytes.index("a")])
+      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs] + [system.analytes.index("a")])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs] + [system.analytes.index("a")])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs] + [system.analytes.index("a")])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs] + [system.analytes.index("a")])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs] + [system.analytes.index("a")])
     
     for compartment in self.compartments_:
       for analytes_ in self.analyteses_:
