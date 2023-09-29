@@ -155,7 +155,7 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
       system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
   
   
-  for drug in drugs:
+  for drug in drugs + ["a"]:
     # whole-body clearance
     for compartment in compartments:
       system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
