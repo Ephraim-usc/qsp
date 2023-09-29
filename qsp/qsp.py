@@ -413,12 +413,12 @@ class System:
       fig.savefig(output, dpi = 300)
       plt.close(fig)
   
-  def summary(self, analyte):
-    analyte = self.analytes.index(analyte)
+  def summary(self, analytes):
+    analytes = [self.analytes.index(analyte) for analyte in analytes]
     avgs = []; maxs = []; hfws = []
     for compartment in range(self.n_compartments):
       X = np.array([t for t, x in self.history])
-      Y = np.array([x[analyte, compartment] for t, x in self.history])
+      Y = np.array([x[analytes, compartment].sum(axis = 0) for t, x in self.history])
       steps = X[1:] - X[:-1]
       widths = (np.append(0, steps) + np.append(steps, 0))/2
       idx = np.argsort(Y)[::-1]
