@@ -1,5 +1,5 @@
 from qsp import *
-from qsp.model_TCE import *
+from qsp.model_VIB4 import *
 
 double = FTC238.copy()
 double["name"] = "double"
@@ -12,14 +12,16 @@ def plot(system, name):
   targets = ["A", "B", "AB"]
   groups = [["C"],
             ["A", "B"],
+            ["a"],
             drugs,
             [f"C-{drug}" for drug in drugs],
             [f"{drug}-{target}" for drug in drugs for target in targets],
             [f"C-{drug}-{target}" for drug in drugs for target in targets]]
-  labels = ["C", "target", "drug", "C-drug", "drug-target", "C-drug-target"]
-  colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
+  labels = ["C", "target", "cap", "drug", "C-drug", "drug-target", "C-drug-target"]
+  colors = ["tab:orange", "tab:blue", "black", "black", "wheat", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "dotted", "solid", "solid", "solid", "solid"]
   system.plot(compartments = ["plasma"] + [f"{tumor['name']}_interstitial" for tumor in system.tumors] + [f"{organ['name']}_interstitial" for organ in system.organs], 
-              groups = groups, labels = labels, colors = colors, 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
   
   groups = [drugs + [f"{drug}-{target}" for drug in drugs for target in targets] + [f"C-{drug}" for drug in drugs] + [f"C-{drug}-{target}" for drug in drugs for target in targets],
@@ -45,6 +47,6 @@ def plot(system, name):
 
 
 system = model(human, VIB4, [double, single], [other, lung, SI], connect_tumors = True)
-system.add_x("mmm", "plasma", 1 * units.nM)
+system.add_x("mm", "plasma", 1 * units.nM)
 system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "VIB4_1nM")
