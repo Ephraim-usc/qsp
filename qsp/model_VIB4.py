@@ -85,9 +85,10 @@ class cleavage:
 
 
 VIB4 = {}
-VIB4.update({"off_C": 8.09e-3 / units.s, "off_A": 3e-3 / units.s, "off_B": 4.138e-4 / units.s})
-VIB4.update({"affn_C": 6.56e-8 * units.molar, "affn_A": 2e-8 * units.molar, "aff_B": 1.7e-9 * units.molar})
-VIB4.update({"affm_C": 3.059e-6 * units.molar, "affm_A": 3.34e-7 * units.molar})
+VIB4.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_C": 3.059e-6 * units.molar})
+VIB4.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.34e-7 * units.molar})
+VIB4.update({"off_B": 4.138e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
+VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB4.update({"avidity": 20})
 VIB4.update({"clearance": math.log(2)/(40 * units.h)})
 VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
@@ -187,8 +188,8 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   system.add_process(TCE["cleavage_tumor"])
   
   for compartment in compartments:
-    system.add_simple(compartment, ["mn", "a"], ["ma"], on, off)
-    system.add_simple(compartment, ["nn", "a"], ["na"], on, off)
+    system.add_simple(compartment, ["mn", "a"], ["ma"], TCE["off_a"] / TCE["affn_a"], TCE["off_a"])
+    system.add_simple(compartment, ["nn", "a"], ["na"], TCE["off_a"] / TCE["affn_a"], TCE["off_a"])
   
   
   # target binding
