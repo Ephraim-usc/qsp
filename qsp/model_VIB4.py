@@ -185,8 +185,8 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   system.add_process(TCE["cleavage_tumor"])
   
   for compartment in compartments:
-    system.add_simple(compartment, ["mn", "a"], ["ma"], TCE["off_a"] / TCE["affn_a"], TCE["off_a"])
-    system.add_simple(compartment, ["nn", "a"], ["na"], TCE["off_a"] / TCE["affn_a"], TCE["off_a"])
+    system.add_simple(compartment, ["mn", "a"], ["ma"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
+    system.add_simple(compartment, ["nn", "a"], ["na"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
   
   
   # target binding
