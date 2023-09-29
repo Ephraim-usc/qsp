@@ -93,12 +93,10 @@ VIB4.update({"avidity": 20})
 VIB4.update({"clearance": math.log(2)/(40 * units.h)})
 VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
-                                  rate_A = 0.0527 / units.d, 
-                                  rate_B = 0.0 / units.d)
+                                  rate_A = 0.0527 / units.d)
 VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
-                                 rate_A = 0.1783 / units.d, 
-                                 rate_B = 0.0 / units.d)
+                                 rate_A = 0.1783 / units.d)
 
 ############ tumors ############
 
