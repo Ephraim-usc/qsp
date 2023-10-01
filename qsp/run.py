@@ -82,7 +82,7 @@ print(results)
 results = pd.DataFrame(columns = ["rate_C_tumor", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
 for rate_C_tumor in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]:
   TCE = VIB4.copy()
-  VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+  TCE["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
                                  rate_C = rate_C_tumor / units.d, 
                                  rate_A = 0.1783 / units.d)
   
@@ -114,7 +114,7 @@ print(results)
 results = pd.DataFrame(columns = ["rate_A_tumor", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
 for rate_A_tumor in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]:
   TCE = VIB4.copy()
-  VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+  TCE["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = rate_A_tumor / units.d)
   
