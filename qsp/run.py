@@ -49,6 +49,37 @@ def plot(system, name):
               output = f"{name}_targets.png")
 
 
+params = [[0.05, 0.15, 0.05, 0.15, x] for x in [1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7]] + \
+         [[x, 0.15, 0.05, 0.15, 1e-9] for x in [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]] + \
+         [[0.05, x, 0.05, 0.15, 1e-9] for x in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]] + \
+         [[0.05, 0.15, x, 0.15, 1e-9] for x in [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]] + \
+         [[0.05, 0.15, 0.05, x, 1e-9] for x in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]] + \
+         [[0.05*x, 0.15*x, 0.05, 0.15, 1e-9] for x in [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2]] + \
+         [[0.05, 0.15, 0.05*x, 0.15*x, 1e-9] for x in [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2]]
+
+results = pd.DataFrame(columns = ["rate_C_plasma", "rate_C_tumor", "rate_A_plasma", "rate_A_tumor", "aff_a", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
+for rate_C_plasma, rate_C_tumor, rate_A_plasma, rate_A_tumor, aff_a in params:
+  TCE = VIB4.copy()
+  TCE["aff_a"] = aff_a * units.molar
+  TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+                                  rate_C = rate_C_plasma / units.d, 
+                                  rate_A = rate_A_plasma / units.d)
+  TCE["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+                                 rate_C = rate_C_tumor / units.d, 
+                                 rate_A = rate_A_tumor / units.d)
+  
+  system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
+  system.add_x("mm", "plasma", 1 * units.nM)
+  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+  
+  summary = system.summary(trimers)
+  results.loc[results.shape[0]] = np.array([rate_C_plasma, rate_C_tumor, rate_A_plasma, rate_A_tumor, aff_a, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
+  print(results)
+
+results.to_csv("results.csv")
+
+
+
 results = pd.DataFrame(columns = ["aff_a", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
 for aff_a in [1e-12, 1e-11]:
   TCE = VIB4.copy()
