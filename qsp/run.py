@@ -57,10 +57,13 @@ params = [[0.05, 0.15, 0.05, 0.15, x] for x in [1e-12, 1e-11, 1e-10, 1e-9, 1e-8,
          [[0.05*x, 0.15*x, 0.05, 0.15, 1e-9] for x in [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2]] + \
          [[0.05, 0.15, 0.05*x, 0.15*x, 1e-9] for x in [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2]]
 
-results = pd.DataFrame(columns = ["rate_C_plasma", "rate_C_tumor", "rate_A_plasma", "rate_A_tumor", "aff_a", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_C_plasma, rate_C_tumor, rate_A_plasma, rate_A_tumor, aff_a in params:
+params = [[0.05, 0.15, 0.05, 0.15, 1e-9, x] for x in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]]
+
+results = pd.DataFrame(columns = ["rate_C_plasma", "rate_C_tumor", "rate_A_plasma", "rate_A_tumor", "aff_a", "half_life", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
+for rate_C_plasma, rate_C_tumor, rate_A_plasma, rate_A_tumor, aff_a, half_life in params:
   TCE = VIB4.copy()
   TCE["aff_a"] = aff_a * units.molar
+  TCE["clearance"] = math.log(2)/(40 * units.h)
   TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = rate_C_plasma / units.d, 
                                   rate_A = rate_A_plasma / units.d)
@@ -73,7 +76,7 @@ for rate_C_plasma, rate_C_tumor, rate_A_plasma, rate_A_tumor, aff_a in params:
   system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
   
   summary = system.summary(trimers)
-  results.loc[results.shape[0]] = np.array([rate_C_plasma, rate_C_tumor, rate_A_plasma, rate_A_tumor, aff_a, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
+  results.loc[results.shape[0]] = np.array([rate_C_plasma, rate_C_tumor, rate_A_plasma, rate_A_tumor, aff_a, half_life, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
   print(results)
 
 results.to_csv("results.csv")
