@@ -1,6 +1,5 @@
 from qsp import *
 from qsp.model_VIB4 import *
-import pickle
 
 double = FTC238.copy()
 double["name"] = "double"
@@ -83,80 +82,7 @@ results.to_csv("results.csv")
 
 
 
-results = pd.DataFrame(columns = ["aff_a", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for aff_a in [1e-12, 1e-11]:
-  TCE = VIB4.copy()
-  TCE["aff_a"] = aff_a * units.molar
-  
-  system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
-  system.add_x("mm", "plasma", 1 * units.nM)
-  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  
-  summary = system.summary(trimers)
-  results.loc[results.shape[0]] = np.array([aff_a, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
 
-print(results)
+system = model(human, VIB4, [double, single], [other, lung, SI], connect_tumors = True)
+system = model(human, JANUX, [double, single], [other, lung, SI], connect_tumors = True)
 
-results = pd.DataFrame(columns = ["rate_C_plasma", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_C_plasma in [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]:
-  TCE = VIB4.copy()
-  TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
-                                  rate_C = rate_C_plasma / units.d, 
-                                  rate_A = 0.0527 / units.d)
-  
-  system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
-  system.add_x("mm", "plasma", 1 * units.nM)
-  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  
-  summary = system.summary(trimers)
-  results.loc[results.shape[0]] = np.array([rate_C_plasma, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
-
-print(results)
-
-results = pd.DataFrame(columns = ["rate_C_tumor", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_C_tumor in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]:
-  TCE = VIB4.copy()
-  TCE["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
-                                 rate_C = rate_C_tumor / units.d, 
-                                 rate_A = 0.1783 / units.d)
-  
-  system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
-  system.add_x("mm", "plasma", 1 * units.nM)
-  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  
-  summary = system.summary(trimers)
-  results.loc[results.shape[0]] = np.array([rate_C_tumor, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
-
-print(results)
-
-results = pd.DataFrame(columns = ["rate_A_plasma", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_A_plasma in [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1]:
-  TCE = VIB4.copy()
-  TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
-                                  rate_C = 0.0527 / units.d, 
-                                  rate_A = rate_A_plasma / units.d)
-  
-  system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
-  system.add_x("mm", "plasma", 1 * units.nM)
-  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  
-  summary = system.summary(trimers)
-  results.loc[results.shape[0]] = np.array([rate_A_plasma, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
-
-print(results)
-
-results = pd.DataFrame(columns = ["rate_A_tumor", "avg_trimer_double", "avg_trimer_single", "avg_trimer_lung"])
-for rate_A_tumor in [0.03, 0.06, 0.09, 0.12, 0.15, 0.18, 0.21, 0.24, 0.27, 0.3]:
-  TCE = VIB4.copy()
-  TCE["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
-                                 rate_C = 0.1783 / units.d, 
-                                 rate_A = rate_A_tumor / units.d)
-  
-  system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
-  system.add_x("mm", "plasma", 1 * units.nM)
-  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  
-  summary = system.summary(trimers)
-  results.loc[results.shape[0]] = np.array([rate_A_tumor, summary.loc["double_interstitial", "average"], summary.loc["single_interstitial", "average"], summary.loc["lung_interstitial", "average"]])
-
-print(results)
