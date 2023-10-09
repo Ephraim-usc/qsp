@@ -103,14 +103,10 @@ JANUX.update({"off_A": 3e-3 / units.s, "affn_A": 3e-10 * units.molar, "affm_A": 
 JANUX.update({"off_B": 4.138e-4 / units.s, "aff_B": math.inf * units.molar})
 JANUX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 JANUX.update({"avidity": 20})
-JANUX["clearance"] = {"mmm": math.log(2)/(100 * units.h),
-                      "mmn": math.log(2)/(100 * units.h),
-                      "mnm": math.log(2)/(100 * units.h),
-                      "mnn": math.log(2)/(100 * units.h),
-                      "nmm": math.log(2)/(0.25 * units.h),
-                      "nmn": math.log(2)/(0.25 * units.h),
-                      "nnm": math.log(2)/(0.25 * units.h),
-                      "nnn": math.log(2)/(0.25 * units.h),
+JANUX["clearance"] = {"mm": math.log(2)/(100 * units.h),
+                      "mn": math.log(2)/(100 * units.h),
+                      "nm": math.log(2)/(0.25 * units.h),
+                      "nn": math.log(2)/(0.25 * units.h),
                       "a": math.log(2)/(0.25 * units.h)}
 JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
