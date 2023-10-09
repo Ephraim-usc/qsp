@@ -98,8 +98,8 @@ VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial
                                  rate_A = 0.1783 / units.d)
 
 JANUX = {}
-JANUX.update({"off_C": 8.09e-3 / units.s, "affn_C": 2e-10 * units.molar, "affm_C": 1e-7 * units.molar}) #
-JANUX.update({"off_A": 3e-3 / units.s, "affn_A": 3e-10 * units.molar, "affm_A": 5e-8 * units.molar}) #
+JANUX.update({"off_C": 1.36e-2 / units.s, "affn_C": 2e-10 * units.molar, "affm_C": 1e-7 * units.molar}) #
+JANUX.update({"off_A": 1.37e-2 / units.s, "affn_A": 3e-10 * units.molar, "affm_A": 5e-8 * units.molar}) #
 JANUX.update({"off_B": 4.138e-4 / units.s, "aff_B": math.inf * units.molar})
 JANUX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 JANUX.update({"avidity": 20})
@@ -176,7 +176,7 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   # whole-body clearance
   for compartment in compartments:
     if type(TCE["clearance"]) is dict:
-      for drug, clearance in TCE["clearance"]:
+      for drug, clearance in TCE["clearance"].items():
         system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * clearance)
     else:
       for drug in drugs + ["a"]:
