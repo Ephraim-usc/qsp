@@ -97,6 +97,28 @@ VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
+JANUX = {}
+JANUX.update({"off_C": None / units.s, "affn_C": None * units.molar, "affm_C": None * units.molar})
+JANUX.update({"off_A": None / units.s, "affn_A": None * units.molar, "affm_A": None * units.molar})
+JANUX.update({"off_B": 4.138e-4 / units.s, "aff_B": math.inf * units.molar})
+JANUX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
+JANUX.update({"avidity": 20})
+JANUX["clearance"] = {"mmm": math.log(2)/(100 * units.h),
+                      "mmn": math.log(2)/(100 * units.h),
+                      "mnm": math.log(2)/(100 * units.h),
+                      "mnn": math.log(2)/(100 * units.h),
+                      "nmm": math.log(2)/(0.25 * units.h),
+                      "nmn": math.log(2)/(0.25 * units.h),
+                      "nnm": math.log(2)/(0.25 * units.h),
+                      "nnn": math.log(2)/(0.25 * units.h)}
+JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+                                  rate_C = None / units.d, 
+                                  rate_A = None / units.d)
+JANUX["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+                                 rate_C = None / units.d, 
+                                 rate_A = None / units.d)
+
+
 ############ tumors ############
 
 UT44 = {"name": "tumor"}
