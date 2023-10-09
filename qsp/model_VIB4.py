@@ -98,8 +98,8 @@ VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial
                                  rate_A = 0.1783 / units.d)
 
 JANUX = {}
-JANUX.update({"off_C": None / units.s, "affn_C": None * units.molar, "affm_C": None * units.molar})
-JANUX.update({"off_A": None / units.s, "affn_A": None * units.molar, "affm_A": None * units.molar})
+JANUX.update({"off_C": 8.09e-3 / units.s, "affn_C": 2e-10 * units.molar, "affm_C": 1e-7 * units.molar}) #
+JANUX.update({"off_A": 3e-3 / units.s, "affn_A": 3e-10 * units.molar, "affm_A": 5e-8 * units.molar}) #
 JANUX.update({"off_B": 4.138e-4 / units.s, "aff_B": math.inf * units.molar})
 JANUX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 JANUX.update({"avidity": 20})
@@ -110,13 +110,14 @@ JANUX["clearance"] = {"mmm": math.log(2)/(100 * units.h),
                       "nmm": math.log(2)/(0.25 * units.h),
                       "nmn": math.log(2)/(0.25 * units.h),
                       "nnm": math.log(2)/(0.25 * units.h),
-                      "nnn": math.log(2)/(0.25 * units.h)}
+                      "nnn": math.log(2)/(0.25 * units.h),
+                      "a": math.log(2)/(0.25 * units.h)}
 JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
-                                  rate_C = None / units.d, 
-                                  rate_A = None / units.d)
+                                  rate_C = 0.0527 / units.d, 
+                                  rate_A = 0.0527 / units.d)
 JANUX["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
-                                 rate_C = None / units.d, 
-                                 rate_A = None / units.d)
+                                 rate_C = 0.1783 / units.d, 
+                                 rate_A = 0.1783 / units.d)
 
 
 ############ tumors ############
@@ -176,12 +177,16 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
       system.set_volume(analyte, f"{organ['name']}_plasma", organ["volume_plasma"])
       system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
   
+  # whole-body clearance
+  for compartment in compartments:
+    if type(TCE["clearance"]) is dict:
+      for drug, clearance in TCE["clearance"]:
+        system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * clearance)
+    else:
+      for drug in drugs + ["a"]:
+        system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
   
   for drug in drugs + ["a"]:
-    # whole-body clearance
-    for compartment in compartments:
-      system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
-    
     # tumor flow
     for tumor in tumors:
       system.add_flow(drug, "plasma", f"{tumor['name']}_plasma", tumor["volume"] * tumor["plasma_flow_density"])
