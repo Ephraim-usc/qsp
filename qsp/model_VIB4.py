@@ -122,7 +122,7 @@ VIB5.update({"clearance": math.log(2)/(40 * units.h)})
 VIB5["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
-VIB1["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+VIB5["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
