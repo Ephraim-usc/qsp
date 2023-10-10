@@ -84,11 +84,49 @@ results.to_csv("results.csv")
 
 
 system = model(human, VIB4, [double, single], [other, lung, SI], connect_tumors = True)
-system = model(human, JANUX, [double, single], [other, lung, SI], connect_tumors = True)
+system.add_x("mm", "plasma", 1 * units.nM)
+system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "VIB4_1nM")
 
-JANUX2 = JANUX.copy()
-JANUX2["clearance"] = {"mm": math.log(2)/(100 * units.h),
-                       "mn": math.log(2)/(0.25 * units.h),
-                       "nm": math.log(2)/(100 * units.h),
-                       "nn": math.log(2)/(0.25 * units.h),
-                       "a": math.log(2)/(0.25 * units.h)}
+system = model(human, VIB1, [double, single], [other, lung, SI], connect_tumors = True)
+system.add_x("mm", "plasma", 1 * units.nM)
+system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "VIB1_1nM")
+
+system = model(human, VIB5, [double, single], [other, lung, SI], connect_tumors = True)
+system.add_x("mm", "plasma", 1 * units.nM)
+system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "VIB5_1nM")
+
+TCE = JANUX.copy()
+TCE["clearance"] = {"mm": math.log(2)/(100 * units.h),
+                    "mn": math.log(2)/(100 * units.h),
+                    "nm": math.log(2)/(0.25 * units.h),
+                    "nn": math.log(2)/(0.25 * units.h),
+                    "a": math.log(2)/(0.25 * units.h)}
+system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
+system.add_x("mm", "plasma", 0.01 * units.nM)
+system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "JANUX_100h_0.25h_0.01nM")
+
+TCE = JANUX.copy()
+TCE["clearance"] = {"mm": math.log(2)/(100 * units.h),
+                    "mn": math.log(2)/(100 * units.h),
+                    "nm": math.log(2)/(100 * units.h),
+                    "nn": math.log(2)/(100 * units.h),
+                    "a": math.log(2)/(0.25 * units.h)}
+system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
+system.add_x("mm", "plasma", 0.01 * units.nM)
+system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "JANUX_100h_100h_0.01nM")
+
+TCE = JANUX.copy()
+TCE["clearance"] = {"mm": math.log(2)/(40 * units.h),
+                    "mn": math.log(2)/(40 * units.h),
+                    "nm": math.log(2)/(40 * units.h),
+                    "nn": math.log(2)/(40 * units.h),
+                    "a": math.log(2)/(0.25 * units.h)}
+system = model(human, TCE, [double, single], [other, lung, SI], connect_tumors = True)
+system.add_x("mm", "plasma", 0.01 * units.nM)
+system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "JANUX_40h_40h_0.01nM")
