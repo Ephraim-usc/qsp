@@ -113,9 +113,9 @@ VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial
                                  rate_A = 0.1783 / units.d)
 
 VIB5 = {}
-VIB5.update({"off_C": 1.3e-2 / units.s, "affn_C": 9.034e-8 * units.molar, "affm_C": 8.545e-7 * units.molar})
-VIB5.update({"off_A": 1e-2 / units.s, "affn_A": 2.14e-7 * units.molar, "affm_A": 9.163e-7 * units.molar})
-VIB5.update({"off_B": 4.6e-4 / units.s, "aff_B": 1.1e-9 * units.molar})
+VIB5.update({"off_C": 1e-2 / units.s, "affn_C": 1.26e-8 * units.molar, "affm_C": 4.16e-7 * units.molar})
+VIB5.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.34e-7 * units.molar})
+VIB5.update({"off_B": 4e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
 VIB5.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB5.update({"avidity": 20})
 VIB5.update({"clearance": math.log(2)/(40 * units.h)})
