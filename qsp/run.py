@@ -86,3 +86,9 @@ results.to_csv("results.csv")
 system = model(human, VIB4, [double, single], [other, lung, SI], connect_tumors = True)
 system = model(human, JANUX, [double, single], [other, lung, SI], connect_tumors = True)
 
+JANUX2 = JANUX.copy()
+JANUX2["clearance"] = {"mm": math.log(2)/(100 * units.h),
+                       "mn": math.log(2)/(0.25 * units.h),
+                       "nm": math.log(2)/(100 * units.h),
+                       "nn": math.log(2)/(0.25 * units.h),
+                       "a": math.log(2)/(0.25 * units.h)}
