@@ -89,8 +89,9 @@ VIB1.update({"off_C": 1.3e-2 / units.s, "affn_C": 9.034e-8 * units.molar, "affm_
 VIB1.update({"off_A": 1e-2 / units.s, "affn_A": 2.14e-7 * units.molar, "affm_A": 9.163e-7 * units.molar})
 VIB1.update({"off_B": 4.6e-4 / units.s, "aff_B": 1.1e-9 * units.molar})
 VIB1.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
-VIB1.update({"avidity": 20})
+VIB1.update({"avidity": 69})
 VIB1.update({"clearance": math.log(2)/(40 * units.h)})
+VIB1.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
 VIB1["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
@@ -103,7 +104,7 @@ VIB4.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_
 VIB4.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.34e-7 * units.molar})
 VIB4.update({"off_B": 4.138e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
 VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
-VIB4.update({"avidity": 20})
+VIB4.update({"avidity": 69})
 VIB4.update({"clearance": math.log(2)/(40 * units.h)})
 VIB4.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
 VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
@@ -118,8 +119,9 @@ VIB5.update({"off_C": 1e-2 / units.s, "affn_C": 1.26e-8 * units.molar, "affm_C":
 VIB5.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.34e-7 * units.molar})
 VIB5.update({"off_B": 4e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
 VIB5.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
-VIB5.update({"avidity": 20})
+VIB5.update({"avidity": 69})
 VIB5.update({"clearance": math.log(2)/(40 * units.h)})
+VIB5.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
 VIB5["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
@@ -132,12 +134,13 @@ JANUX.update({"off_C": 1.36e-2 / units.s, "affn_C": 2e-9 * units.molar, "affm_C"
 JANUX.update({"off_A": 1.37e-2 / units.s, "affn_A": 3e-9 * units.molar, "affm_A": 5.51e-7 * units.molar}) #
 JANUX.update({"off_B": 4.138e-4 / units.s, "aff_B": math.inf * units.molar})
 JANUX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
-JANUX.update({"avidity": 20})
+JANUX.update({"avidity": 69})
 JANUX["clearance"] = {"mm": math.log(2)/(100 * units.h),
                       "mn": math.log(2)/(100 * units.h),
                       "nm": math.log(2)/(0.25 * units.h),
                       "nn": math.log(2)/(0.25 * units.h),
                       "a": math.log(2)/(0.25 * units.h)}
+JANUX.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
 JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
@@ -270,11 +273,11 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   # internalization
   for drug in drugs:
     for compartment in compartments:
-      system.add_flow(f"C-{drug}", compartment, None, system.get_volume(drug, compartment) * TCE["internalization_Tcell"])
+      system.add_simple(f"C-{drug}", compartment, None, TCE["internalization_Tcell"])
     for tumor in tumors:
-      system.add_flow(f"C-{drug}", f"{tumor['name']}_interstitial", None, system.get_volume(drug, f"{tumor['name']}_interstitial") * TCE["internalization_tumor"])
+      system.add_simple(f"C-{drug}", f"{tumor['name']}_interstitial", None, TCE["internalization_tumor"])
     for organ in organs:
-      system.add_flow(f"C-{drug}", f"{organ['name']}_interstitial", None, system.get_volume(drug, f"{organ['name']}_interstitial") * TCE["internalization_organ"])
+      system.add_simple(f"C-{drug}", f"{organ['name']}_interstitial", None, TCE["internalization_organ"])
   
   
   # initial concentrations
