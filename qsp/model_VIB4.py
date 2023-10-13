@@ -2,12 +2,11 @@ from .qsp import *
 
 ### this model is mostly from ...
 
-antigens = ["C", "A", "B", "a"]
+targets = ["A", "B", "AB"]
 drugs = [f"{c}{a}" for c in ["m", "n"] for a in ["m", "n", "a"]]
-C_conjugates = [f"{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
-T_conjugates = [f"C-{drug}" for drug in drugs]
-trimers = [f"C-{drug}-{Ag}" for drug in drugs for Ag in ["A", "B", "AB"]]
-analytes = antigens + drugs + C_conjugates + T_conjugates + trimers
+dimers = [f"{drug}-{target}" for drug in drugs for target in targets] + [f"C-{drug}" for drug in drugs]
+trimers = [f"C-{drug}-{target}" for drug in drugs for target in targets]
+analytes = ["C", "A", "B", "a"] + drugs + dimers + trimers
 
 
 
@@ -35,12 +34,10 @@ class intratumoral_equilibrium:
 ############ host ############
 
 mouse = {}
-mouse.update({"volume_central": 1.26 * units.ml, "volume_peripheral": 0.819 * units.ml})
-mouse.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+mouse.update({"volume_plasma": 1.26 * units.ml})
 
 human = {}
-human.update({"volume_central": 2877 * units.ml, "volume_peripheral": 2857 * units.ml})
-human.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+human.update({"volume_plasma": 2877 * units.ml})
 
 
 ############ drug ############
@@ -92,10 +89,10 @@ VIB1.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB1.update({"avidity": 69})
 VIB1.update({"clearance": math.log(2)/(40 * units.h)})
 VIB1.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
-VIB1["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+VIB1["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
-VIB1["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+VIB1["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
@@ -107,10 +104,10 @@ VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB4.update({"avidity": 69})
 VIB4.update({"clearance": math.log(2)/(40 * units.h)})
 VIB4.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
-VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
-VIB4["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+VIB4["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
@@ -122,10 +119,10 @@ VIB5.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB5.update({"avidity": 69})
 VIB5.update({"clearance": math.log(2)/(40 * units.h)})
 VIB5.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
-VIB5["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+VIB5["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
-VIB5["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+VIB5["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
@@ -173,17 +170,21 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 other = {"name": "other"}
 other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
 other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml})
 other.update({"num_A": 100000, "num_B": 0})
 
+
 lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
+lung.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 lung.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e7 / units.ml})
 lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
 
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
+SI.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 SI.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml})
 SI.update({"num_A": 57075, "num_B": 39649})
@@ -191,20 +192,18 @@ SI.update({"num_A": 57075, "num_B": 39649})
 
 ############ model ############
 
-def model(host, TCE, tumors, organs, connect_tumors = False):
-  compartments = ["plasma"] + [f"{organ['name']}_{tissue}" for organ in tumors + organs for tissue in ["plasma", "interstitial"]]
+def model(host, TCE, tumors, organs, connect_tumors = True):
+  compartments = ["plasma"] + organ["name"] for organ in tumors + organs]
   system = System(analytes, compartments)
   system.tumors = tumors
   system.organs = organs
   
   for analyte in analytes:
-    system.set_volume(analyte, "plasma", host["volume_central"])
+    system.set_volume(analyte, "plasma", host["volume_plasma"])
     for tumor in tumors:
-      system.set_volume(analyte, f"{tumor['name']}_plasma", tumor["volume"] * tumor["volume_plasma_proportion"])
-      system.set_volume(analyte, f"{tumor['name']}_interstitial", tumor["volume"] * tumor["volume_interstitial_proportion"])
+      system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
     for organ in organs:
-      system.set_volume(analyte, f"{organ['name']}_plasma", organ["volume_plasma"])
-      system.set_volume(analyte, f"{organ['name']}_interstitial", organ["volume_interstitial"])
+      system.set_volume(analyte, organ["name"], organ["volume_interstitial"])
   
   # whole-body clearance
   for compartment in compartments:
