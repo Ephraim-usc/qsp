@@ -105,6 +105,7 @@ VIB4.update({"off_B": 4.138e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
 VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB4.update({"avidity": 20})
 VIB4.update({"clearance": math.log(2)/(40 * units.h)})
+VIB4.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
 VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
@@ -265,6 +266,15 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
       system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "B"], [f"C-{drug}-B"], on_B, off_B)
       system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-A", "B"], [f"C-{drug}-AB"], on_B * avidity, off_B)
       system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity, off_A)
+
+  # internalization
+  for drug in drugs:
+    for compartment in compartments:
+      system.add_flow(f"C-{drug}", compartment, None, system.get_volume(drug, compartment) * TCE["internalization_Tcell"])
+    for tumor in tumors:
+      system.add_flow(f"C-{drug}", f"{tumor['name']}_interstitial", None, system.get_volume(drug, f"{tumor['name']}_interstitial") * TCE["internalization_tumor"])
+    for organ in organs:
+      system.add_flow(f"C-{drug}", f"{organ['name']}_interstitial", None, system.get_volume(drug, f"{organ['name']}_interstitial") * TCE["internalization_organ"])
   
   
   # initial concentrations
