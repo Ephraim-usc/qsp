@@ -273,11 +273,15 @@ def model(host, TCE, tumors, organs, connect_tumors = False):
   # internalization
   for drug in drugs:
     for compartment in compartments:
-      system.add_simple(f"C-{drug}", compartment, None, TCE["internalization_Tcell"])
+      system.add_simple(compartment, f"C-{drug}", "C", TCE["internalization_Tcell"])
     for tumor in tumors:
-      system.add_simple(f"C-{drug}", f"{tumor['name']}_interstitial", None, TCE["internalization_tumor"])
+      system.add_simple(f"{tumor['name']}_interstitial", [f"{drug}-A"], ["A"], TCE["internalization_tumor"])
+      system.add_simple(f"{tumor['name']}_interstitial", [f"{drug}-B"], ["B"], TCE["internalization_tumor"])
+      system.add_simple(f"{tumor['name']}_interstitial", [f"{drug}-AB"], ["A", "B"], TCE["internalization_tumor"])
     for organ in organs:
-      system.add_simple(f"C-{drug}", f"{organ['name']}_interstitial", None, TCE["internalization_organ"])
+      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A"], ["A"], TCE["internalization_organ"])
+      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-B"], ["B"], TCE["internalization_organ"])
+      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-AB"], ["A", "B"], TCE["internalization_organ"])
   
   
   # initial concentrations
