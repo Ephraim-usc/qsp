@@ -43,18 +43,34 @@ def plot(system, name):
               output = f"{name}_drugs.png")
 
 
+
+X = VIB4.copy(); Y = VIB4.copy()
+X.update({"off_A": 3e-4 / units.s, "affn_A": 5e-10 * units.molar, "affm_A": 1e-8 * units.molar})
+Y.update({"off_A": 7e-3 / units.s, "affn_A": 2.5e-8 * units.molar, "affm_A": 5e-7 * units.molar})
+
 for interrnalization_tumor in [0.0, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2]:
   TCE = VIB4.copy()
   TCE["internalization_tumor"] = interrnalization_tumor / units.h
   system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
   system.add_x("mm", "plasma", 10 * units.nM)
   system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  plot(system, f"internalization={interrnalization_tumor}")
+  plot(system, f"VIB4_internalization={interrnalization_tumor}")
 
+for interrnalization_tumor in [0.0, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2]:
+  TCE = X.copy()
+  TCE["internalization_tumor"] = interrnalization_tumor / units.h
+  system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+  system.add_x("mm", "plasma", 10 * units.nM)
+  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+  plot(system, f"X_internalization={interrnalization_tumor}")
 
-
-
-
+for interrnalization_tumor in [0.0, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2]:
+  TCE = Y.copy()
+  TCE["internalization_tumor"] = interrnalization_tumor / units.h
+  system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+  system.add_x("mm", "plasma", 10 * units.nM)
+  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+  plot(system, f"Y_internalization={interrnalization_tumor}")
 
 
 
