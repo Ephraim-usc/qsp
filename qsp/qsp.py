@@ -165,8 +165,8 @@ class RS: # reaction system
       self.Q[products, products] -= backward
       self.Q[reactants, products] += backward
     else:
-      self.Q[products, products[0], products[1]] -= backward
-      self.Q[reactants, products[0], products[1]] += backward
+      self.QQ[products, products[0], products[1]] -= backward
+      self.QQ[reactants, products[0], products[1]] += backward
     
     self.refresh()
   
