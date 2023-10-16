@@ -193,7 +193,7 @@ SI.update({"num_A": 57075, "num_B": 39649})
 ############ model ############
 
 def model(host, TCE, tumors, organs, connect_tumors = True):
-  compartments = ["plasma"] + organ["name"] for organ in tumors + organs]
+  compartments = ["plasma"] + [organ["name"] for organ in tumors + organs]
   system = System(analytes, compartments)
   system.tumors = tumors
   system.organs = organs
