@@ -22,7 +22,7 @@ class intratumoral_equilibrium:
     if self.system is not system:
       self.system = system
       
-      self.compartments_ = [system.compartments.index(tumor["name"] for tumor in system.tumors]
+      self.compartments_ = [system.compartments.index(tumor["name"]) for tumor in system.tumors]
       self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs]
     
     for analyte_ in self.analytes_:
