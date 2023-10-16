@@ -22,7 +22,7 @@ class intratumoral_equilibrium:
     if self.system is not system:
       self.system = system
       
-      self.compartments_ = [system.compartments.index(f"{tumor['name']}_interstitial") for tumor in system.tumors]
+      self.compartments_ = [system.compartments.index(tumor["name"] for tumor in system.tumors]
       self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs]
     
     for analyte_ in self.analytes_:
@@ -138,10 +138,10 @@ JANUX["clearance"] = {"mm": math.log(2)/(100 * units.h),
                       "nn": math.log(2)/(0.25 * units.h),
                       "a": math.log(2)/(0.25 * units.h)}
 JANUX.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
-JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ['name'] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
-JANUX["cleavage_tumor"] = cleavage(lambda system: [f"{tumor['name']}_interstitial" for tumor in system.tumors], 
+JANUX["cleavage_tumor"] = cleavage(lambda system: [tumor['name'] for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
