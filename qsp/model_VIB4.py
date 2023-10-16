@@ -174,7 +174,6 @@ other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml})
 other.update({"num_A": 100000, "num_B": 0})
 
-
 lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
 lung.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
@@ -217,17 +216,13 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   for drug in drugs + ["a"]:
     # tumor flow
     for tumor in tumors:
-      system.add_flow(drug, "plasma", f"{tumor['name']}_plasma", tumor["volume"] * tumor["plasma_flow_density"])
-      system.add_flow(drug, f"{tumor['name']}_plasma", "plasma", tumor["volume"] * tumor["plasma_flow_density"])
-      system.add_flow(drug, f"{tumor['name']}_plasma", f"{tumor['name']}_interstitial", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-      system.add_flow(drug, f"{tumor['name']}_interstitial", f"{tumor['name']}_plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+      system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+      system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
     
     # organ flow
     for organ in organs:
-      system.add_flow(drug, "plasma", f"{organ['name']}_plasma", organ["plasma_flow"])
-      system.add_flow(drug, f"{organ['name']}_plasma", "plasma", organ["plasma_flow"])
-      system.add_flow(drug, f"{organ['name']}_plasma", f"{organ['name']}_interstitial", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
-      system.add_flow(drug, f"{organ['name']}_interstitial", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
+      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
+      system.add_flow(drug, organ["name"], "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
   
   
   # exchange drugs between tumors if tumors are connected
@@ -254,33 +249,33 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
     system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
     
     for organ in tumors + organs:
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity, off_A)
+      system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
+      system.add_simple(organ["name"], [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
+      system.add_simple(organ["name"], [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
+      system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity, off_A)
       
-      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
-      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-A"], [f"C-{drug}-A"], on_C, off_C)
-      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-B"], [f"C-{drug}-B"], on_C, off_C)
-      system.add_simple(f"{organ['name']}_interstitial", ["C", f"{drug}-AB"], [f"C-{drug}-AB"], on_C, off_C)
+      system.add_simple(organ["name"], ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
+      system.add_simple(organ["name"], ["C", f"{drug}-A"], [f"C-{drug}-A"], on_C, off_C)
+      system.add_simple(organ["name"], ["C", f"{drug}-B"], [f"C-{drug}-B"], on_C, off_C)
+      system.add_simple(organ["name"], ["C", f"{drug}-AB"], [f"C-{drug}-AB"], on_C, off_C)
       
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "A"], [f"C-{drug}-A"], on_A, off_A)
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}", "B"], [f"C-{drug}-B"], on_B, off_B)
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-A", "B"], [f"C-{drug}-AB"], on_B * avidity, off_B)
-      system.add_simple(f"{organ['name']}_interstitial", [f"C-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity, off_A)
+      system.add_simple(organ["name"], [f"C-{drug}", "A"], [f"C-{drug}-A"], on_A, off_A)
+      system.add_simple(organ["name"], [f"C-{drug}", "B"], [f"C-{drug}-B"], on_B, off_B)
+      system.add_simple(organ["name"], [f"C-{drug}-A", "B"], [f"C-{drug}-AB"], on_B * avidity, off_B)
+      system.add_simple(organ["name"], [f"C-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity, off_A)
 
   # internalization
   for drug in drugs:
     for compartment in compartments:
       system.add_simple(compartment, f"C-{drug}", "C", TCE["internalization_Tcell"])
     for tumor in tumors:
-      system.add_simple(f"{tumor['name']}_interstitial", [f"{drug}-A"], ["A"], TCE["internalization_tumor"])
-      system.add_simple(f"{tumor['name']}_interstitial", [f"{drug}-B"], ["B"], TCE["internalization_tumor"])
-      system.add_simple(f"{tumor['name']}_interstitial", [f"{drug}-AB"], ["A", "B"], TCE["internalization_tumor"])
+      system.add_simple(tumor["name"], [f"{drug}-A"], ["A"], TCE["internalization_tumor"])
+      system.add_simple(tumor["name"], [f"{drug}-B"], ["B"], TCE["internalization_tumor"])
+      system.add_simple(tumor["name"], [f"{drug}-AB"], ["A", "B"], TCE["internalization_tumor"])
     for organ in organs:
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-A"], ["A"], TCE["internalization_organ"])
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-B"], ["B"], TCE["internalization_organ"])
-      system.add_simple(f"{organ['name']}_interstitial", [f"{drug}-AB"], ["A", "B"], TCE["internalization_organ"])
+      system.add_simple(organ["name"], [f"{drug}-A"], ["A"], TCE["internalization_organ"])
+      system.add_simple(organ["name"], [f"{drug}-B"], ["B"], TCE["internalization_organ"])
+      system.add_simple(organ["name"], [f"{drug}-AB"], ["A", "B"], TCE["internalization_organ"])
   
   
   # initial concentrations
@@ -288,13 +283,13 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   system.add_x("C", "plasma", 124000 * T_cell_density_blood / units.avagadro)
   
   for tumor in tumors:
-    system.add_x("C", f"{tumor['name']}_interstitial", 124000 * tumor["T_cell_density"] / units.avagadro)
-    system.add_x("A", f"{tumor['name']}_interstitial", tumor["num_A"] * tumor["cell_density"] / units.avagadro)
-    system.add_x("B", f"{tumor['name']}_interstitial", tumor["num_B"] * tumor["cell_density"] / units.avagadro)
+    system.add_x("C", tumor["name"], 124000 * tumor["T_cell_density"] / units.avagadro)
+    system.add_x("A", tumor["name"], tumor["num_A"] * tumor["cell_density"] / units.avagadro)
+    system.add_x("B", tumor["name"], tumor["num_B"] * tumor["cell_density"] / units.avagadro)
   
   for organ in organs:
-    system.add_x("C", f"{organ['name']}_interstitial", 124000 * organ["T_cell_density"] / units.avagadro)
-    system.add_x("A", f"{organ['name']}_interstitial", organ["num_A"] * organ["cell_density"] / units.avagadro)
-    system.add_x("B", f"{organ['name']}_interstitial", organ["num_B"] * organ["cell_density"] / units.avagadro)
+    system.add_x("C", organ["name"], 124000 * organ["T_cell_density"] / units.avagadro)
+    system.add_x("A", organ["name"], organ["num_A"] * organ["cell_density"] / units.avagadro)
+    system.add_x("B", organ["name"], organ["num_B"] * organ["cell_density"] / units.avagadro)
   
   return system
