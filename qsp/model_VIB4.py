@@ -221,8 +221,8 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
     
     # organ flow
     for organ in organs:
-      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["vascular_reflection"]))
-      system.add_flow(drug, organ["name"], "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - host["lymphatic_reflection"]))
+      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
+      system.add_flow(drug, organ["name"], "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
   
   
   # exchange drugs between tumors if tumors are connected
