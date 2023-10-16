@@ -45,11 +45,11 @@ def plot(system, name):
 
 for interrnalization_tumor in [0.0, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2]:
   TCE = VIB4.copy()
-  TCE["interrnalization_tumor"] = interrnalization_tumor / units.h
+  TCE["internalization_tumor"] = interrnalization_tumor / units.h
   system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
   system.add_x("mm", "plasma", 10 * units.nM)
   system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  plot(system, f"{interrnalization_tumor*100}")
+  plot(system, f"internalization={interrnalization_tumor}")
 
 
 
