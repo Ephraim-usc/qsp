@@ -267,7 +267,7 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   # internalization
   for drug in drugs:
     for compartment in compartments:
-      system.add_simple(compartment, f"C-{drug}", "C", TCE["internalization_Tcell"])
+      system.add_simple(compartment, [f"C-{drug}"], ["C"], TCE["internalization_Tcell"])
     for tumor in tumors:
       system.add_simple(tumor["name"], [f"{drug}-A"], ["A"], TCE["internalization_tumor"])
       system.add_simple(tumor["name"], [f"{drug}-B"], ["B"], TCE["internalization_tumor"])
