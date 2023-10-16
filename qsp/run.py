@@ -1,12 +1,35 @@
 from qsp import *
 from qsp.model_VIB4 import *
 
-double = FTC238.copy()
-double["name"] = "double"
+tumor_AB = FTC238.copy()
+tumor_AB["name"] = "tumor_AB"
 
-single = FTC238.copy()
-single["num_B"] = 0
-single["name"] = "single"
+tumor_A = FTC238.copy()
+tumor_A["num_B"] = 0
+tumor_A["name"] = "tumor_A"
+
+tumor_B = FTC238.copy()
+tumor_B["num_A"] = 0
+tumor_B["name"] = "tumor_B"
+
+
+def plot(system, name):
+  #pickle.dump(system, open(f"{name}.pickle", "wb"))
+  
+  targets = ["A", "B", "AB"]
+  groups = [["C"], ["A"], ["B"], ["a"],
+            drugs,
+            [f"C-{drug}" for drug in drugs],
+            [f"{drug}-{target}" for drug in drugs for target in targets],
+            [f"C-{drug}-{target}" for drug in drugs for target in targets]]
+  labels = ["C", "target", "cap", "drug", "C-drug", "drug-target", "C-drug-target"]
+  colors = ["tab:orange", "tab:blue", "black", "black", "wheat", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "dotted", "solid", "solid", "solid", "solid"]
+  system.plot(compartments = ["plasma"] + [f"{tumor['name']}_interstitial" for tumor in system.tumors] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_summary.png")
+
+
 
 def plot(system, name):
   #pickle.dump(system, open(f"{name}.pickle", "wb"))
@@ -22,7 +45,7 @@ def plot(system, name):
   labels = ["C", "target", "cap", "drug", "C-drug", "drug-target", "C-drug-target"]
   colors = ["tab:orange", "tab:blue", "black", "black", "wheat", "skyblue", "tab:purple"]
   linestyles = ["solid", "solid", "dotted", "solid", "solid", "solid", "solid"]
-  system.plot(compartments = ["plasma"] + [f"{tumor['name']}_interstitial" for tumor in system.tumors] + [f"{organ['name']}_interstitial" for organ in system.organs], 
+  system.plot(compartments = ["plasma"] + [tumor["name"] for tumor in system.tumors] + [organ["name"] for organ in system.organs], 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
   
@@ -83,7 +106,7 @@ results.to_csv("results.csv")
 
 
 
-system = model(human, VIB4, [double, single], [other, lung, SI], connect_tumors = True)
+system = model(human, VIB4, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
 system.add_x("mm", "plasma", 1 * units.nM)
 system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "VIB4_1nM")
