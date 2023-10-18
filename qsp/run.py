@@ -63,7 +63,7 @@ def ratio(affn_C, affn_A, aff_B, off_C, off_A, off_B, halflife, cleavage_C_plasm
   
   system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
   system.add_x("mm", "plasma", 1 * units.nM)
-  system.run(3 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
   
   plot(system, '_'.join([str(_) for _ in x.values()]))
   summary = system.summary(trimers)["average"]
@@ -74,7 +74,7 @@ names = ["affn_C", "affn_A", "aff_B", "off_C", "off_A", "off_B", "halflife", "cl
 values = [-8, -9, -8, -3, -3, -3, 40, 0.05, 0.05]
 limits = [(-10, -7), (-10, -7), (-10, -7), (-5, -2), (-5, -2), (-5, -2), (10, 200), (0.01, 0.1), (0.01, 0.1)]
 search = Search(names, values, limits)
-
+maximize(ratio, search)
 
 
 
