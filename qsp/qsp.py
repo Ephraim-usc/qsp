@@ -18,6 +18,8 @@ import matplotlib.colors as mcolors
 import unum
 import unum.units as units
 
+units.min = unum.new_unit('min', 60 * units.s)
+
 units.micrometer = unum.new_unit('micrometer', 1e-6 * units.m)
 
 units.microgram = unum.new_unit('microgram', 1e-6 * units.g)
