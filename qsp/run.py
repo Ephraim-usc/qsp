@@ -50,9 +50,9 @@ def ratio(affn_C, affn_A, aff_B, off_C, off_A, off_B, halflife, cleavage_C_plasm
   TCE["smalls"] = ["mn", "nn", "a"]
   TCE["avidity"] = 20
   
-  TCE["affn_C"] = (10**affn_C) * units.M; TCE["affm_C"] = (10**affn_C) * 100 * units.M; TCE["off_C"] = (10**off_C) / units.s
-  TCE["affn_A"] = (10**affn_A) * units.M; TCE["affm_A"] = (10**affn_A) * 100 * units.M; TCE["off_A"] = (10**off_A) / units.s
-  TCE["aff_B"] = (10**aff_B) * units.M; TCE["off_B"] = (10**off_B) / units.s
+  TCE["affn_C"] = (10**affn_C) * units.molar; TCE["affm_C"] = (10**affn_C) * 100 * units.molar; TCE["off_C"] = (10**off_C) / units.s
+  TCE["affn_A"] = (10**affn_A) * units.molar; TCE["affm_A"] = (10**affn_A) * 100 * units.molar; TCE["off_A"] = (10**off_A) / units.s
+  TCE["aff_B"] = (10**aff_B) * units.molar; TCE["off_B"] = (10**off_B) / units.s
   TCE.update({"clearance": math.log(2)/(halflife * units.h)})
   TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = cleavage_C_plasma / units.d, 
@@ -63,16 +63,17 @@ def ratio(affn_C, affn_A, aff_B, off_C, off_A, off_B, halflife, cleavage_C_plasm
   
   system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
   system.add_x("mm", "plasma", 1 * units.nM)
-  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-  #plot(system, "tmp")
+  system.run(3 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
   
-  return system
+  plot(system, '_'.join([str(_) for _ in x.values()]))
+  summary = system.summary(trimers)["average"]
+  return summary["tumor_A"] / summary["lung"]
 
 
 names = ["affn_C", "affn_A", "aff_B", "off_C", "off_A", "off_B", "halflife", "cleavage_C_plasma", "cleavage_A_plasma"]
 values = [-8, -9, -8, -3, -3, -3, 40, 0.05, 0.05]
-limits = [(), (), (), (), (), (), (), (), ()]
-
+limits = [(-10, -7), (-10, -7), (-10, -7), (-5, -2), (-5, -2), (-5, -2), (10, 200), (0.01, 0.1), (0.01, 0.1)]
+search = Search(names, values, limits)
 
 
 
