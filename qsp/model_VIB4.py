@@ -121,7 +121,7 @@ VIB4.update({"off_B": 4.138e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
 VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB4.update({"avidity": 69})
 VIB4.update({"clearance": math.log(2)/(40 * units.h)}); VIB4["smalls"] = ["a"]
-VIB4.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
+VIB4.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
 VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
@@ -137,7 +137,7 @@ BEST.update({"off_B": 4.138e-4 / units.s, "aff_B": 1e-8 * units.molar})
 BEST.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 BEST.update({"avidity": 69})
 BEST.update({"clearance": math.log(2)/(40 * units.h)}); BEST["smalls"] = ["a"]
-BEST.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
+BEST.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
 BEST["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
@@ -152,7 +152,7 @@ JANUX.update({"off_B": 4.138e-4 / units.s, "aff_B": math.inf * units.molar})
 JANUX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 JANUX.update({"avidity": 69})
 JANUX.update({"clearance": math.log(2)/(100 * units.h)}); JANUX["smalls"] = ["nm", "nn", "na", "a"]
-JANUX.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
+JANUX.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
 JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ['name'] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
@@ -226,7 +226,7 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   
   # small forms plasma clearance
   for small in TCE["smalls"]:
-    system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.min))
+    system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
   
   for drug in drugs + ["a"]:
     # tumor flow
