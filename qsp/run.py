@@ -44,6 +44,42 @@ def plot(system, name):
 
 
 
+
+def ratio(affn_C, affn_A, aff_B, off_C, off_A, off_B, halflife, cleavage_C_plasma, cleavage_A_plasma):
+  TCE = BEST.copy()
+  TCE["smalls"] = ["mn", "nn", "a"]
+  TCE["avidity"] = 20
+  
+  TCE["affn_C"] = (10**affn_C) * units.M; TCE["affm_C"] = (10**affn_C) * 100 * units.M; TCE["off_C"] = (10**off_C) / units.s
+  TCE["affn_A"] = (10**affn_A) * units.M; TCE["affm_A"] = (10**affn_A) * 100 * units.M; TCE["off_A"] = (10**off_A) / units.s
+  TCE["aff_B"] = (10**aff_B) * units.M; TCE["off_B"] = (10**off_B) / units.s
+  TCE.update({"clearance": math.log(2)/(halflife * units.h)})
+  TCE["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
+                                  rate_C = cleavage_C_plasma / units.d, 
+                                  rate_A = cleavage_A_plasma / units.d)
+  TCE["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
+                                 rate_C = cleavage_C_plasma*3 / units.d, 
+                                 rate_A = cleavage_A_plasma*3 / units.d)
+  
+  system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+  system.add_x("mm", "plasma", 1 * units.nM)
+  system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+  #plot(system, "tmp")
+  
+  return system
+
+
+names = ["affn_C", "affn_A", "aff_B", "off_C", "off_A", "off_B", "halflife", "cleavage_C_plasma", "cleavage_A_plasma"]
+values = [-8, -9, -8, -3, -3, -3, 40, 0.05, 0.05]
+limits = [(), (), (), (), (), (), (), (), ()]
+
+
+
+
+
+
+
+
 X = VIB4.copy(); Y = VIB4.copy()
 X.update({"off_A": 3e-4 / units.s, "affn_A": 5e-10 * units.molar, "affm_A": 1e-8 * units.molar})
 Y.update({"off_A": 7e-3 / units.s, "affn_A": 2.5e-8 * units.molar, "affm_A": 5e-7 * units.molar})
