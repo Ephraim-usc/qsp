@@ -81,6 +81,7 @@ class cleavage:
 
 
 
+'''
 VIB1 = {}
 VIB1.update({"off_C": 1.3e-2 / units.s, "affn_C": 9.034e-8 * units.molar, "affm_C": 8.545e-7 * units.molar})
 VIB1.update({"off_A": 1e-2 / units.s, "affn_A": 2.14e-7 * units.molar, "affm_A": 9.163e-7 * units.molar})
@@ -93,21 +94,6 @@ VIB1["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] fo
                                   rate_C = 0.0527 / units.d, 
                                   rate_A = 0.0527 / units.d)
 VIB1["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
-                                 rate_C = 0.1783 / units.d, 
-                                 rate_A = 0.1783 / units.d)
-
-VIB4 = {}
-VIB4.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_C": 3.059e-6 * units.molar})
-VIB4.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.34e-7 * units.molar})
-VIB4.update({"off_B": 4.138e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
-VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
-VIB4.update({"avidity": 69})
-VIB4.update({"clearance": math.log(2)/(40 * units.h)})
-VIB4.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
-VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
-                                  rate_C = 0.0527 / units.d, 
-                                  rate_A = 0.0527 / units.d)
-VIB4["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
@@ -125,6 +111,39 @@ VIB5["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] fo
 VIB5["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
+'''
+
+
+VIB4 = {}
+VIB4.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_C": 3.059e-6 * units.molar})
+VIB4.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.34e-7 * units.molar})
+VIB4.update({"off_B": 4.138e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
+VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
+VIB4.update({"avidity": 69})
+VIB4.update({"clearance": math.log(2)/(40 * units.h)}); VIB4["smalls"] = ["a"]
+VIB4.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
+VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
+                                  rate_C = 0.0527 / units.d, 
+                                  rate_A = 0.0527 / units.d)
+VIB4["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
+                                 rate_C = 0.1783 / units.d, 
+                                 rate_A = 0.1783 / units.d)
+
+
+BEST = {}
+BEST.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_C": 3.059e-6 * units.molar})
+BEST.update({"off_A": 3e-3 / units.s, "affn_A": 1e-9 * units.molar, "affm_A": 1e-7 * units.molar})
+BEST.update({"off_B": 4.138e-4 / units.s, "aff_B": 1e-8 * units.molar})
+BEST.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
+BEST.update({"avidity": 69})
+BEST.update({"clearance": math.log(2)/(40 * units.h)}); BEST["smalls"] = ["a"]
+BEST.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
+BEST["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
+                                  rate_C = 0.0527 / units.d, 
+                                  rate_A = 0.0527 / units.d)
+BEST["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
+                                 rate_C = 0.1783 / units.d, 
+                                 rate_A = 0.1783 / units.d)
 
 JANUX = {}
 JANUX.update({"off_C": 1.36e-2 / units.s, "affn_C": 2e-9 * units.molar, "affm_C": 1.55e-6 * units.molar}) #
@@ -132,11 +151,7 @@ JANUX.update({"off_A": 1.37e-2 / units.s, "affn_A": 3e-9 * units.molar, "affm_A"
 JANUX.update({"off_B": 4.138e-4 / units.s, "aff_B": math.inf * units.molar})
 JANUX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 JANUX.update({"avidity": 69})
-JANUX["clearance"] = {"mm": math.log(2)/(100 * units.h),
-                      "mn": math.log(2)/(100 * units.h),
-                      "nm": math.log(2)/(0.25 * units.h),
-                      "nn": math.log(2)/(0.25 * units.h),
-                      "a": math.log(2)/(0.25 * units.h)}
+JANUX.update({"clearance": math.log(2)/(100 * units.h)}); JANUX["smalls"] = ["nm", "nn", "na", "a"]
 JANUX.update({"internalization_Tcell": 0.5 / units.h, "internalization_tumor": 0.1 / units.h, "internalization_organ": 0.05 / units.h})
 JANUX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ['name'] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
@@ -206,12 +221,12 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   
   # whole-body clearance
   for compartment in compartments:
-    if type(TCE["clearance"]) is dict:
-      for drug, clearance in TCE["clearance"].items():
-        system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * clearance)
-    else:
-      for drug in drugs + ["a"]:
+    for drug in drugs + ["a"]:
         system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
+  
+  # small forms plasma clearance
+  for small in TCE["smalls"]:
+    system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.min))
   
   for drug in drugs + ["a"]:
     # tumor flow
@@ -224,11 +239,9 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
       system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
       system.add_flow(drug, organ["name"], "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
   
-  
   # exchange drugs between tumors if tumors are connected
   if connect_tumors:
     system.add_process(intratumoral_equilibrium())
-  
   
   # mask cleavage
   system.add_process(TCE["cleavage_plasma"])
@@ -237,7 +250,6 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   for compartment in compartments:
     system.add_simple(compartment, ["mn", "a"], ["ma"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
     system.add_simple(compartment, ["nn", "a"], ["na"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
-  
   
   # target binding
   for drug in drugs:
