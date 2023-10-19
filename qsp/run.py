@@ -47,9 +47,6 @@ def plot(system, name):
 
 def ratio(affn_C, affn_A, aff_B, off_C, off_A, off_B, halflife, cleavage_C_plasma, cleavage_A_plasma):
   TCE = BEST.copy()
-  TCE["smalls"] = ["mn", "nn", "a"]
-  TCE["avidity"] = 20
-  
   TCE["affn_C"] = (10**affn_C) * units.molar; TCE["affm_C"] = (10**affn_C) * 100 * units.molar; TCE["off_C"] = (10**off_C) / units.s
   TCE["affn_A"] = (10**affn_A) * units.molar; TCE["affm_A"] = (10**affn_A) * 100 * units.molar; TCE["off_A"] = (10**off_A) / units.s
   TCE["aff_B"] = (10**aff_B) * units.molar; TCE["off_B"] = (10**off_B) / units.s
