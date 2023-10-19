@@ -1,5 +1,6 @@
 from qsp import *
 from qsp.model_VIB4 import *
+from qsp.optimizer import *
 
 tumor_AB = FTC238.copy()
 tumor_AB["name"] = "tumor_AB"
@@ -62,7 +63,7 @@ def ratio(affn_C, affn_A, aff_B, off_C, off_A, off_B, halflife, cleavage_C_plasm
   system.add_x("mm", "plasma", 1 * units.nM)
   system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
   
-  plot(system, '_'.join([str(_) for _ in x.values()]))
+  plot(system, f"{affn_C}_{affn_A}_{aff_B}_{off_C}_{off_A}_{off_B}_{halflife}_{cleavage_C_plasma}_{cleavage_A_plasma}")
   summary = system.summary(trimers)["average"]
   return summary["tumor_A"] / summary["lung"]
 
