@@ -135,8 +135,8 @@ BEST.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_
 BEST.update({"off_A": 3e-3 / units.s, "affn_A": 1e-9 * units.molar, "affm_A": 1e-7 * units.molar})
 BEST.update({"off_B": 4.138e-4 / units.s, "aff_B": 1e-8 * units.molar})
 BEST.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
-BEST.update({"avidity": 69})
-BEST.update({"clearance": math.log(2)/(40 * units.h)}); BEST["smalls"] = ["a"]
+BEST.update({"avidity": 19})
+BEST.update({"clearance": math.log(2)/(40 * units.h)}); BEST["smalls"] = ["mn", "nn", "a"]
 BEST.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
 BEST["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
