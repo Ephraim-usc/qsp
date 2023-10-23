@@ -274,7 +274,7 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   
   # target binding
   for drug in drugs:
-    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"], "a":0 / units.molar*units.s}[drug[0]]
+    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"], "a":0 / units.molar*units.s}[drug[1]]
     off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["aff_B"]
     avidity = TCE["avidity"]
