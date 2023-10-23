@@ -265,13 +265,17 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   for compartment in compartments:
     system.add_simple(compartment, ["mn", "a"], ["ma"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
     system.add_simple(compartment, ["nn", "a"], ["na"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
-    system.add_simple(compartment, ["C-mn", "a"], ["ma"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
-    system.add_simple(compartment, ["C-nn", "a"], ["na"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
+    system.add_simple(compartment, ["C-mn", "a"], ["C-ma"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
+    system.add_simple(compartment, ["C-nn", "a"], ["C-na"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
+    system.add_simple(compartment, ["mn-B", "a"], ["ma-B"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
+    system.add_simple(compartment, ["nn-B", "a"], ["na-B"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
+    system.add_simple(compartment, ["C-mn-B", "a"], ["C-ma-B"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
+    system.add_simple(compartment, ["C-nn-B", "a"], ["C-na-B"], TCE["off_a"] / TCE["aff_a"], TCE["off_a"])
   
   # target binding
   for drug in drugs:
-    off_C = TCE["off_C"]; on_C = TCE["off_C"] / TCE["affn_C"] if drug[0] == "n" else TCE["off_C"] / TCE["affm_C"]
-    off_A = TCE["off_A"]; on_A = TCE["off_A"] / TCE["affn_A"] if drug[1] == "n" else TCE["off_A"] / TCE["affm_A"]
+    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"], "a":0 / units.molar*units.s}[drug[0]]
+    off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"], "a":0 / units.molar*units.s}[drug[1]]
     off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["aff_B"]
     avidity = TCE["avidity"]
     
