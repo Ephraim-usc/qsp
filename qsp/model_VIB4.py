@@ -120,7 +120,7 @@ VIB4.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.
 VIB4.update({"off_B": 4.138e-4 / units.s, "aff_B": 1.7e-9 * units.molar})
 VIB4.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIB4.update({"avidity": 69})
-VIB4.update({"clearance": math.log(2)/(40 * units.h)}); VIB4["smalls"] = ["a"]
+VIB4.update({"clearance": math.log(2)/(70 * units.h)}); VIB4["smalls"] = ["a"]
 VIB4.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
 VIB4["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.0527 / units.d, 
@@ -130,20 +130,35 @@ VIB4["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in sys
                                  rate_A = 0.1783 / units.d)
 
 
-BEST = {}
-BEST.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_C": 3.059e-6 * units.molar})
-BEST.update({"off_A": 3e-3 / units.s, "affn_A": 1e-9 * units.molar, "affm_A": 1e-7 * units.molar})
-BEST.update({"off_B": 4.138e-4 / units.s, "aff_B": 1e-8 * units.molar})
-BEST.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
-BEST.update({"avidity": 19})
-BEST.update({"clearance": math.log(2)/(40 * units.h)}); BEST["smalls"] = ["mn", "nn", "a"]
-BEST.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
-BEST["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
-                                  rate_C = 0.0527 / units.d, 
-                                  rate_A = 0.0527 / units.d)
-BEST["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
-                                 rate_C = 0.1783 / units.d, 
-                                 rate_A = 0.1783 / units.d)
+VIBX = {}
+VIBX.update({"off_C": 3.0720e-4 / units.s, "affn_C": 2.4589e-10 * units.molar, "affm_C": 2.4589e-8 * units.molar})
+VIBX.update({"off_A": 1.2059e-5 / units.s, "affn_A": 1.0232e-9 * units.molar, "affm_A": 1.0232e-7 * units.molar})
+VIBX.update({"off_B": 1.2344e-4 / units.s, "aff_B": 1e-8 * units.molar})
+VIBX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
+VIBX.update({"avidity": 19})
+VIBX.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = ["a"]
+VIBX.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
+VIBX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
+                                  rate_C = 0.05 / units.d, 
+                                  rate_A = 0.01687 / units.d)
+VIBX["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
+                                 rate_C = 0.15 / units.d, 
+                                 rate_A = 0.05061 / units.d)
+
+VIBY = {}
+VIBY.update({"off_C": 7.0734e-4 / units.s, "affn_C": 3.2902e-10 * units.molar, "affm_C": 3.2902e-8 * units.molar})
+VIBY.update({"off_A": 1.5704e-5 / units.s, "affn_A": 1e-8 * units.molar, "affm_A": 1e-6 * units.molar})
+VIBY.update({"off_B": 3.5120e-5 / units.s, "aff_B": 1e-8 * units.molar})
+VIBY.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
+VIBY.update({"avidity": 19})
+VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mn", "nn", "a"]
+VIBY.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
+VIBY["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
+                                  rate_C = 0.05 / units.d, 
+                                  rate_A = 0.05 / units.d)
+VIBY["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
+                                 rate_C = 0.15 / units.d, 
+                                 rate_A = 0.15 / units.d)
 
 JANUX = {}
 JANUX.update({"off_C": 1.36e-2 / units.s, "affn_C": 2e-9 * units.molar, "affm_C": 1.55e-6 * units.molar}) #
