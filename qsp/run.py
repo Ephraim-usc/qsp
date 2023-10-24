@@ -44,6 +44,36 @@ def plot(system, name):
               output = f"{name}_drugs.png")
 
 
+results = pd.DataFrame(columns = ["affn_C", "affm_C", "tumor_AB", "tumor_A", "tumor_B", "lung", "SI"])
+for affn_C in 10**np.arange(-10, -6, 0.4):
+  for affm_C in 10**np.arange(-10, -6, 0.4):
+    TCE = VIBY.copy()
+    TCE["affn_C"] = affn_C * units.molar; TCE["affm_C"] = affm_C * units.molar
+    system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+    system.add_x("mm", "plasma", 1 * units.nM)
+    system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+    summary = system.summary(trimers)["average"]
+    results.loc[results.shape[0]] = np.array([affn_C, affm_C, summary.loc["tumor_AB"], summary.loc["tumor_A"], summary.loc["tumor_B"], summary.loc["lung"], summary.loc["SI"]])
+    results.to_csv("aff_C_map.csv")
+
+
+results = pd.DataFrame(columns = ["off_a", "aff_a", "tumor_AB", "tumor_A", "tumor_B", "lung", "SI"])
+for off_a in 10**np.arange(-5, -2, 0.3):
+  for aff_a in 10**np.arange(-10, -6, 0.4):
+    TCE = VIBY.copy()
+    TCE["off_a"] = off_a / units.s; TCE["aff_a"] = aff_a * units.molar
+    system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+    system.add_x("mm", "plasma", 1 * units.nM)
+    system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+    summary = system.summary(trimers)["average"]
+    results.loc[results.shape[0]] = np.array([off_a, aff_a, summary.loc["tumor_AB"], summary.loc["tumor_A"], summary.loc["tumor_B"], summary.loc["lung"], summary.loc["SI"]])
+    results.to_csv("aff_a_map.csv")
+
+
+
+
+
+
 
 
 def ratio(affn_C, affn_A, aff_B, off_C, off_A, off_B, halflife, cleavage_C_plasma, cleavage_A_plasma):
