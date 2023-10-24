@@ -70,6 +70,48 @@ for off_a in 10**np.arange(-5, -2, 0.3):
     results.to_csv("aff_a_map.csv")
 
 
+results = pd.DataFrame(columns = ["avidity", "tumor_AB", "tumor_A", "tumor_B", "lung", "SI"])
+for avidity in [0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256]:
+    TCE = VIBY.copy()
+    TCE["avidity"] = avidity
+    system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+    system.add_x("mm", "plasma", 1 * units.nM)
+    system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+    summary = system.summary(trimers)["average"]
+    results.loc[results.shape[0]] = np.array([avidity, summary.loc["tumor_AB"], summary.loc["tumor_A"], summary.loc["tumor_B"], summary.loc["lung"], summary.loc["SI"]])
+    results.to_csv("avidity.csv")
+
+
+results = pd.DataFrame(columns = ["num_A", "num_B", "tumor_AB", "tumor_A", "tumor_B", "lung", "SI"])
+for num_A in 10**np.arange(3, 7, 0.4):
+  for num_B in 10**np.arange(3, 7, 0.4):
+    TCE = VIBY.copy()
+    tumor_AB_ = tumor_AB.copy(); tumor_AB_["num_A"] = num_A; tumor_AB_["num_B"] = num_B
+    tumor_A_ = tumor_A.copy(); tumor_A_["num_A"] = num_A
+    tumor_B_ = tumor_B.copy(); tumor_B_["num_B"] = num_B
+    system = model(human, TCE, [tumor_AB_, tumor_A_, tumor_B_], [other, lung, SI], connect_tumors = True)
+    system.add_x("mm", "plasma", 1 * units.nM)
+    system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+    summary = system.summary(trimers)["average"]
+    results.loc[results.shape[0]] = np.array([num_A, num_B, summary.loc["tumor_AB"], summary.loc["tumor_A"], summary.loc["tumor_B"], summary.loc["lung"], summary.loc["SI"]])
+    results.to_csv("num_A_B.csv")
+
+
+results = pd.DataFrame(columns = ["volume_AB", "tumor_AB", "tumor_A", "tumor_B", "lung", "SI"])
+for volume_AB in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
+    TCE = VIBY.copy()
+    tumor_AB_ = tumor_AB.copy(); tumor_AB_["volume"] *= volume_AB
+    system = model(human, TCE, [tumor_AB_, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+    system.add_x("mm", "plasma", 1 * units.nM)
+    system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+    summary = system.summary(trimers)["average"]
+    results.loc[results.shape[0]] = np.array([volume_AB, summary.loc["tumor_AB"], summary.loc["tumor_A"], summary.loc["tumor_B"], summary.loc["lung"], summary.loc["SI"]])
+    results.to_csv("volume_AB.csv")
+
+
+
+
+
 
 
 
