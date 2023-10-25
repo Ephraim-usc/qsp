@@ -57,6 +57,20 @@ for affn_C in 10**np.arange(-10, -6, 0.4):
     results.to_csv("aff_C_map.csv")
 
 
+results = pd.DataFrame(columns = ["affn_A", "affn_B", "tumor_AB", "tumor_A", "tumor_B", "lung", "SI"])
+for affn_A in 10**np.arange(-10, -6, 0.4):
+  for affn_B in 10**np.arange(-10, -6, 0.4):
+    TCE = VIBY.copy()
+    TCE["affn_A"] = affn_A * units.molar; TCE["affm_A"] = affn_A*100 * units.molar
+    TCE["affn_B"] = affn_B * units.molar; TCE["affm_B"] = affn_B*100 * units.molar
+    system = model(human, TCE, [tumor_AB, tumor_A, tumor_B], [other, lung, SI], connect_tumors = True)
+    system.add_x("mm", "plasma", 1 * units.nM)
+    system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+    summary = system.summary(trimers)["average"]
+    results.loc[results.shape[0]] = np.array([affn_A, affn_B, summary.loc["tumor_AB"], summary.loc["tumor_A"], summary.loc["tumor_B"], summary.loc["lung"], summary.loc["SI"]])
+    results.to_csv("aff_A_B_map.csv")
+
+
 results = pd.DataFrame(columns = ["off_a", "aff_a", "tumor_AB", "tumor_A", "tumor_B", "lung", "SI"])
 for off_a in 10**np.arange(-5, -2, 0.3):
   for aff_a in 10**np.arange(-10, -6, 0.4):
