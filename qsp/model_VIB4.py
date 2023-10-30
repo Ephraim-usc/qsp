@@ -131,24 +131,24 @@ VIB4["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in sys
 
 
 VIBX = {}
-VIBX.update({"off_C": 10**-4.02016 / units.s, "affn_C": 10**-9.78604 * units.molar, "affm_C": 10**-7.78604 * units.molar})
-VIBX.update({"off_A": 10**-4.98226 / units.s, "affn_A": 10**-8.21604 * units.molar, "affm_A": 10**-6.21604 * units.molar})
-VIBX.update({"off_B": 10**-4.77374 / units.s, "aff_B": 1e-8 * units.molar})
+VIBX.update({"off_C": 10**-3.67417 / units.s, "affn_C": 10**-9.75451 * units.molar, "affm_C": 10**-7.75451 * units.molar})
+VIBX.update({"off_A": 10**-5 / units.s, "affn_A": 10**-8 * units.molar, "affm_A": 10**-6 * units.molar})
+VIBX.update({"off_B": 10**-5 / units.s, "aff_B": 10**-8.71011 * units.molar})
 VIBX.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIBX.update({"avidity": 19})
 VIBX.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = ["a"]
 VIBX.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
 VIBX["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                   rate_C = 0.05 / units.d, 
-                                  rate_A = 0.013 / units.d)
+                                  rate_A = 0.01546 / units.d)
 VIBX["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], 
                                  rate_C = 0.15 / units.d, 
-                                 rate_A = 0.039 / units.d)
+                                 rate_A = 0.04638 / units.d)
 
 VIBY = {}
-VIBY.update({"off_C": 10**-3.60111 / units.s, "affn_C": 10**-9.71678 * units.molar, "affm_C": 10**-7.71678 * units.molar})
-VIBY.update({"off_A": 10**-4.98011 / units.s, "affn_A": 1e-8 * units.molar, "affm_A": 1e-6 * units.molar})
-VIBY.update({"off_B": 10**-4.70127 / units.s, "aff_B": 1e-8 * units.molar})
+VIBY.update({"off_C": 10**-3.59947 / units.s, "affn_C": 10**-9.73151 * units.molar, "affm_C": 10**-7.73151 * units.molar})
+VIBY.update({"off_A": 10**-5 / units.s, "affn_A": 10**-8 * units.molar, "affm_A": 10**-6 * units.molar})
+VIBY.update({"off_B": 10**-4.82697 / units.s, "aff_B": 10**-8.82898 * units.molar})
 VIBY.update({"off_a": 8.09e-3 / units.s, "aff_a": 1e-9 * units.molar})
 VIBY.update({"avidity": 19})
 VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mn", "nn", "a"]
