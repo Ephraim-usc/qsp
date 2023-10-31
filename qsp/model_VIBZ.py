@@ -127,11 +127,11 @@ VIBZ = {}
 VIBZ.update({"off_C": 10**-3.59947 / units.s, "affn_C": 10**-9.73151 * units.molar, "affm_C": 10**-7.73151 * units.molar})
 VIBZ.update({"off_A": 10**-5 / units.s, "affn_A": 10**-8 * units.molar, "affm_A": 10**-6 * units.molar})
 VIBZ.update({"off_B": 10**-4.82697 / units.s, "aff_B": 10**-8.82898 * units.molar})
-VIBY.update({"avidity": 19})
-VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["n"]
-VIBY.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
-VIBY["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], rate = 0.05 / units.d)
-VIBY["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], rate = 0.15 / units.d)
+VIBZ.update({"avidity": 19})
+VIBZ.update({"clearance": math.log(2)/(70 * units.h)}); VIBZ["smalls"] = ["n"]
+VIBZ.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
+VIBZ["cleavage_plasma"] = cleavage(lambda system: ["plasma"] + [organ["name"] for organ in system.organs], rate = 0.05 / units.d)
+VIBZ["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in system.tumors], rate = 0.15 / units.d)
 
 
 ############ tumors ############
@@ -274,3 +274,32 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
     system.add_x("B", organ["name"], organ["num_B"] * organ["cell_density"] / units.avagadro)
   
   return system
+
+
+############ plot ############
+
+def plot(system, name):
+  #pickle.dump(system, open(f"{name}.pickle", "wb"))
+  
+  targets = ["A", "B", "AB"]
+  groups = [["C"],
+            ["A", "B"],
+            drugs,
+            [f"C-{drug}" for drug in drugs],
+            [f"{drug}-{target}" for drug in drugs for target in targets],
+            [f"C-{drug}-{target}" for drug in drugs for target in targets]]
+  labels = ["C", "target", "cap", "drug", "C-drug", "drug-target", "C-drug-target"]
+  colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "solid", "solid", "solid", "solid"]
+  system.plot(compartments = ["plasma"] + [tumor["name"] for tumor in system.tumors] + [organ["name"] for organ in system.organs], 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_summary.png")
+  
+  groups = [drugs + [f"{drug}-{target}" for drug in drugs for target in targets] + [f"C-{drug}" for drug in drugs] + [f"C-{drug}-{target}" for drug in drugs for target in targets],
+            ["n"] + [f"n-{target}" for target in targets] + [f"C-n"] + [f"C-n-{target}" for target in targets]]
+  labels = ["(C-)x(-target)", "(C-)n(-target)"]
+  colors = ["tab:green", "wheat"]
+  linestyles = ["solid", "dashed"]
+  system.plot(compartments = ["plasma"] + [tumor["name"] for tumor in system.tumors] + [organ["name"] for organ in system.organs], 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_drugs.png")
