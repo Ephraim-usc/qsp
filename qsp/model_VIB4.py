@@ -326,3 +326,36 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
     system.add_x("B", organ["name"], organ["num_B"] * organ["cell_density"] / units.avagadro)
   
   return system
+
+
+
+############# plot #############
+
+def plot(system, name):
+  #pickle.dump(system, open(f"{name}.pickle", "wb"))
+  
+  targets = ["A", "B", "AB"]
+  groups = [["C"],
+            ["A", "B"],
+            ["a"],
+            drugs,
+            [f"C-{drug}" for drug in drugs],
+            [f"{drug}-{target}" for drug in drugs for target in targets],
+            [f"C-{drug}-{target}" for drug in drugs for target in targets]]
+  labels = ["C", "target", "cap", "drug", "C-drug", "drug-target", "C-drug-target"]
+  colors = ["tab:orange", "tab:blue", "black", "black", "wheat", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "dotted", "solid", "solid", "solid", "solid"]
+  system.plot(compartments = ["plasma"] + [tumor["name"] for tumor in system.tumors] + [organ["name"] for organ in system.organs], 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_summary.png")
+  
+  groups = [drugs + [f"{drug}-{target}" for drug in drugs for target in targets] + [f"C-{drug}" for drug in drugs] + [f"C-{drug}-{target}" for drug in drugs for target in targets],
+            [f"n{a}" for a in ["m","n"]] + [f"n{a}-{target}" for a in ["m","n"] for target in targets] + [f"C-n{a}" for a in ["m","n"]] + [f"C-n{a}-{target}" for a in ["m","n"] for target in targets],
+            [f"{c}n" for c in ["m","n"]] + [f"{c}n-{target}" for c in ["m","n"] for target in targets] + [f"C-{c}n" for c in ["m","n"]] + [f"C-{c}n-{target}" for c in ["m","n"] for target in targets],
+            [f"{c}a" for c in ["m","n"]] + [f"{c}a-{target}" for c in ["m","n"] for target in targets] + [f"C-{c}a" for c in ["m","n"]] + [f"C-{c}a-{target}" for c in ["m","n"] for target in targets]]
+  labels = ["(C-)xxx(-target)", "(C-)nx(-target)", "(C-)xn(-target)", "(C-)xa(-target)"]
+  colors = ["tab:green", "wheat", "skyblue", "salmon"]
+  linestyles = ["solid", "dashed", "dashed", "dashed"]
+  system.plot(compartments = ["plasma"] + [tumor["name"] for tumor in system.tumors] + [organ["name"] for organ in system.organs], 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_drugs.png")
