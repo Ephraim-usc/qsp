@@ -76,7 +76,7 @@ class cleavage:
         x = system.x[analytes_, compartment]
         system.x[analytes_, compartment] = expm(self.Q * t.number(units.h)) @ x
 
-
+'''
 VIB4 = {}
 VIB4.update({"off_C": 8.09e-3 / units.s, "affn_C": 6.56e-8 * units.molar, "affm_C": 3.059e-6 * units.molar})
 VIB4.update({"off_A": 3e-3 / units.s, "affn_A": 2e-8 * units.molar, "affm_A": 3.34e-7 * units.molar})
@@ -92,7 +92,6 @@ VIB4["cleavage_tumor"] = cleavage(lambda system: [tumor["name"] for tumor in sys
                                  rate_C = 0.1783 / units.d, 
                                  rate_A = 0.1783 / units.d)
 
-'''
 VIBX = {}
 VIBX.update({"off_C": 10**-3.67417 / units.s, "affn_C": 10**-9.75451 * units.molar, "affm_C": 10**-7.75451 * units.molar})
 VIBX.update({"off_A": 10**-5 / units.s, "affn_A": 10**-8 * units.molar, "affm_A": 10**-6 * units.molar})
