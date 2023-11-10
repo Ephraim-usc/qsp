@@ -34,10 +34,10 @@ class intratumoral_equilibrium:
 ############ host ############
 
 mouse = {}
-mouse.update({"volume_plasma": 1.26 * units.ml})
+mouse.update({"volume_plasma": 1.26 * units.ml, "T_cell_density_plasma" = 1e6 / units.ml, "NK_cell_density_plasma" = 3e5 / units.ml})
 
 human = {}
-human.update({"volume_plasma": 2877 * units.ml})
+human.update({"volume_plasma": 2877 * units.ml, "T_cell_density_plasma" = 1e6 / units.ml, "NK_cell_density_plasma" = 3e5 / units.ml})
 
 
 ############ drug ############
@@ -97,7 +97,7 @@ VIBY.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 *
 VIBY.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY.update({"avidity_effector": 19, "avidity_target": 19})
 VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = [".nn"]
-VIBY.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h})
+VIBY.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h}) #!!!!!!!!!!!!!!!!!!!!!!!
 VIBY["cleavage_plasma"] = transform(compartments = lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
                                     rates = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
@@ -130,21 +130,21 @@ other = {"name": "other"}
 other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
 other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml})
+other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml, "NK_cell_density": x / units.ml})
 other.update({"num_A": 100000, "num_B": 0})
 
 lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
 lung.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-lung.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e7 / units.ml})
+lung.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e7 / units.ml, "NK_cell_density": x / units.ml})
 lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
 
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
 SI.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-SI.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml})
+SI.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml, "NK_cell_density": x / units.ml})
 SI.update({"num_A": 57075, "num_B": 39649})
 
 
@@ -165,7 +165,7 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   
   # whole-body clearance
   for compartment in compartments:
-    for drug in drugs + ["a"]:
+    for drug in drugs:
         system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
   
   # small forms plasma clearance
@@ -241,16 +241,21 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
   
   
   # initial concentrations
-  T_cell_density_blood = 1e6 / units.ml
-  system.add_x("C", "plasma", 124000 * T_cell_density_blood / units.avagadro)
+  system.add_x("C", "plasma", 124000 * host["T_cell_density_plasma"] / units.avagadro)
+  system.add_x("R", "plasma", x * host["T_cell_density_plasma"] / units.avagadro)
+  system.add_x("Rnk", "plasma", x * host["NK_cell_density_plasma"] / units.avagadro)
   
   for tumor in tumors:
     system.add_x("C", tumor["name"], 124000 * tumor["T_cell_density"] / units.avagadro)
+    system.add_x("R", tumor["name"], x * tumor["T_cell_density"] / units.avagadro)
+    system.add_x("Rnk", tumor["name"], x * tumor["NK_cell_density"] / units.avagadro)
     system.add_x("A", tumor["name"], tumor["num_A"] * tumor["cell_density"] / units.avagadro)
     system.add_x("B", tumor["name"], tumor["num_B"] * tumor["cell_density"] / units.avagadro)
   
   for organ in organs:
     system.add_x("C", organ["name"], 124000 * organ["T_cell_density"] / units.avagadro)
+    system.add_x("R", organ["name"], x * organ["T_cell_density"] / units.avagadro)
+    system.add_x("Rnk", organ["name"], x * organ["NK_cell_density"] / units.avagadro)
     system.add_x("A", organ["name"], organ["num_A"] * organ["cell_density"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["cell_density"] / units.avagadro)
   
