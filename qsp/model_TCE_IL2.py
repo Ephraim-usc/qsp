@@ -133,11 +133,11 @@ class internalization:
       self.idx_antigens_target = [system.analytes.index(analyte) for analyte in antigens_target]
     
     for compartment in self.compartments_:
-      delta_effector = system.x[self.idx_dimers_effector, compartment] * (1 - expm(self.q_effector * t.number(units.h)))
+      delta_effector = system.x[self.idx_dimers_effector, compartment] * (1 - np.exp(self.q_effector * t.number(units.h)))
       system.x[self.idx_dimers_effector, compartment] -= delta_effector
       system.x[self.idx_antigens_effector, compartment] += delta_effector @ self.Q_effector
 
-      delta_target = system.x[self.idx_dimers_target, compartment] * (1 - expm(self.q_target * t.number(units.h)))
+      delta_target = system.x[self.idx_dimers_target, compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
       system.x[self.idx_dimers_target, compartment] -= delta_target
       system.x[self.idx_antigens_target, compartment] += delta_target @ self.Q_target
 
