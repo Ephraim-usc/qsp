@@ -4,7 +4,8 @@ from .qsp import *
 
 effectors = ["C", "R", "CR", "Rnk"]; targets = ["A", "B", "AB"]; antigens_effector = ["C", "R", "Rnk"]; antigens_target = ["A", "B"]
 drugs = [f"{c}{r}{a}" for c in ["m", "n"] for r in ["m", "n"] for a in ["m", "n"]]
-dimers = [f"{drug}-{target}" for drug in drugs for target in targets] + [f"C-{drug}" for drug in drugs] + [f"R-{drug}" for drug in drugs] + [f"Rnk-{drug}" for drug in drugs]
+dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
+dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
 analytes = antigens_effector + antigens_target + drugs + dimers + trimers
 
@@ -96,14 +97,26 @@ class internalization:
     self.system = None
     self.compartments = compartments
     
-    q_effector = np.zeros(len(effectors) * len(drugs))
-    Q_effector = np.zeros([len(effectors) * len(drugs), len(antigens_effector)])
-    for reactant, products, rate in rates_effector:
-      reactant = effectors.index(reactant)
-      products = [antigens_effector.index(product) for product in products]
-      Q[reactants, reactants] -= rate.number(1/units.h)
-      Q[reactants, products] += rate.number(1/units.h)
-    self.Q = Q
+    q_effector = np.zeros(len(dimers_effector))
+    Q_effector = np.zeros([len(dimers_effector), len(antigens_effector)])
+    for effector, antigens, rate in rates_effector:
+      idx_effector = [dimers_effector.index(f"{effector}-{drug}") for drug in drugs]
+      idx_antigens = [antigens_effector.index(antigen) for antigen in antigens]
+      q_effector[idx_effector] -= rate.number(1/units.h)
+      np.add.at(Q_effector, (idx_effector, idx_antigens), 1)
+    
+    q_target = np.zeros(len(dimers_target))
+    Q_target = np.zeros([len(dimers_target), len(antigens_target)])
+    for target, antigens, rate in rates_target:
+      idx_target = [dimers_target.index(f"{drug}-{target}") for drug in drugs]
+      idx_antigens = [antigens_target.index(antigen) for antigen in antigens]
+      q_target[idx_target] -= rate.number(1/units.h)
+      np.add.at(Q_target, (idx_target, idx_antigens), 1)
+    
+    self.q_effector = q_effector
+    self.Q_effector = Q_effector
+    self.q_target = q_target
+    self.Q_target = Q_target
   
   def __call__(self, system, t):
     if self.system is not system:
@@ -114,31 +127,19 @@ class internalization:
       else:
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
       
-      self.analyteses_ = []
-      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"R-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"R-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"R-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"R-{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-AB") for drug in drugs])
+      self.idx_dimers_effector = [system.analytes.index(analyte) for analyte in dimers_effector]
+      self.idx_dimers_target = [system.analytes.index(analyte) for analyte in dimers_target]
+      self.idx_antigens_effector = [system.analytes.index(analyte) for analyte in antigens_effector]
+      self.idx_antigens_target = [system.analytes.index(analyte) for analyte in antigens_target]
     
     for compartment in self.compartments_:
-      for analytes_ in self.analyteses_:
-        system.x[analytes_, compartment] = system.x[analytes_, compartment] @ expm(self.Q * t.number(units.h))
+      delta_effector = system.x[self.idx_dimers_effector, compartment] * (1 - expm(self.q_effector * t.number(units.h)))
+      system.x[self.idx_dimers_effector, compartment] -= delta_effector
+      system.x[self.idx_antigens_effector, compartment] += delta_effector @ self.Q_effector
+
+      delta_target = system.x[self.idx_dimers_target, compartment] * (1 - expm(self.q_target * t.number(units.h)))
+      system.x[self.idx_dimers_target, compartment] -= delta_target
+      system.x[self.idx_antigens_target, compartment] += delta_target @ self.Q_target
 
 
 VIBY = {}
