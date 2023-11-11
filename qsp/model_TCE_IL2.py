@@ -91,6 +91,55 @@ class transform:
         system.x[analytes_, compartment] = system.x[analytes_, compartment] @ expm(self.Q * t.number(units.h))
 
 
+class internalization:
+  def __init__(self, compartments, rates_effector, rates_target):
+    self.system = None
+    self.compartments = compartments
+    
+    Q = np.zeros([len(drugs), len(drugs)])
+    for reactant, product, rate in rates:
+      reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
+      products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
+      Q[reactants, reactants] -= rate.number(1/units.h)
+      Q[reactants, products] += rate.number(1/units.h)
+    self.Q = Q
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      
+      if callable(self.compartments):
+        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments(system) if compartment in system.compartments]
+      else:
+        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
+      
+      self.analyteses_ = []
+      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"R-{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"R-{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"R-{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"R-{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"CR-{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"CR-{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"CR-{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"CR-{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-AB") for drug in drugs])
+    
+    for compartment in self.compartments_:
+      for analytes_ in self.analyteses_:
+        system.x[analytes_, compartment] = system.x[analytes_, compartment] @ expm(self.Q * t.number(units.h))
+
+
 VIBY = {}
 VIBY.update({"off_C": 10**-4 / units.s, "affn_C": 3 * units.nM, "affm_C": 60 * units.nM})
 VIBY.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 * units.nM})
@@ -103,6 +152,9 @@ VIBY["cleavage_plasma"] = transform(compartments = lambda system: ["plasma"] + [
                                     rates = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
                                    rates = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)])
+VIBY["internalization"] = internalization(compartments = lambda system: system.compartments,
+                                          rates_effector = [("C", ["C"], 0.1 / units.h), ("R", ["R"], 0.1 / units.h), ("CR", ["C", "R"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.1 / units.h)],
+                                          rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
 
 
