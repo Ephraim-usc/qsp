@@ -2,11 +2,11 @@ from .qsp import *
 
 ### this model is mostly from ...
 
-targets = ["A", "B", "AB"]; effectors = ["C", "R", "CR", "Rnk"]
+effectors = ["C", "R", "CR", "Rnk"]; targets = ["A", "B", "AB"]; antigens_effector = ["C", "R", "Rnk"]; antigens_target = ["A", "B"]
 drugs = [f"{c}{r}{a}" for c in ["m", "n"] for r in ["m", "n"] for a in ["m", "n"]]
 dimers = [f"{drug}-{target}" for drug in drugs for target in targets] + [f"C-{drug}" for drug in drugs] + [f"R-{drug}" for drug in drugs] + [f"Rnk-{drug}" for drug in drugs]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
-analytes = ["C", "R", "Rnk", "A", "B"] + drugs + dimers + trimers
+analytes = antigens_effector + antigens_target + drugs + dimers + trimers
 
 
 
@@ -96,10 +96,11 @@ class internalization:
     self.system = None
     self.compartments = compartments
     
-    Q = np.zeros([len(drugs), len(drugs)])
-    for reactant, product, rate in rates:
-      reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
-      products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
+    q_effector = np.zeros(len(effectors) * len(drugs))
+    Q_effector = np.zeros([len(effectors) * len(drugs), len(antigens_effector)])
+    for reactant, products, rate in rates_effector:
+      reactant = effectors.index(reactant)
+      products = [antigens_effector.index(product) for product in products]
       Q[reactants, reactants] -= rate.number(1/units.h)
       Q[reactants, products] += rate.number(1/units.h)
     self.Q = Q
