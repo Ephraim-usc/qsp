@@ -283,18 +283,7 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
         system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity, off_A)
   
   # internalization
-  for drug in drugs:
-    for compartment in compartments:
-      system.add_simple(compartment, [f"C-{drug}"], ["C"], TCE["internalization_Tcell"])
-    for tumor in tumors:
-      system.add_simple(tumor["name"], [f"{drug}-A"], ["A"], TCE["internalization_tumor"])
-      system.add_simple(tumor["name"], [f"{drug}-B"], ["B"], TCE["internalization_tumor"])
-      system.add_simple(tumor["name"], [f"{drug}-AB"], ["A", "B"], TCE["internalization_tumor"])
-    for organ in organs:
-      system.add_simple(organ["name"], [f"{drug}-A"], ["A"], TCE["internalization_organ"])
-      system.add_simple(organ["name"], [f"{drug}-B"], ["B"], TCE["internalization_organ"])
-      system.add_simple(organ["name"], [f"{drug}-AB"], ["A", "B"], TCE["internalization_organ"])
-  
+  system.add_process(TCE["internalization"])
   
   # initial concentrations
   system.add_x("C", "plasma", 124000 * host["T_cell_density_plasma"] / units.avagadro)
