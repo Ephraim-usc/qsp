@@ -2,12 +2,14 @@ from .qsp import *
 
 ### this model is mostly from ...
 
-effectors = ["C", "R", "CR", "Rnk"]; targets = ["A", "B", "AB"]; antigens_effector = ["C", "R", "Rnk"]; antigens_target = ["A", "B"]
+effectors = ["C", "R", "CR", "Rnk"]; targets = ["A", "B", "AB"]
+
+antigens_effector = ["C", "R", "Rnk"]; antigens_target = ["A", "B"]
 drugs = [f"{c}{r}{a}" for c in ["m", "n"] for r in ["m", "n"] for a in ["m", "n"]]
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
-analytes = antigens_effector + antigens_target + drugs + dimers + trimers
+analytes = antigens_effector + antigens_target + drugs + dimers_effector + dimers_target + trimers
 
 
 
