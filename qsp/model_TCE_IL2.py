@@ -149,8 +149,7 @@ VIBY.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 *
 VIBY.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY.update({"avidity_effector": 19, "avidity_target": 19})
 VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = [".nn"]
-VIBY.update({"internalization_Tcell": 0.1 / units.h, "internalization_tumor": 0.02 / units.h, "internalization_organ": 0.02 / units.h}) #!!!!!!!!!!!!!!!!!!!!!!!
-VIBY["cleavage_plasma"] = transform(compartments = lambda system: ["plasma"] + [organ["name"] for organ in system.organs], 
+VIBY["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
                                     rates = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
                                    rates = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)])
@@ -223,7 +222,7 @@ other.update({"num_A": 10000, "num_B": 0})
 ############ model ############
 
 def model(host, TCE, tumors, organs, connect_tumors = True):
-  compartments = ["plasma"] + ["lymph"] + [organ["name"] for organ in tumors + organs]
+  compartments = [organ["name"] for organ in centrals + tumors + organs]
   system = System(analytes, compartments)
   system.centrals = [plasma, lymph]
   system.tumors = tumors
@@ -277,52 +276,53 @@ def model(host, TCE, tumors, organs, connect_tumors = True):
     
     system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
     
-    for organ in tumors + organs:
+    for organ in centrals + tumors + organs:
       system.add_simple(organ["name"], ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
       system.add_simple(organ["name"], ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
-      system.add_simple(organ["name"], ["C", f"R-{drug}"], [f"CR-{drug}"], on_C, off_C)
-      system.add_simple(organ["name"], ["R", f"C-{drug}"], [f"CR-{drug}"], on_R, off_R)
+      system.add_simple(organ["name"], ["C", f"R-{drug}"], [f"CR-{drug}"], on_C * avidity_effector, off_C)
+      system.add_simple(organ["name"], ["R", f"C-{drug}"], [f"CR-{drug}"], on_R * avidity_effector, off_R)
       system.add_simple(organ["name"], ["Rnk", f"{drug}"], [f"Rnk-{drug}"], on_R, off_R)
       
       system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
       system.add_simple(organ["name"], [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
-      system.add_simple(organ["name"], [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity, off_B)
-      system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity, off_A)
+      system.add_simple(organ["name"], [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity_target, off_B)
+      system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
       
       for target in targets:
         system.add_simple(organ["name"], ["C", f"{drug}-{target}"], [f"C-{drug}-{target}"], on_C, off_C)
         system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"R-{drug}-{target}"], on_R, off_R)
-        system.add_simple(organ["name"], ["C", f"R-{drug}-{target}"], [f"CR-{drug}-{target}"], on_C, off_C)
-        system.add_simple(organ["name"], ["R", f"C-{drug}-{target}"], [f"CR-{drug}-{target}"], on_R, off_R)
+        system.add_simple(organ["name"], ["C", f"R-{drug}-{target}"], [f"CR-{drug}-{target}"], on_C * avidity_effector, off_C)
+        system.add_simple(organ["name"], ["R", f"C-{drug}-{target}"], [f"CR-{drug}-{target}"], on_R * avidity_effector, off_R)
         system.add_simple(organ["name"], ["Rnk", f"{drug}-{target}"], [f"Rnk-{drug}-{target}"], on_R, off_R)
       
       for effector in effectors:
         system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"C-{drug}-A"], on_A, off_A)
         system.add_simple(organ["name"], [f"{effector}-{drug}", "B"], [f"C-{drug}-B"], on_B, off_B)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "B"], [f"C-{drug}-AB"], on_B * avidity, off_B)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity, off_A)
+        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "B"], [f"C-{drug}-AB"], on_B * avidity_target, off_B)
+        system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity_target, off_A)
   
   # internalization
   system.add_process(TCE["internalization"])
   
   # initial concentrations
-  system.add_x("C", "plasma", 124000 * host["T_cell_density_plasma"] / units.avagadro)
-  system.add_x("R", "plasma", x * host["T_cell_density_plasma"] / units.avagadro)
-  system.add_x("Rnk", "plasma", x * host["NK_cell_density_plasma"] / units.avagadro)
+  for central in centrals:
+    system.add_x("C", "plasma", 124000 * central["num_T"] / central["volume"] / units.avagadro)
+    system.add_x("R", "plasma", x * central["num_T"] / central["volume"] / units.avagadro)
+    system.add_x("Rnk", "plasma", x * central["num_NK"] / central["volume"] / units.avagadro)
   
   for tumor in tumors:
-    system.add_x("C", tumor["name"], 124000 * tumor["T_cell_density"] / units.avagadro)
-    system.add_x("R", tumor["name"], x * tumor["T_cell_density"] / units.avagadro)
-    system.add_x("Rnk", tumor["name"], x * tumor["NK_cell_density"] / units.avagadro)
-    system.add_x("A", tumor["name"], tumor["num_A"] * tumor["cell_density"] / units.avagadro)
-    system.add_x("B", tumor["name"], tumor["num_B"] * tumor["cell_density"] / units.avagadro)
+    system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("R", tumor["name"], x * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("Rnk", tumor["name"], x * tumor["density_NK"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("A", tumor["name"], tumor["num_A"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
-    system.add_x("C", organ["name"], 124000 * organ["T_cell_density"] / units.avagadro)
-    system.add_x("R", organ["name"], x * organ["T_cell_density"] / units.avagadro)
-    system.add_x("Rnk", organ["name"], x * organ["NK_cell_density"] / units.avagadro)
-    system.add_x("A", organ["name"], organ["num_A"] * organ["cell_density"] / units.avagadro)
-    system.add_x("B", organ["name"], organ["num_B"] * organ["cell_density"] / units.avagadro)
+    system.add_x("C", organ["name"], 124000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("R", organ["name"], x * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("Rnk", organ["name"], x * organ["num_NK"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
   return system
 
