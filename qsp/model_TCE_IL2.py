@@ -32,14 +32,6 @@ class intratumoral_equilibrium:
       system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
 
 
-############ host ############
-
-mouse = {}
-mouse.update({"volume_plasma": 1.26 * units.ml, "T_cell_density_plasma" = 1e6 / units.ml, "NK_cell_density_plasma" = 3e5 / units.ml})
-
-human = {}
-human.update({"volume_plasma": 2877 * units.ml, "T_cell_density_plasma" = 1e6 / units.ml, "NK_cell_density_plasma" = 3e5 / units.ml})
-
 
 ############ drug ############
 
@@ -221,7 +213,7 @@ other.update({"num_A": 10000, "num_B": 0})
 
 ############ model ############
 
-def model(host, TCE, tumors, organs, connect_tumors = True):
+def model(TCE, tumors, organs, connect_tumors = True):
   compartments = [organ["name"] for organ in centrals + tumors + organs]
   system = System(analytes, compartments)
   system.centrals = [plasma, lymph]
