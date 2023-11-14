@@ -181,27 +181,45 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 
 ############ organs ############
 
-other = {"name": "other"}
-other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
-other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml, "NK_cell_density": x / units.ml})
-other.update({"num_A": 100000, "num_B": 0})
+plasma = {"name": "plasma"}
+plasma.update({"volume": 3126 * units.ml})
+plasma.update({"num_T": 7.9E+09, "num_NK": 1.6E+09})
+plasma.update({"conc_A": 5 * units.ug/units.ml / (170 * units.kDa), "conc_B": 0 * units.nM})
+
+lymph = {"name": "lymph"}
+lymph.update({"volume": 274 * units.ml})
+lymph.update({"num_T": 3.6E+11, "num_NK": 6.7E+08})
+lymph.update({"conc_A": 0 * units.nM, "conc_B": 0 * units.nM})
+
+
+bone = {"name": "bone"}
+bone.update({"volume_plasma": 224 * units.ml, "volume_interstitial": 1891 * units.ml})
+bone.update({"plasma_flow": 2591 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+bone.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+bone.update({"num_cell": 4.77E+09, "num_T": 2.1E+10, "num_NK": 3.3E+09})
+bone.update({"num_A": 0, "num_B": 0})
 
 lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
 lung.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-lung.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e7 / units.ml, "NK_cell_density": x / units.ml})
+lung.update({"num_cell": 2.36E+11, "num_T": 1.3E+10, "num_NK": 7.2E+08})
 lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
 
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
 SI.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-SI.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml, "NK_cell_density": x / units.ml})
+SI.update({"num_cell": 7.2e11, "num_T": 1.8E+10, "num_NK": 8.1E+08})
 SI.update({"num_A": 57075, "num_B": 39649})
 
+
+other = {"name": "other"}
+other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
+other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml, "NK_cell_density": x / units.ml})
+other.update({"num_A": 100000, "num_B": 0})
 
 ############ model ############
 
