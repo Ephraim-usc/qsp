@@ -31,6 +31,7 @@ units.molar = unum.new_unit('molar', 1 * units.mol / units.l)
 units.micromolar = unum.new_unit('micromolar', 1e-6 * units.mol / units.l)
 units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
 
+units.kDa = unum.new_unit('kDa', units.kg / units.mol)
 units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
 
 np.set_printoptions(suppress=True)
