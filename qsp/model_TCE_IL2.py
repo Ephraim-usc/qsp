@@ -225,11 +225,13 @@ other.update({"num_A": 10000, "num_B": 0})
 def model(host, TCE, tumors, organs, connect_tumors = True):
   compartments = ["plasma"] + ["lymph"] + [organ["name"] for organ in tumors + organs]
   system = System(analytes, compartments)
+  system.centrals = [plasma, lymph]
   system.tumors = tumors
   system.organs = organs
   
   for analyte in analytes:
-    system.set_volume(analyte, "plasma", host["volume_plasma"])
+    for central in centrals:
+      system.set_volume(analyte, central["name"], central["volume"])
     for tumor in tumors:
       system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
     for organ in organs:
