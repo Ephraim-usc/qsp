@@ -167,7 +167,7 @@ UT44.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07,
 UT44.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 UT44.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 UT44.update({"diffusion": 10 * units.micrometer**2 / units.s})
-UT44.update({"cell_density": 3e8 / units.ml, "T_cell_density": 3e7 / units.ml})
+UT44.update({"density_cell": 3e8 / units.ml, "density_T": 3e7 / units.ml})
 UT44.update({"num_A": 7e5, "num_B": 1.45e6})
 
 FTC238 = {"name": "tumor"}
@@ -175,7 +175,7 @@ FTC238.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.0
 FTC238.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 FTC238.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 FTC238.update({"diffusion": 10 * units.micrometer**2 / units.s})
-FTC238.update({"cell_density": 3e8 / units.ml, "T_cell_density": 3e7 / units.ml})
+FTC238.update({"density_cell": 3e8 / units.ml, "density_T": 3e7 / units.ml})
 FTC238.update({"num_A": 1e5, "num_B": 1e5})
 
 
@@ -190,7 +190,6 @@ lymph = {"name": "lymph"}
 lymph.update({"volume": 274 * units.ml})
 lymph.update({"num_T": 3.6E+11, "num_NK": 6.7E+08})
 lymph.update({"conc_A": 0 * units.nM, "conc_B": 0 * units.nM})
-
 
 bone = {"name": "bone"}
 bone.update({"volume_plasma": 224 * units.ml, "volume_interstitial": 1891 * units.ml})
@@ -213,18 +212,18 @@ SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.00
 SI.update({"num_cell": 7.2e11, "num_T": 1.8E+10, "num_NK": 8.1E+08})
 SI.update({"num_A": 57075, "num_B": 39649})
 
-
 other = {"name": "other"}
-other.update({"volume_plasma": 500 * units.ml, "volume_interstitial": 3000 * units.ml})
-other.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 5000 * units.ml})
+other.update({"plasma_flow": 100000 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-other.update({"cell_density": 1e8 / units.ml, "T_cell_density": 3e6 / units.ml, "NK_cell_density": x / units.ml})
-other.update({"num_A": 100000, "num_B": 0})
+other.update({"num_cell": 1e12, "num_T": 1.1E+10, "num_NK": 3.1E+09})
+other.update({"num_A": 10000, "num_B": 0})
+
 
 ############ model ############
 
 def model(host, TCE, tumors, organs, connect_tumors = True):
-  compartments = ["plasma"] + [organ["name"] for organ in tumors + organs]
+  compartments = ["plasma"] + ["lymph"] + [organ["name"] for organ in tumors + organs]
   system = System(analytes, compartments)
   system.tumors = tumors
   system.organs = organs
