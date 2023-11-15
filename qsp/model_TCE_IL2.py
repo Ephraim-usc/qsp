@@ -98,7 +98,8 @@ class internalization:
       idx_effector = [dimers_effector.index(f"{effector}-{drug}") for drug in drugs]
       idx_antigens = [antigens_effector.index(antigen) for antigen in antigens]
       q_effector[idx_effector] -= rate.number(1/units.h)
-      np.add.at(Q_effector, (idx_effector, idx_antigens), 1)
+      for i in idx_effector:
+        np.add.at(Q_effector, (i, idx_antigens), 1)
     
     q_target = np.zeros(len(dimers_target))
     Q_target = np.zeros([len(dimers_target), len(antigens_target)])
@@ -106,7 +107,8 @@ class internalization:
       idx_target = [dimers_target.index(f"{drug}-{target}") for drug in drugs]
       idx_antigens = [antigens_target.index(antigen) for antigen in antigens]
       q_target[idx_target] -= rate.number(1/units.h)
-      np.add.at(Q_target, (idx_target, idx_antigens), 1)
+      for i in idx_target:
+        np.add.at(Q_target, (i, idx_antigens), 1) # there may be repeated antigens
     
     self.q_effector = q_effector
     self.Q_effector = Q_effector
@@ -131,7 +133,7 @@ class internalization:
       delta_effector = system.x[self.idx_dimers_effector, compartment] * (1 - np.exp(self.q_effector * t.number(units.h)))
       system.x[self.idx_dimers_effector, compartment] -= delta_effector
       system.x[self.idx_antigens_effector, compartment] += delta_effector @ self.Q_effector
-
+      
       delta_target = system.x[self.idx_dimers_target, compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
       system.x[self.idx_dimers_target, compartment] -= delta_target
       system.x[self.idx_antigens_target, compartment] += delta_target @ self.Q_target
