@@ -163,7 +163,7 @@ UT44.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07,
 UT44.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 UT44.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 UT44.update({"diffusion": 10 * units.micrometer**2 / units.s})
-UT44.update({"density_cell": 3e8 / units.ml, "density_T": 3e7 / units.ml})
+UT44.update({"density_cell": 4.4e7 / units.ml, "density_T": 1.5e7 / units.ml, "density_NK": 2e6 / units.ml})
 UT44.update({"num_A": 7e5, "num_B": 1.45e6})
 
 FTC238 = {"name": "tumor"}
@@ -171,7 +171,7 @@ FTC238.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.0
 FTC238.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
 FTC238.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
 FTC238.update({"diffusion": 10 * units.micrometer**2 / units.s})
-FTC238.update({"density_cell": 3e8 / units.ml, "density_T": 3e7 / units.ml})
+FTC238.update({"density_cell": 4.4e7 / units.ml, "density_T": 1.5e7 / units.ml, "density_NK": 2e6 / units.ml})
 FTC238.update({"num_A": 1e5, "num_B": 1e5})
 
 
