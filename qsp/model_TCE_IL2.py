@@ -145,7 +145,7 @@ VIBY.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 *
 VIBY.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBY.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY.update({"avidity_effector": 19, "avidity_target": 19})
-VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = [".nn"]
+VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mnn", "nnn"]
 VIBY["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
                                     rates = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
@@ -219,6 +219,7 @@ other.update({"num_A": 10000, "num_B": 0})
 ############ model ############
 
 def model(TCE, tumors, organs, connect_tumors = True):
+  centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
   system = System(analytes, compartments)
   system.centrals = [plasma, lymph]
@@ -242,13 +243,13 @@ def model(TCE, tumors, organs, connect_tumors = True):
   for small in TCE["smalls"]:
     system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
   
-  for drug in drugs + ["a"]:
-    # tumor flow
+  for drug in drugs:
+    # drug tumor flow
     for tumor in tumors:
       system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
       system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
     
-    # organ flow
+    # drug organ flow
     for organ in organs:
       system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
       system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
