@@ -312,7 +312,7 @@ def plot(system, name):
             dimers_target,
             trimers]
   labels = ["effector", "target", "drug", "effector-drug", "drug-target", "effector-drug-target"]
-  colors = ["tab:orange", "tab:blue", "black", "pink", "skyblue", "tab:purple"]
+  colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
   linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
