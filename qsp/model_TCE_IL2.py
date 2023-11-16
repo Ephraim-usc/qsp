@@ -331,28 +331,60 @@ def model(TCE, tumors, organs, connect_tumors = True):
 def plot(system, name):
   #pickle.dump(system, open(f"{name}.pickle", "wb"))
   
-  targets = ["A", "B", "AB"]
-  groups = [["C"],
-            ["A", "B"],
-            ["a"],
+  groups = [antigens_effector,
+            antigens_target,
             drugs,
-            [f"C-{drug}" for drug in drugs],
-            [f"{drug}-{target}" for drug in drugs for target in targets],
-            [f"C-{drug}-{target}" for drug in drugs for target in targets]]
-  labels = ["C", "target", "cap", "drug", "C-drug", "drug-target", "C-drug-target"]
-  colors = ["tab:orange", "tab:blue", "black", "black", "wheat", "skyblue", "tab:purple"]
-  linestyles = ["solid", "solid", "dotted", "solid", "solid", "solid", "solid"]
-  system.plot(compartments = ["plasma"] + [tumor["name"] for tumor in system.tumors] + [organ["name"] for organ in system.organs], 
+            dimers_effector,
+            dimers_target,
+            trimers]
+  labels = ["effector", "target", "drug", "effector-drug", "drug-target", "effector-drug-target"]
+  colors = ["tab:orange", "tab:blue", "black", "pink", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
+  system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
   
-  groups = [drugs + [f"{drug}-{target}" for drug in drugs for target in targets] + [f"C-{drug}" for drug in drugs] + [f"C-{drug}-{target}" for drug in drugs for target in targets],
-            [f"n{a}" for a in ["m","n"]] + [f"n{a}-{target}" for a in ["m","n"] for target in targets] + [f"C-n{a}" for a in ["m","n"]] + [f"C-n{a}-{target}" for a in ["m","n"] for target in targets],
-            [f"{c}n" for c in ["m","n"]] + [f"{c}n-{target}" for c in ["m","n"] for target in targets] + [f"C-{c}n" for c in ["m","n"]] + [f"C-{c}n-{target}" for c in ["m","n"] for target in targets],
-            [f"{c}a" for c in ["m","n"]] + [f"{c}a-{target}" for c in ["m","n"] for target in targets] + [f"C-{c}a" for c in ["m","n"]] + [f"C-{c}a-{target}" for c in ["m","n"] for target in targets]]
-  labels = ["(C-)xxx(-target)", "(C-)nx(-target)", "(C-)xn(-target)", "(C-)xa(-target)"]
-  colors = ["tab:green", "wheat", "skyblue", "salmon"]
+  groups = [[analyte for analyte in analytes if re.search("[mn][mn][mn]", analyte)],
+            [analyte for analyte in analytes if re.search("[n][mn][mn]", analyte)],
+            [analyte for analyte in analytes if re.search("[mn][n][mn]", analyte)],
+            [analyte for analyte in analytes if re.search("[mn][mn][n]", analyte)]]
+  labels = ["(effector)-xxx-(target)", "(effector)-nxx-(target)", "(effector)-xnx-(target)", "(effector)-xxn-(target)",]
+  colors = ["black", "tab:orange", "tab:red", "tab:blue"]
   linestyles = ["solid", "dashed", "dashed", "dashed"]
-  system.plot(compartments = ["plasma"] + [tumor["name"] for tumor in system.tumors] + [organ["name"] for organ in system.organs], 
+  system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_drugs.png")
+  
+  groups = [["C"], ["R"], ["Rnk"],
+            [analyte for analyte in analytes if re.search("C-[mn][mn][mn]$", analyte)],
+            [analyte for analyte in analytes if re.search("R-[mn][mn][mn]$", analyte)],
+            [analyte for analyte in analytes if re.search("CR-[mn][mn][mn]$", analyte)],
+            [analyte for analyte in analytes if re.search("Rnk-[mn][mn][mn]$", analyte)],
+            [analyte for analyte in analytes if re.search("C-[mn][mn][mn]-", analyte)],
+            [analyte for analyte in analytes if re.search("R-[mn][mn][mn]-", analyte)],
+            [analyte for analyte in analytes if re.search("CR-[mn][mn][mn]-", analyte)],
+            [analyte for analyte in analytes if re.search("Rnk-[mn][mn][mn]-", analyte)]]
+  labels = ["C", "R", "Rnk", "C-xxx", "R-xxx", "CR-xxx", "Rnk-xxx", "C-xxx-target", "R-xxx-target", "CR-xxx-target", "Rnk-xxx-target"]
+  colors = ["tab:orange", "tab:blue", "tab:red", 
+            "wheat", "skyblue", "tab:green", "pink", "wheat", "skyblue", "tab:green", "pink"]
+  linestyles = ["solid", "solid", "solid", "dashed", "dashed", "dashed", "dashed", "solid", "solid", "solid", "solid"]
+  system.plot(compartments = system.compartments, 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_effectors.png")
+  
+  groups = [["A"], ["B"],
+            [analyte for analyte in analytes if re.match("[mn][mn][mn]-A$", analyte)],
+            [analyte for analyte in analytes if re.match("[mn][mn][mn]-B$", analyte)],
+            [analyte for analyte in analytes if re.match("[mn][mn][mn]-AB$", analyte)],
+            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-A", analyte)],
+            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-B", analyte)],
+            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-AB", analyte)]]
+  labels = ["A", "B", "xxx-A", "xxx-B", "xxx-AB", "effector-xxx-A", "effector-xxx-B", "effector-xxx-AB"]
+  colors = ["tab:blue", "tab:red", 
+            "skyblue", "pink", "tab:purple", "skyblue", "pink", "tab:purple"]
+  linestyles = ["solid", "solid", "dashed", "dashed", "dashed", "solid", "solid", "solid"]
+  system.plot(compartments = system.compartments, 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_targets.png")
+
+plot(system, "tmp")
