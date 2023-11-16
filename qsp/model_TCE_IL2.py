@@ -145,7 +145,7 @@ VIBY_I.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600
 VIBY_I.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBY_I.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY_I.update({"avidity_effector": 19, "avidity_target": 19})
-VIBY_I.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mnn", "nnn"]
+VIBY_I.update({"clearance": math.log(2)/(70 * units.h)}); VIBY_I["smalls"] = ["mnn", "nnn"]
 VIBY_I["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
                                     rates = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)])
 VIBY_I["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
@@ -160,7 +160,7 @@ VIBY_II.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 60
 VIBY_II.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBY_II.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY_II.update({"avidity_effector": 19, "avidity_target": 19})
-VIBY_II.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mnn", "nnn"]
+VIBY_II.update({"clearance": math.log(2)/(70 * units.h)}); VIBY_II["smalls"] = ["mnn", "nnn"]
 VIBY_II["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
                                     rates = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)])
 VIBY_II["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
