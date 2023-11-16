@@ -304,9 +304,9 @@ def model(TCE, tumors, organs, connect_tumors = True):
   
   # initial concentrations
   for central in centrals:
-    system.add_x("C", "plasma", 124000 * central["num_T"] / central["volume"] / units.avagadro)
-    system.add_x("R", "plasma", 10000 * central["num_T"] / central["volume"] / units.avagadro)
-    system.add_x("Rnk", "plasma", 10000 * central["num_NK"] / central["volume"] / units.avagadro)
+    system.add_x("C", central["name"], 124000 * central["num_T"] / central["volume"] / units.avagadro)
+    system.add_x("R", central["name"], 10000 * central["num_T"] / central["volume"] / units.avagadro)
+    system.add_x("Rnk", central["name"], 10000 * central["num_NK"] / central["volume"] / units.avagadro)
   
   for tumor in tumors:
     system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
