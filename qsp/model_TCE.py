@@ -254,20 +254,14 @@ def model(TCE, tumors, organs, connect_tumors = True):
   # target binding
   for drug in drugs:
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
-    off_R = TCE["off_R"]; on_R = {"n":TCE["off_R"] / TCE["affn_R"], "m":TCE["off_R"] / TCE["affm_R"]}[drug[1]]
-    off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[2]]
+    off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["aff_B"]
-    avidity_effector = TCE["avidity_effector"]
     avidity_target = TCE["avidity_target"]
     
     system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
     
     for organ in centrals + tumors + organs:
       system.add_simple(organ["name"], ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
-      system.add_simple(organ["name"], ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
-      system.add_simple(organ["name"], ["C", f"R-{drug}"], [f"CR-{drug}"], on_C * avidity_effector, off_C)
-      system.add_simple(organ["name"], ["R", f"C-{drug}"], [f"CR-{drug}"], on_R * avidity_effector, off_R)
-      system.add_simple(organ["name"], ["Rnk", f"{drug}"], [f"Rnk-{drug}"], on_R, off_R)
       
       system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
       system.add_simple(organ["name"], [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
@@ -276,10 +270,6 @@ def model(TCE, tumors, organs, connect_tumors = True):
       
       for target in targets:
         system.add_simple(organ["name"], ["C", f"{drug}-{target}"], [f"C-{drug}-{target}"], on_C, off_C)
-        system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"R-{drug}-{target}"], on_R, off_R)
-        system.add_simple(organ["name"], ["C", f"R-{drug}-{target}"], [f"CR-{drug}-{target}"], on_C * avidity_effector, off_C)
-        system.add_simple(organ["name"], ["R", f"C-{drug}-{target}"], [f"CR-{drug}-{target}"], on_R * avidity_effector, off_R)
-        system.add_simple(organ["name"], ["Rnk", f"{drug}-{target}"], [f"Rnk-{drug}-{target}"], on_R, off_R)
       
       for effector in effectors:
         system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"C-{drug}-A"], on_A, off_A)
@@ -293,22 +283,16 @@ def model(TCE, tumors, organs, connect_tumors = True):
   # initial concentrations
   for central in centrals:
     system.add_x("C", central["name"], 124000 * central["num_T"] / central["volume"] / units.avagadro)
-    system.add_x("R", central["name"], 10000 * central["num_T"] / central["volume"] / units.avagadro)
-    system.add_x("Rnk", central["name"], 10000 * central["num_NK"] / central["volume"] / units.avagadro)
     system.add_x("A", central["name"], central["conc_A"])
     system.add_x("B", central["name"], central["conc_B"])
   
   for tumor in tumors:
     system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("R", tumor["name"], 10000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("Rnk", tumor["name"], 10000 * tumor["density_NK"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("A", tumor["name"], tumor["num_A"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
     system.add_x("C", organ["name"], 124000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("R", organ["name"], 10000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("Rnk", organ["name"], 10000 * organ["num_NK"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
@@ -334,41 +318,23 @@ def plot(system, name):
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
   
-  groups = [[analyte for analyte in analytes if re.search("[mn][mn][mn]", analyte)],
-            [analyte for analyte in analytes if re.search("[n][mn][mn]", analyte)],
-            [analyte for analyte in analytes if re.search("[mn][n][mn]", analyte)],
-            [analyte for analyte in analytes if re.search("[mn][mn][n]", analyte)]]
-  labels = ["(effector)-xxx-(target)", "(effector)-nxx-(target)", "(effector)-xnx-(target)", "(effector)-xxn-(target)",]
-  colors = ["black", "tab:orange", "tab:red", "tab:blue"]
-  linestyles = ["solid", "dashed", "dashed", "dashed"]
+  groups = [[analyte for analyte in analytes if re.search("[mn][mn]", analyte)],
+            [analyte for analyte in analytes if re.search("[n][mn]", analyte)],
+            [analyte for analyte in analytes if re.search("[mn][n]", analyte)]]
+  labels = ["(effector)-xx-(target)", "(effector)-nx-(target)", "(effector)-xn-(target)"]
+  colors = ["black", "tab:orange", "tab:blue"]
+  linestyles = ["solid", "dashed", "dashed"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_drugs.png")
   
-  groups = [["C"], ["R"], ["Rnk"],
-            [analyte for analyte in analytes if re.search("C-[mn][mn][mn]$", analyte)],
-            [analyte for analyte in analytes if re.search("R-[mn][mn][mn]$", analyte)],
-            [analyte for analyte in analytes if re.search("CR-[mn][mn][mn]$", analyte)],
-            [analyte for analyte in analytes if re.search("Rnk-[mn][mn][mn]$", analyte)],
-            [analyte for analyte in analytes if re.search("C-[mn][mn][mn]-", analyte)],
-            [analyte for analyte in analytes if re.search("R-[mn][mn][mn]-", analyte)],
-            [analyte for analyte in analytes if re.search("CR-[mn][mn][mn]-", analyte)],
-            [analyte for analyte in analytes if re.search("Rnk-[mn][mn][mn]-", analyte)]]
-  labels = ["C", "R", "Rnk", "C-xxx", "R-xxx", "CR-xxx", "Rnk-xxx", "C-xxx-target", "R-xxx-target", "CR-xxx-target", "Rnk-xxx-target"]
-  colors = ["tab:orange", "tab:blue", "tab:red", 
-            "wheat", "skyblue", "tab:green", "pink", "wheat", "skyblue", "tab:green", "pink"]
-  linestyles = ["solid", "solid", "solid", "dashed", "dashed", "dashed", "dashed", "solid", "solid", "solid", "solid"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
-              output = f"{name}_effectors.png")
-  
   groups = [["A"], ["B"],
-            [analyte for analyte in analytes if re.match("[mn][mn][mn]-A$", analyte)],
-            [analyte for analyte in analytes if re.match("[mn][mn][mn]-B$", analyte)],
-            [analyte for analyte in analytes if re.match("[mn][mn][mn]-AB$", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-A", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-B", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-AB", analyte)]]
+            [analyte for analyte in analytes if re.match("[mn][mn]-A$", analyte)],
+            [analyte for analyte in analytes if re.match("[mn][mn]-B$", analyte)],
+            [analyte for analyte in analytes if re.match("[mn][mn]-AB$", analyte)],
+            [analyte for analyte in analytes if re.search("-[mn][mn]-A", analyte)],
+            [analyte for analyte in analytes if re.search("-[mn][mn]-B", analyte)],
+            [analyte for analyte in analytes if re.search("-[mn][mn]-AB", analyte)]]
   labels = ["A", "B", "xxx-A", "xxx-B", "xxx-AB", "effector-xxx-A", "effector-xxx-B", "effector-xxx-AB"]
   colors = ["tab:blue", "tab:red", 
             "skyblue", "pink", "tab:purple", "skyblue", "pink", "tab:purple"]
