@@ -386,5 +386,3 @@ def plot(system, name):
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_targets.png")
-
-plot(system, "tmp")
