@@ -309,10 +309,10 @@ def model(TCE, tumors, organs, connect_tumors = True):
         system.add_simple(organ["name"], ["Rnk", f"{drug}-{target}"], [f"Rnk-{drug}-{target}"], on_R, off_R)
       
       for effector in effectors:
-        system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"C-{drug}-A"], on_A, off_A)
-        system.add_simple(organ["name"], [f"{effector}-{drug}", "B"], [f"C-{drug}-B"], on_B, off_B)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "B"], [f"C-{drug}-AB"], on_B * avidity_target, off_B)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"C-{drug}-AB"], on_A * avidity_target, off_A)
+        system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-A"], on_A, off_A)
+        system.add_simple(organ["name"], [f"{effector}-{drug}", "B"], [f"{effector}-{drug}-B"], on_B, off_B)
+        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "B"], [f"{effector}-{drug}-AB"], on_B * avidity_target, off_B)
+        system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
   
   # internalization
   system.add_process(TCE["internalization"])
