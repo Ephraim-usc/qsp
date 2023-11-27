@@ -48,7 +48,7 @@ class transform:
     self.compartments = compartments
     
     Q = np.zeros([len(drugs), len(drugs)])
-    for reactant, product, rate in rates:
+    for reactant, product, rate, byproducts in rates:
       reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
       products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
       Q[reactants, reactants] -= rate.number(1/units.h)
@@ -155,9 +155,9 @@ VIBY.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY.update({"avidity_effector": 19, "avidity_target": 19})
 VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mn", "nn"]
 VIBY["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
-                                    rates = [("m.", "n.", 0.05 / units.d), (".m", ".n", 0.05 / units.d)])
+                                    rates = [("m.", "n.", 0.05 / units.d, ["cap"]), (".m", ".n", 0.05 / units.d, [])])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("m.", "n.", 0.15 / units.d), (".m", ".n", 0.15 / units.d)])
+                                   rates = [("m.", "n.", 0.15 / units.d, ["cap"]), (".m", ".n", 0.15 / units.d, [])])
 VIBY["internalization"] = internalization(compartments = lambda system: system.compartments,
                                           rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
@@ -270,10 +270,29 @@ def model(TCE, tumors, organs, connect_tumors = True):
   # mask cleavage
   system.add_process(TCE["cleavage_plasma"])
   system.add_process(TCE["cleavage_tumor"])
+
+  on_c = 1e-4/units.s / (6 * units.nM); off_c = 1e-4/units.s
+  for compartment in compartments:
+    system.add_simple(compartment, ["cap", "nm"], ["cm"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "nn"], ["cn"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nm"], ["C-cm"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nn"], ["C-cn"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "nm-A"], ["cm-A"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "nn-A"], ["cn-A"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "nm-B"], ["cm-B"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "nn-B"], ["cn-B"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "nm-AB"], ["cm-AB"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "nn-AB"], ["cn-AB"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nm-A"], ["C-cm-A"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nn-A"], ["C-cn-A"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nm-B"], ["C-cm-B"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nn-B"], ["C-cn-B"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nm-AB"], ["C-cm-AB"], on_c, off_c)
+    system.add_simple(compartment, ["cap", "C-nn-AB"], ["C-cn-AB"], on_c, off_c)
   
   # target binding
   for drug in drugs:
-    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
+    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"], "c":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["aff_B"]
     avidity_target = TCE["avidity_target"]
