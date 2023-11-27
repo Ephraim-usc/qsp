@@ -144,10 +144,10 @@ VIBX["cleavage_plasma"] = transform(compartments = lambda system: [central["name
                                              ("mm", ["mn"], 0.05 / units.d),
                                              ("nm", ["nn"], 0.05 / units.d)])
 VIBX["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("mm", ["nm", "cap"], 0.05 / units.d), 
-                                             ("mn", ["nn", "cap"], 0.05 / units.d), 
-                                             ("mm", ["mn"], 0.05 / units.d),
-                                             ("nm", ["nn"], 0.05 / units.d)])
+                                   rates = [("mm", ["nm", "cap"], 0.15 / units.d), 
+                                             ("mn", ["nn", "cap"], 0.15 / units.d), 
+                                             ("mm", ["mn"], 0.15 / units.d),
+                                             ("nm", ["nn"], 0.15 / units.d)])
 VIBX["internalization"] = internalization(compartments = lambda system: system.compartments,
                                           rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
@@ -166,10 +166,10 @@ VIBY["cleavage_plasma"] = transform(compartments = lambda system: [central["name
                                              ("mm", ["mn"], 0.05 / units.d),
                                              ("nm", ["nn"], 0.05 / units.d)])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("mm", ["nm", "cap"], 0.05 / units.d), 
-                                             ("mn", ["nn", "cap"], 0.05 / units.d), 
-                                             ("mm", ["mn"], 0.05 / units.d),
-                                             ("nm", ["nn"], 0.05 / units.d)])
+                                   rates = [("mm", ["nm", "cap"], 0.15 / units.d), 
+                                             ("mn", ["nn", "cap"], 0.15 / units.d), 
+                                             ("mm", ["mn"], 0.15 / units.d),
+                                             ("nm", ["nn"], 0.15 / units.d)])
 VIBY["internalization"] = internalization(compartments = lambda system: system.compartments,
                                           rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
