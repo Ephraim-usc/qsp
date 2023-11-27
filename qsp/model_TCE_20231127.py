@@ -263,7 +263,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
   for small in TCE["smalls"]:
     system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
   
-  for drug in drugs:
+  for drug in drugs_caps:
     # drug tumor flow
     for tumor in tumors:
       system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
