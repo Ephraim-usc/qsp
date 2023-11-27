@@ -359,34 +359,35 @@ def plot(system, name):
   
   groups = [antigens_effector,
             antigens_target,
-            drugs,
+            drugs, caps, 
             dimers_effector,
             dimers_target,
             trimers]
-  labels = ["effector", "target", "drug", "effector-drug", "drug-target", "effector-drug-target"]
-  colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
-  linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
+  labels = ["effector", "target", "drug", "cap", "effector-drug", "drug-target", "effector-drug-target"]
+  colors = ["tab:orange", "tab:blue", "black", "black", "wheat", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "solid", "dotted", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
   
   groups = [[analyte for analyte in analytes if re.search("[mnc][mn]", analyte)],
             [analyte for analyte in analytes if re.search("[n][mn]", analyte)],
+            [analyte for analyte in analytes if re.search("[c][mn]", analyte)],
             [analyte for analyte in analytes if re.search("[mnc][n]", analyte)]]
-  labels = ["(effector)-xx-(target)", "(effector)-nx-(target)", "(effector)-xn-(target)"]
-  colors = ["black", "tab:orange", "tab:blue"]
-  linestyles = ["solid", "dashed", "dashed"]
+  labels = ["(effector)-xx-(target)", "(effector)-nx-(target)", "(effector)-cx-(target)", "(effector)-xn-(target)"]
+  colors = ["black", "tab:orange", "tab:red", "tab:blue"]
+  linestyles = ["solid", "dashed", "dashed", "dashed"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_drugs.png")
   
   groups = [["A"], ["B"],
-            [analyte for analyte in analytes if re.match("[mn][mn]-A$", analyte)],
-            [analyte for analyte in analytes if re.match("[mn][mn]-B$", analyte)],
-            [analyte for analyte in analytes if re.match("[mn][mn]-AB$", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn]-A", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn]-B", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn]-AB", analyte)]]
+            [analyte for analyte in analytes if re.match("[mnc][mn]-A$", analyte)],
+            [analyte for analyte in analytes if re.match("[mnc][mn]-B$", analyte)],
+            [analyte for analyte in analytes if re.match("[mnc][mn]-AB$", analyte)],
+            [analyte for analyte in analytes if re.search("-[mnc][mn]-A", analyte)],
+            [analyte for analyte in analytes if re.search("-[mnc][mn]-B", analyte)],
+            [analyte for analyte in analytes if re.search("-[mnc][mn]-AB", analyte)]]
   labels = ["A", "B", "xxx-A", "xxx-B", "xxx-AB", "effector-xxx-A", "effector-xxx-B", "effector-xxx-AB"]
   colors = ["tab:blue", "tab:red", 
             "skyblue", "pink", "tab:purple", "skyblue", "pink", "tab:purple"]
