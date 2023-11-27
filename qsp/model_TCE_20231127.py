@@ -10,7 +10,7 @@ import re
 effectors = ["C"]; targets = ["A", "B", "AB"]
 
 antigens_effector = ["C"]; antigens_target = ["A", "B"]
-drugs = [f"{c}{a}" for c in ["m", "n"] for a in ["m", "n"]]
+drugs = [f"{c}{a}" for c in ["m", "n", "c"] for a in ["m", "n"]]
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
@@ -31,7 +31,7 @@ class intratumoral_equilibrium:
       self.system = system
       
       self.compartments_ = [system.compartments.index(tumor["name"]) for tumor in system.tumors]
-      self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs]
+      self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs + ["cap"]]
     
     for analyte_ in self.analytes_:
       x = system.x[analyte_, self.compartments_]
@@ -139,9 +139,9 @@ VIBX.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBX.update({"avidity_effector": 19, "avidity_target": 19})
 VIBX.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = []
 VIBX["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
-                                    rates = [("m.", "n.", 0.05 / units.d), (".m", ".n", 0.05 / units.d)])
+                                    rates = [("m.", "n.", 0.05 / units.d, ["cap"]), (".m", ".n", 0.05 / units.d, [])])
 VIBX["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("m.", "n.", 0.15 / units.d), (".m", ".n", 0.15 / units.d)])
+                                   rates = [("m.", "n.", 0.15 / units.d, ["cap"]), (".m", ".n", 0.15 / units.d, [])])
 VIBX["internalization"] = internalization(compartments = lambda system: system.compartments,
                                           rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
@@ -229,7 +229,7 @@ other.update({"num_A": 10000, "num_B": 0})
 def model(TCE, tumors, organs, connect_tumors = True):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
-  system = System(analytes, compartments)
+  system = System(analytes + ["cap"], compartments)
   system.centrals = [plasma, lymph]
   system.tumors = tumors
   system.organs = organs
@@ -244,11 +244,11 @@ def model(TCE, tumors, organs, connect_tumors = True):
   
   # whole-body clearance
   for compartment in compartments:
-    for drug in drugs:
+    for drug in drugs + ["cap"]:
         system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
   
   # small forms plasma clearance
-  for small in TCE["smalls"]:
+  for small in TCE["smalls"] + ["cap"]:
     system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
   
   for drug in drugs:
