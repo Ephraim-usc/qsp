@@ -10,11 +10,11 @@ import re
 effectors = ["C"]; targets = ["A", "B", "AB"]
 
 antigens_effector = ["C"]; antigens_target = ["A", "B"]
-drugs = [f"{c}{a}" for c in ["m", "n", "c"] for a in ["m", "n"]]
+drugs = [f"{c}{a}" for c in ["m", "n", "c"] for a in ["m", "n"]]; drugs_caps = drugs + ["cap"]
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
-analytes = antigens_effector + antigens_target + drugs + dimers_effector + dimers_target + trimers
+analytes = antigens_effector + antigens_target + drugs_caps + dimers_effector + dimers_target + trimers
 
 
 
@@ -31,7 +31,7 @@ class intratumoral_equilibrium:
       self.system = system
       
       self.compartments_ = [system.compartments.index(tumor["name"]) for tumor in system.tumors]
-      self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs + ["cap"]]
+      self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs_caps]
     
     for analyte_ in self.analytes_:
       x = system.x[analyte_, self.compartments_]
@@ -47,12 +47,12 @@ class transform:
     self.system = None
     self.compartments = compartments
     
-    Q = np.zeros([len(drugs), len(drugs)])
-    for reactant, product, rate, byproducts in rates:
-      reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
-      products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
-      Q[reactants, reactants] -= rate.number(1/units.h)
-      Q[reactants, products] += rate.number(1/units.h)
+    Q = np.zeros([len(drugs_caps), len(drugs_caps)])
+    for reactant, products, rate in rates:
+      reactant = drugs_caps.index(reactant)
+      products = [drugs_caps.index(product) for product in products]
+      Q[reactant, reactant] -= rate.number(1/units.h)
+      Q[reactant, products] += rate.number(1/units.h)
     self.Q = Q
   
   def __call__(self, system, t):
@@ -137,11 +137,17 @@ VIBX.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 *
 VIBX.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBX.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBX.update({"avidity_effector": 19, "avidity_target": 19})
-VIBX.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = []
+VIBX.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = ["cap"]
 VIBX["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
-                                    rates = [("m.", "n.", 0.05 / units.d, ["cap"]), (".m", ".n", 0.05 / units.d, [])])
+                                    rates = [("mm", ["nm", "cap"], 0.05 / units.d), 
+                                             ("mn", ["nn", "cap"], 0.05 / units.d), 
+                                             ("mm", ["mn"], 0.05 / units.d),
+                                             ("nm", ["nn"], 0.05 / units.d)])
 VIBX["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("m.", "n.", 0.15 / units.d, ["cap"]), (".m", ".n", 0.15 / units.d, [])])
+                                   rates = [("mm", ["nm", "cap"], 0.05 / units.d), 
+                                             ("mn", ["nn", "cap"], 0.05 / units.d), 
+                                             ("mm", ["mn"], 0.05 / units.d),
+                                             ("nm", ["nn"], 0.05 / units.d)])
 VIBX["internalization"] = internalization(compartments = lambda system: system.compartments,
                                           rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
@@ -153,11 +159,17 @@ VIBY.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 *
 VIBY.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBY.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY.update({"avidity_effector": 19, "avidity_target": 19})
-VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mn", "nn"]
+VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mn", "nn", "cap"]
 VIBY["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
-                                    rates = [("m.", "n.", 0.05 / units.d, ["cap"]), (".m", ".n", 0.05 / units.d, [])])
+                                    rates = [("mm", ["nm", "cap"], 0.05 / units.d), 
+                                             ("mn", ["nn", "cap"], 0.05 / units.d), 
+                                             ("mm", ["mn"], 0.05 / units.d),
+                                             ("nm", ["nn"], 0.05 / units.d)])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("m.", "n.", 0.15 / units.d, ["cap"]), (".m", ".n", 0.15 / units.d, [])])
+                                   rates = [("mm", ["nm", "cap"], 0.05 / units.d), 
+                                             ("mn", ["nn", "cap"], 0.05 / units.d), 
+                                             ("mm", ["mn"], 0.05 / units.d),
+                                             ("nm", ["nn"], 0.05 / units.d)])
 VIBY["internalization"] = internalization(compartments = lambda system: system.compartments,
                                           rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
@@ -229,7 +241,7 @@ other.update({"num_A": 10000, "num_B": 0})
 def model(TCE, tumors, organs, connect_tumors = True):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
-  system = System(analytes + ["cap"], compartments)
+  system = System(analytes, compartments)
   system.centrals = [plasma, lymph]
   system.tumors = tumors
   system.organs = organs
@@ -244,11 +256,11 @@ def model(TCE, tumors, organs, connect_tumors = True):
   
   # whole-body clearance
   for compartment in compartments:
-    for drug in drugs + ["cap"]:
+    for drug in drugs_caps:
         system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
   
   # small forms plasma clearance
-  for small in TCE["smalls"] + ["cap"]:
+  for small in TCE["smalls"]:
     system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
   
   for drug in drugs:
@@ -271,6 +283,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
   system.add_process(TCE["cleavage_plasma"])
   system.add_process(TCE["cleavage_tumor"])
 
+  # cap binding
   on_c = 1e-4/units.s / (6 * units.nM); off_c = 1e-4/units.s
   for compartment in compartments:
     system.add_simple(compartment, ["cap", "nm"], ["cm"], on_c, off_c)
@@ -357,9 +370,9 @@ def plot(system, name):
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
   
-  groups = [[analyte for analyte in analytes if re.search("[mn][mn]", analyte)],
+  groups = [[analyte for analyte in analytes if re.search("[mnc][mn]", analyte)],
             [analyte for analyte in analytes if re.search("[n][mn]", analyte)],
-            [analyte for analyte in analytes if re.search("[mn][n]", analyte)]]
+            [analyte for analyte in analytes if re.search("[mnc][n]", analyte)]]
   labels = ["(effector)-xx-(target)", "(effector)-nx-(target)", "(effector)-xn-(target)"]
   colors = ["black", "tab:orange", "tab:blue"]
   linestyles = ["solid", "dashed", "dashed"]
