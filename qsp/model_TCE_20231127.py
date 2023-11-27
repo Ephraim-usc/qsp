@@ -65,14 +65,14 @@ class transform:
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
       
       self.analyteses_ = []
-      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs_caps])
     
     for compartment in self.compartments_:
       for analytes_ in self.analyteses_:
