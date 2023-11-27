@@ -10,7 +10,7 @@ import re
 effectors = ["C"]; targets = ["A", "B", "AB"]
 
 antigens_effector = ["C"]; antigens_target = ["A", "B"]
-drugs = [f"{c}{a}" for c in ["m", "n", "c"] for a in ["m", "n"]]; drugs_caps = drugs + ["cap"]
+drugs = [f"{c}{a}" for c in ["m", "n", "c"] for a in ["m", "n"]]; caps = ["cap"]; drugs_caps = drugs + caps
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
@@ -65,14 +65,14 @@ class transform:
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
       
       self.analyteses_ = []
-      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs_caps])
-      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs_caps])
-      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs_caps])
-      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs_caps])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs_caps])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs_caps])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs_caps])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs_caps])
+      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs] + caps)
+      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs] + caps)
+      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs] + caps)
+      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs] + caps)
+      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs] + caps)
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs] + caps)
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs] + caps)
+      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs] + caps)
     
     for compartment in self.compartments_:
       for analytes_ in self.analyteses_:
