@@ -128,7 +128,7 @@ class internalization:
 
 
 VIBX = {}
-VIBX.update({"off_C": 10**-4 / units.s, "affn_C": 3 * units.nM, "affm_C": 60 * units.nM})
+VIBX.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 60 * units.nM})
 VIBX.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 * units.nM})
 VIBX.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBX.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
@@ -144,7 +144,7 @@ VIBX["internalization"] = internalization(compartments = lambda system: system.c
 
 
 VIBY = {}
-VIBY.update({"off_C": 10**-4 / units.s, "affn_C": 3 * units.nM, "affm_C": 60 * units.nM})
+VIBY.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 60 * units.nM})
 VIBY.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 * units.nM})
 VIBY.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBY.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
