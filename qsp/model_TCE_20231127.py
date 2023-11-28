@@ -161,14 +161,14 @@ VIBY.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY.update({"avidity_effector": 19, "avidity_target": 19})
 VIBY.update({"clearance": math.log(2)/(70 * units.h)}); VIBY["smalls"] = ["mn", "nn", "cap"]
 VIBY["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
-                                    rates = [("mm", ["nm", "cap"], 0.05 / units.d), 
-                                             ("mn", ["nn", "cap"], 0.05 / units.d), 
-                                             ("mm", ["mn"], 0.05 / units.d),
+                                    rates = [("mm", ["cm"], 0.05 / units.d), 
+                                             ("mn", ["cn"], 0.05 / units.d), 
+                                             ("mm", ["mn"], 0.05 / units.d), 
                                              ("nm", ["nn"], 0.05 / units.d)])
 VIBY["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("mm", ["nm", "cap"], 0.15 / units.d), 
-                                             ("mn", ["nn", "cap"], 0.15 / units.d), 
-                                             ("mm", ["mn"], 0.15 / units.d),
+                                   rates = [("mm", ["cm"], 0.15 / units.d), 
+                                             ("mn", ["cn"], 0.15 / units.d), 
+                                             ("mm", ["mn"], 0.15 / units.d), 
                                              ("nm", ["nn"], 0.15 / units.d)])
 VIBY["internalization"] = internalization(compartments = lambda system: system.compartments,
                                           rates_effector = [("C", ["C"], 0.1 / units.h)],
@@ -284,7 +284,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
   system.add_process(TCE["cleavage_tumor"])
 
   # cap binding
-  on_c = 1e-4/units.s / (0.6 * units.nM); off_c = 1e-4/units.s
+  on_c = 1e-4/units.s / (6 * units.nM); off_c = 1e-4/units.s
   for compartment in compartments:
     system.add_simple(compartment, ["cap", "nm"], ["cm"], on_c, off_c)
     system.add_simple(compartment, ["cap", "nn"], ["cn"], on_c, off_c)
