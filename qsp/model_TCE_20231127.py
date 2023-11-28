@@ -284,7 +284,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
   system.add_process(TCE["cleavage_tumor"])
 
   # cap binding
-  on_c = 1e-4/units.s / (6 * units.nM); off_c = 1e-4/units.s
+  on_c = 1e-4/units.s / (0.6 * units.nM); off_c = 1e-4/units.s
   for compartment in compartments:
     system.add_simple(compartment, ["cap", "nm"], ["cm"], on_c, off_c)
     system.add_simple(compartment, ["cap", "nn"], ["cn"], on_c, off_c)
