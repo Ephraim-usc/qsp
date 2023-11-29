@@ -18,16 +18,18 @@ analytes = antigens_effector + antigens_target + drugs + dimers_effector + dimer
 
 molecular_weight = 150000 * units.g/units.mol
 
-class intratumoral_equilibrium:
-  def __init__(self):
+class equilibrium:
+  def __init__(self, compartments, analytes):
     self.system = None
+    self.compartments = compartments
+    self.analytes = analytes
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
       
-      self.compartments_ = [system.compartments.index(tumor["name"]) for tumor in system.tumors]
-      self.analytes_ = [system.analytes.index(f"{drug}") for drug in drugs]
+      self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments]
+      self.analytes_ = [system.analytes.index(analyte) for analyte in self.analytes]
     
     for analyte_ in self.analytes_:
       x = system.x[analyte_, self.compartments_]
