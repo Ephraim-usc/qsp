@@ -153,7 +153,7 @@ VIBY_I["cleavage_plasma"] = transform(compartments = lambda system: [central["na
 VIBY_I["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
                                    rates = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)])
 VIBY_I["internalization"] = internalization(compartments = lambda system: system.compartments,
-                                          rates_effector = [("C", ["C"], 0.1 / units.h), ("R", ["R"], 0.1 / units.h), ("CR", ["C", "R"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.1 / units.h)],
+                                          rates_effector = [("C", ["C"], 0.1 / units.h), ("R", ["R"], 0.3 / units.h), ("CR", ["C", "R"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
 VIBY_II = {}
@@ -168,7 +168,7 @@ VIBY_II["cleavage_plasma"] = transform(compartments = lambda system: [central["n
 VIBY_II["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
                                    rates = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)])
 VIBY_II["internalization"] = internalization(compartments = lambda system: system.compartments,
-                                          rates_effector = [("C", ["C"], 0.1 / units.h), ("R", ["R"], 0.1 / units.h), ("CR", ["C", "R"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.1 / units.h)],
+                                          rates_effector = [("C", ["C"], 0.1 / units.h), ("R", ["R"], 0.3 / units.h), ("CR", ["C", "R"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
 
