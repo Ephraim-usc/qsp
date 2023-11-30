@@ -142,8 +142,8 @@ class internalization:
 
 
 VIBY_I = {}
-VIBY_I.update({"off_C": 10**-4 / units.s, "affn_C": 3 * units.nM, "affm_C": 60 * units.nM})
-VIBY_I.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 * units.nM})
+VIBY_I.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 60 * units.nM})
+VIBY_I.update({"off_R": 10**-4 / units.s, "affn_R": 3 * units.nM, "affm_R": 600 * units.nM})
 VIBY_I.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBY_I.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY_I.update({"avidity_effector": 19, "avidity_target": 19})
@@ -157,8 +157,8 @@ VIBY_I["internalization"] = internalization(compartments = lambda system: system
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
 VIBY_II = {}
-VIBY_II.update({"off_C": 10**-4 / units.s, "affn_C": 3 * units.nM, "affm_C": 60 * units.nM})
-VIBY_II.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 * units.nM})
+VIBY_II.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 60 * units.nM})
+VIBY_II.update({"off_R": 10**-4 / units.s, "affn_R": 3 * units.nM, "affm_R": 600 * units.nM})
 VIBY_II.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIBY_II.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY_II.update({"avidity_effector": 19, "avidity_target": 19})
@@ -274,7 +274,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
   
   # exchange drugs between tumors if tumors are connected
   if connect_tumors:
-    system.add_process(intratumoral_equilibrium())
+    system.add_process(intratumoral_equilibrium([tumor["name"] for tumor in tumors], drugs))
   
   # mask cleavage
   system.add_process(TCE["cleavage_plasma"])
@@ -322,22 +322,22 @@ def model(TCE, tumors, organs, connect_tumors = True):
   # initial concentrations
   for central in centrals:
     system.add_x("C", central["name"], 124000 * central["num_T"] / central["volume"] / units.avagadro)
-    system.add_x("R", central["name"], 10000 * central["num_T"] / central["volume"] / units.avagadro)
-    system.add_x("Rnk", central["name"], 10000 * central["num_NK"] / central["volume"] / units.avagadro)
+    system.add_x("R", central["name"], 1500 * central["num_T"] / central["volume"] / units.avagadro)
+    system.add_x("Rnk", central["name"], 3000 * central["num_NK"] / central["volume"] / units.avagadro)
     system.add_x("A", central["name"], central["conc_A"])
     system.add_x("B", central["name"], central["conc_B"])
   
   for tumor in tumors:
     system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("R", tumor["name"], 10000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("Rnk", tumor["name"], 10000 * tumor["density_NK"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("R", tumor["name"], 1500 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("Rnk", tumor["name"], 3000 * tumor["density_NK"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("A", tumor["name"], tumor["num_A"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
     system.add_x("C", organ["name"], 124000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("R", organ["name"], 10000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("Rnk", organ["name"], 10000 * organ["num_NK"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("R", organ["name"], 1500 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("Rnk", organ["name"], 3000 * organ["num_NK"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
