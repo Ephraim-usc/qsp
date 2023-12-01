@@ -210,7 +210,7 @@ liver.update({"volume_plasma": 183 * units.ml, "volume_interstitial": 429 * unit
 liver.update({"vascular_reflection": 0.85, "lymphatic_reflection": 0.2})
 liver.update({"plasma_flow": 13210 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 liver.update({"num_cell": 3.90E+11 * 0.5, "num_T": 7.9E+09, "num_NK": 5.5E+09})
-liver.update({"num_A": 133439, "num_B": 0})
+liver.update({"num_A": 10000, "num_B": 0})
 
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
@@ -224,7 +224,7 @@ kidney.update({"volume_plasma": 18.2 * units.ml, "volume_interstitial": 49.8 * u
 kidney.update({"vascular_reflection": 0.9, "lymphatic_reflection": 0.2})
 kidney.update({"plasma_flow": 36402 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 kidney.update({"num_cell": 1.06E+11 * 0.5, "num_T": 496504047, "num_NK": 1023295100}) # T anc NK numbers are calculated as density * volume
-kidney.update({"num_A": 133439, "num_B": 0})
+kidney.update({"num_A": 10000, "num_B": 0})
 
 other = {"name": "other"}
 other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 5000 * units.ml})
