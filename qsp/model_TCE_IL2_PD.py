@@ -26,6 +26,9 @@ num_R_4 = 300
 num_R_nk = 3000
 
 
+def hill(x, EMAX, EC50, coef):
+  return EMAX * (x**coef) / ((x**coef + EC50**coef)
+
 class equilibrium:
   def __init__(self, compartments, analytes):
     self.system = None
@@ -62,14 +65,16 @@ class PD:
       index_8_dimers = [system.analytes.index(analyte) for analyte in [f"R8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"R8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]]
       index_4_dimers = [system.analytes.index(analyte) for analyte in [f"R4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"R4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR4-{drug}-{target}" for drug in drugs for target in targets]]
       index_nk_dimers = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
-
+    
     t = t.number(units.h)
     for index_compartment in self.index_compartments:
-      activation_8 = system.x[index_8_dimers, index_compartment].sum() / system.x[index_8, index_compartment]
-      activation_4 = system.x[index_4_dimers, index_compartment].sum() / system.x[index_4, index_compartment]
-      activation_nk = system.x[index_nk_dimers, index_compartment].sum() / system.x[index_nk, index_compartment]
+      prolif_8 = hill(system.x[index_8_dimers, index_compartment].sum() / system.x[index_8, index_compartment], self.params["prolif_EMAX_8"], self.params["prolif_EC50_8"], self.params["prolif_coef_8"])
+      prolif_4 = hill(system.x[index_4_dimers, index_compartment].sum() / system.x[index_4, index_compartment], self.params["prolif_EMAX_4"], self.params["prolif_EC50_4"], self.params["prolif_coef_4"])
+      prolif_nk = hill(system.x[index_nk_dimers, index_compartment].sum() / system.x[index_nk, index_compartment], self.params["prolif_EMAX_nk"], self.params["prolif_EC50_nk"], self.params["prolif_coef_nk"])
       
-      system.x[index_8, index_compartment] += self.params["birth_8"] + system.x[index_8, index_compartment] * (-self.params["death_8"] + )
+      system.x[index_8, index_compartment] += (self.params["birth_8"] + system.x[index_8, index_compartment] * (-self.params["death_8"] + prolif_8)) * t
+      system.x[index_4, index_compartment] += (self.params["birth_4"] + system.x[index_8, index_compartment] * (-self.params["death_4"] + prolif_8)) * t
+      system.x[index_nk, index_compartment] += (self.params["birth_nk"] + system.x[index_8, index_compartment] * (-self.params["death_nk"] + prolif_8)) * t
 
 
 
