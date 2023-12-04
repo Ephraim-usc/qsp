@@ -46,9 +46,10 @@ class equilibrium:
 
 
 class PD:
-  def __init__(self, compartments):
+  def __init__(self, compartments, params):
     self.system = None
     self.compartments = compartments
+    self.params = params.copy()
   
   def __call__(self, system, t):
     if self.system is not system:
@@ -62,10 +63,13 @@ class PD:
       index_4_dimers = [system.analytes.index(analyte) for analyte in [f"R4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"R4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR4-{drug}-{target}" for drug in drugs for target in targets]]
       index_nk_dimers = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
 
+    t = t.number(units.h)
     for index_compartment in self.index_compartments:
       activation_8 = system.x[index_8_dimers, index_compartment].sum() / system.x[index_8, index_compartment]
       activation_4 = system.x[index_4_dimers, index_compartment].sum() / system.x[index_4, index_compartment]
       activation_nk = system.x[index_nk_dimers, index_compartment].sum() / system.x[index_nk, index_compartment]
+      
+      system.x[index_8, index_compartment] += self.params["birth_8"] + system.x[index_8, index_compartment] * (-self.params["death_8"] + )
 
 
 
