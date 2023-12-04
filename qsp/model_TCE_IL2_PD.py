@@ -5,18 +5,26 @@ import re
 
 effectors = ["C8", "R8", "CR8", "C4", "R4", "CR4", "Rnk"]; targets = ["A", "B", "AB"]
 
+cells = ["8", "4", "nk"]
 antigens_effector = ["C8", "R8", "C4", "R4", "Rnk"]; antigens_target = ["A", "B"]
 drugs = [f"{c}{r}{a}" for c in ["m", "n"] for r in ["m", "n"] for a in ["m", "n"]]
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
-analytes = antigens_effector + antigens_target + drugs + dimers_effector + dimers_target + trimers
+analytes = cells + antigens_effector + antigens_target + drugs + dimers_effector + dimers_target + trimers
 
 
 
 ############ constants ############
 
 molecular_weight = 150000 * units.g/units.mol
+
+num_C_8 = 124000
+num_C_4 = 124000
+num_R_8 = 1500
+num_R_4 = 300
+num_R_nk = 3000
+
 
 class equilibrium:
   def __init__(self, compartments, analytes):
@@ -30,6 +38,27 @@ class equilibrium:
       
       self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments]
       self.analytes_ = [system.analytes.index(analyte) for analyte in self.analytes]
+    
+    for analyte_ in self.analytes_:
+      x = system.x[analyte_, self.compartments_]
+      volumes = system.V[analyte_, self.compartments_]
+      system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
+
+
+class proliferation:
+  def __init__(self, compartments):
+    self.system = None
+    self.compartments = compartments
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
+      
+      analytes_8 = ["C8"] + [f"C8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"C8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]
+      analytes_4 = ["C4"] + [f"C4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"C4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]
+      
+      self.index_8 = [system.analytes.index(analyte) for analyte in ["C8"] + [f"C8-{drug}" for drug in drugs] + [f"C8-{drug}-{target}" for drug in drugs for target in targets]]
     
     for analyte_ in self.analytes_:
       x = system.x[analyte_, self.compartments_]
@@ -318,29 +347,29 @@ def model(TCE, tumors, organs, connect_tumors = True):
   
   # initial concentrations
   for central in centrals:
-    system.add_x("C8", central["name"], 124000 * central["num_8"] / central["volume"] / units.avagadro)
-    system.add_x("R8", central["name"], 1500 * central["num_8"] / central["volume"] / units.avagadro)
-    system.add_x("C4", central["name"], 124000 * central["num_4"] / central["volume"] / units.avagadro)
-    system.add_x("R4", central["name"], 300 * central["num_4"] / central["volume"] / units.avagadro)
-    system.add_x("Rnk", central["name"], 3000 * central["num_nk"] / central["volume"] / units.avagadro)
+    system.add_x("C8", central["name"], num_C_8 * central["num_8"] / central["volume"] / units.avagadro)
+    system.add_x("R8", central["name"], num_R_8 * central["num_8"] / central["volume"] / units.avagadro)
+    system.add_x("C4", central["name"], num_C_4 * central["num_4"] / central["volume"] / units.avagadro)
+    system.add_x("R4", central["name"], num_R_4 * central["num_4"] / central["volume"] / units.avagadro)
+    system.add_x("Rnk", central["name"], num_R_nk * central["num_nk"] / central["volume"] / units.avagadro)
     system.add_x("A", central["name"], central["conc_A"])
     system.add_x("B", central["name"], central["conc_B"])
   
   for tumor in tumors:
-    system.add_x("C8", tumor["name"], 124000 * tumor["density_8"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("R8", tumor["name"], 1500 * tumor["density_8"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("C4", tumor["name"], 124000 * tumor["density_4"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("R4", tumor["name"], 300 * tumor["density_4"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("Rnk", tumor["name"], 3000 * tumor["density_nk"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("C8", tumor["name"], num_C_8 * tumor["density_8"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("R8", tumor["name"], num_R_8 * tumor["density_8"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("C4", tumor["name"], num_C_4 * tumor["density_4"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("R4", tumor["name"], num_R_4 * tumor["density_4"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    system.add_x("Rnk", tumor["name"], num_R_nk * tumor["density_nk"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("A", tumor["name"], tumor["num_A"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
-    system.add_x("C8", organ["name"], 124000 * organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("R8", organ["name"], 1500 * organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("C4", organ["name"], 124000 * organ["num_4"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("R4", organ["name"], 300 * organ["num_4"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("Rnk", organ["name"], 3000 * organ["num_nk"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("C8", organ["name"], num_C_8 * organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("R8", organ["name"], num_R_8 * organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("C4", organ["name"], num_C_4 * organ["num_4"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("R4", organ["name"], num_R_4 * organ["num_4"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("Rnk", organ["name"], num_R_nk * organ["num_nk"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
