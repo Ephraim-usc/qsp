@@ -45,7 +45,7 @@ class equilibrium:
       system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
 
 
-class proliferation:
+class PD:
   def __init__(self, compartments):
     self.system = None
     self.compartments = compartments
@@ -55,15 +55,17 @@ class proliferation:
       self.system = system
       self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
       
-      analytes_8 = ["C8"] + [f"C8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"C8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]
-      analytes_4 = ["C4"] + [f"C4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"C4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]
-      
-      self.index_8 = [system.analytes.index(analyte) for analyte in ["C8"] + [f"C8-{drug}" for drug in drugs] + [f"C8-{drug}-{target}" for drug in drugs for target in targets]]
-    
-    for analyte_ in self.analytes_:
-      x = system.x[analyte_, self.compartments_]
-      volumes = system.V[analyte_, self.compartments_]
-      system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
+      index_8 = system.analytes.index("8")
+      index_4 = system.analytes.index("4")
+      index_nk = system.analytes.index("nk")
+      index_8_dimers = [system.analytes.index(analyte) for analyte in [f"R8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"R8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]]
+      index_4_dimers = [system.analytes.index(analyte) for analyte in [f"R4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"R4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR4-{drug}-{target}" for drug in drugs for target in targets]]
+      index_nk_dimers = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
+
+    for index_compartment in self.index_compartments:
+      activation_8 = system.x[index_8_dimers, index_compartment].sum() / system.x[index_8, index_compartment]
+      activation_4 = system.x[index_4_dimers, index_compartment].sum() / system.x[index_4, index_compartment]
+      activation_nk = system.x[index_nk_dimers, index_compartment].sum() / system.x[index_nk, index_compartment]
 
 
 
