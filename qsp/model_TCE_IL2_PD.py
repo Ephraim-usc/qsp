@@ -62,12 +62,21 @@ class PD:
       index_8 = system.analytes.index("8"); index_C8 = system.analytes.index("C8"); index_R8 = system.analytes.index("R8")
       index_4 = system.analytes.index("4"); index_C4 = system.analytes.index("C8"); index_R4 = system.analytes.index("R8")
       index_nk = system.analytes.index("nk"); index_Rnk = system.analytes.index("Rnk")
-      index_8_dimers = [system.analytes.index(analyte) for analyte in [f"R8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"R8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]]
-      index_4_dimers = [system.analytes.index(analyte) for analyte in [f"R4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"R4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR4-{drug}-{target}" for drug in drugs for target in targets]]
-      index_nk_dimers = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
-      index_8_analytes = [system.analytes.index(analyte) for analyte in [f"C8-{drug}" for drug in drugs] + [f"R8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"C8-{drug}-{target}" for drug in drugs] + [f"R8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]]
-      index_4_analytes = [system.analytes.index(analyte) for analyte in [f"C4-{drug}" for drug in drugs] + [f"R4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"C4-{drug}-{target}" for drug in drugs] + [f"R4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR4-{drug}-{target}" for drug in drugs for target in targets]]
-      index_nk_analytes = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
+      
+      index_Rcomplex_8 = [system.analytes.index(analyte) for analyte in [f"{effector}-{drug}" for effector in ["R8", "CR8"] for drug in drugs] + [f"{effector}-{drug}-{target}" for effector in ["R8", "CR8"] for drug in drugs for target in targets]]
+      index_Rcomplex_4 = [system.analytes.index(analyte) for analyte in [f"{effector}-{drug}" for effector in ["R4", "CR4"] for drug in drugs] + [f"{effector}-{drug}-{target}" for effector in ["R4", "CR4"] for drug in drugs for target in targets]]
+      index_Rcomplex_nk = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
+      
+      index_analytes_8 = [system.analytes.index(analyte) for analyte in ["C8", "R8"] + [f"{effector}-{drug}" for effector in ["C8", "R8", "CR8"] for drug in drugs] + [f"{effector}-{drug}-{target}" for effector in ["R8", "CR8"] for drug in drugs for target in targets]]
+      index_analytes_4 = [system.analytes.index(analyte) for analyte in ["C4", "R4"] + [f"{effector}-{drug}" for effector in ["C4", "R4", "CR4"] for drug in drugs] + [f"{effector}-{drug}-{target}" for effector in ["R4", "CR4"] for drug in drugs for target in targets]]
+      index_analytes_nk = [system.analytes.index(analyte) for analyte in ["Rnk"] + [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
+      
+      index_trimers_8_A = [system.analytes.index(analyte) for analyte in [f"{effector}-{drug}-{target}" for effector in ["C8", "R8", "CR8"] for drug in drugs for target in ["A", "AB"]]]
+      index_trimers_8_B = [system.analytes.index(analyte) for analyte in [f"{effector}-{drug}-{target}" for effector in ["C8", "R8", "CR8"] for drug in drugs for target in ["B", "AB"]]]
+      index_trimers_4_A = [system.analytes.index(analyte) for analyte in [f"{effector}-{drug}-{target}" for effector in ["C4", "R4", "CR4"] for drug in drugs for target in ["A", "AB"]]]
+      index_trimers_4_B = [system.analytes.index(analyte) for analyte in [f"{effector}-{drug}-{target}" for effector in ["C4", "R4", "CR4"] for drug in drugs for target in ["B", "AB"]]]
+      index_trimers_nk_A = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}-{target}" for drug in drugs for target in ["A", "AB"]]]
+      index_trimers_nk_B = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}-{target}" for drug in drugs for target in ["B", "AB"]]]
     
     t = t.number(units.h)
     for index_compartment in self.index_compartments:
