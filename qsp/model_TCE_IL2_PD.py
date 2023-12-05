@@ -59,12 +59,15 @@ class PD:
       self.system = system
       self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
       
-      index_8 = system.analytes.index("8")
-      index_4 = system.analytes.index("4")
-      index_nk = system.analytes.index("nk")
+      index_8 = system.analytes.index("8"); index_C8 = system.analytes.index("C8"); index_R8 = system.analytes.index("R8")
+      index_4 = system.analytes.index("4"); index_C4 = system.analytes.index("C8"); index_R4 = system.analytes.index("R8")
+      index_nk = system.analytes.index("nk"); index_Rnk = system.analytes.index("Rnk")
       index_8_dimers = [system.analytes.index(analyte) for analyte in [f"R8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"R8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]]
       index_4_dimers = [system.analytes.index(analyte) for analyte in [f"R4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"R4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR4-{drug}-{target}" for drug in drugs for target in targets]]
       index_nk_dimers = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
+      index_8_analytes = [system.analytes.index(analyte) for analyte in [f"C8-{drug}" for drug in drugs] + [f"R8-{drug}" for drug in drugs] + [f"CR8-{drug}" for drug in drugs] + [f"C8-{drug}-{target}" for drug in drugs] + [f"R8-{drug}-{target}" for drug in drugs for target in targets] + [f"CR8-{drug}-{target}" for drug in drugs for target in targets]]
+      index_4_analytes = [system.analytes.index(analyte) for analyte in [f"C4-{drug}" for drug in drugs] + [f"R4-{drug}" for drug in drugs] + [f"CR4-{drug}" for drug in drugs] + [f"C4-{drug}-{target}" for drug in drugs] + [f"R4-{drug}-{target}" for drug in drugs for target in targets] + [f"CR4-{drug}-{target}" for drug in drugs for target in targets]]
+      index_nk_analytes = [system.analytes.index(analyte) for analyte in [f"Rnk-{drug}" for drug in drugs] + [f"Rnk-{drug}-{target}" for drug in drugs for target in targets]]
     
     t = t.number(units.h)
     for index_compartment in self.index_compartments:
@@ -72,9 +75,24 @@ class PD:
       prolif_4 = hill(system.x[index_4_dimers, index_compartment].sum() / system.x[index_4, index_compartment], self.params["prolif_EMAX_4"], self.params["prolif_EC50_4"], self.params["prolif_coef_4"])
       prolif_nk = hill(system.x[index_nk_dimers, index_compartment].sum() / system.x[index_nk, index_compartment], self.params["prolif_EMAX_nk"], self.params["prolif_EC50_nk"], self.params["prolif_coef_nk"])
       
+      system.x[index_C8, index_compartment] += (self.params["birth_8"] + system.x[index_8, index_compartment] * prolif_8) * num_C_8 * t
+      system.x[index_R8, index_compartment] += (self.params["birth_8"] + system.x[index_8, index_compartment] * prolif_8) * num_C_8 * t
+      system.x[index_C4, index_compartment] += (self.params["birth_4"] + system.x[index_4, index_compartment] * prolif_4) * num_C_4 * t
+      system.x[index_R4, index_compartment] += (self.params["birth_4"] + system.x[index_4, index_compartment] * prolif_4) * num_C_4 * t
+      system.x[index_Rnk, index_compartment] += (self.params["birth_nk"] + system.x[index_nk, index_compartment] * prolif_nk) * num_C_nk * t
+      
+      for index in index_8_analytes:
+        system.x[index, index_compartment] += system.x[index, index_compartment] * (-self.params["death_8"])
+      for index in index_4_analytes:
+        system.x[index, index_compartment] += system.x[index, index_compartment] * (-self.params["death_4"])
+      for index in index_nk_analytes:
+        system.x[index, index_compartment] += system.x[index, index_compartment] * (-self.params["death_nk"])
+      
       system.x[index_8, index_compartment] += (self.params["birth_8"] + system.x[index_8, index_compartment] * (-self.params["death_8"] + prolif_8)) * t
       system.x[index_4, index_compartment] += (self.params["birth_4"] + system.x[index_8, index_compartment] * (-self.params["death_4"] + prolif_8)) * t
       system.x[index_nk, index_compartment] += (self.params["birth_nk"] + system.x[index_8, index_compartment] * (-self.params["death_nk"] + prolif_8)) * t
+      
+      
 
 
 
