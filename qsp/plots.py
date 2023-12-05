@@ -43,5 +43,5 @@ def heatmap(df, x, y, z, xlabel, ylabel, zlabel, midpoint = 10, maxpoint = 50, o
   ax.set_yticks(np.arange(len(Y)), labels = Y, fontsize = 6); ax.set_ylabel(ylabel)
   
   fig.tight_layout()
-  plt.gcf().set_size_inches(7, 7)
+  plt.gcf().set_size_inches(8, 7)
   fig.savefig(f"{out}.png", dpi = 300)
