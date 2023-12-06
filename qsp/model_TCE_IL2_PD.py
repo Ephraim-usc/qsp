@@ -61,9 +61,9 @@ PD_params["prolif_hill_nk"] = 1.3
 PD_params["death_8"] = (math.log(2) / (70.95 * units.h)).number(1 / units.h)
 PD_params["death_4"] = (math.log(2) / (138.55 * units.h)).number(1 / units.h)
 PD_params["death_nk"] = (math.log(2) / (44.65 * units.h)).number(1 / units.h)
-PD_params["births_8"] = [] # birth rates are initialized at runtime according to the initial number of immume cells
-PD_params["births_4"] = []
-PD_params["births_nk"] = []
+PD_params["births_8"] = {} # birth rates are initialized at runtime according to the initial number of immume cells
+PD_params["births_4"] = {}
+PD_params["births_nk"] = {}
 
 class PD:
   def __init__(self, compartments, params = PD_params):
