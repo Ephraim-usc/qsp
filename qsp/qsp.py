@@ -143,8 +143,13 @@ class RS: # reaction system
   def __init__(self, n_analytes):
     self.active = False
     self.n = n_analytes
-    self.Q = np.zeros([n_analytes, n_analytes]) # linear term coefficients
-    self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
+    self.linear_i = []
+    self.linear_o = []
+    self.linear_k = []
+    self.quadratic_i = []
+    self.quadratic_j = []
+    self.quadratic_o = []
+    self.quadratic_k = []
   
   def add_simple_(self, reactants, products, forward):
     if len(reactants) == 1:
