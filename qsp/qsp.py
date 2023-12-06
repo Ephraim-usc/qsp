@@ -146,30 +146,31 @@ class RS: # reaction system
     self.Q = np.zeros([n_analytes, n_analytes]) # linear term coefficients
     self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
   
-  def refresh(self):
-    self.linear_o, self.linear_i = np.where(self.Q != 0)
-    self.linear_k = self.Q[self.Q != 0]
-    self.quadratic_o, self.quadratic_i, self.quadratic_j = np.where(self.QQ != 0)
-    self.quadratic_k = self.QQ[self.QQ != 0]
+  def add_simple_(self, reactants, products, forward):
+    if len(reactants) == 1:
+      if len(products) == 1:
+        self.linear_i += reactants
+        self.linear_o += products
+        self.linear_k += [forward]
+      else:
+        self.linear_i += reactants * 2
+        self.linear_o += products
+        self.linear_k += [forward] * 2
+    else:
+      if len(products) == 1:
+        self.quadratic_i += [reactants[0]]
+        self.quadratic_j += [reactants[1]]
+        self.quadratic_o += products
+        self.quadratic_k += [forward]
+      else:
+        self.quadratic_i += [reactants[0]] * 2
+        self.quadratic_j += [reactants[1]] * 2
+        self.quadratic_o += products
+        self.quadratic_k += [forward] * 2
   
   def add_simple(self, reactants, products, forward, backward):
-    self.active = True
-    
-    if len(reactants) == 1:
-      self.Q[reactants, reactants] -= forward
-      self.Q[products, reactants] += forward
-    else:
-      self.QQ[reactants, reactants[0], reactants[1]] -= forward
-      self.QQ[products, reactants[0], reactants[1]] += forward
-    
-    if len(products) == 1:
-      self.Q[products, products] -= backward
-      self.Q[reactants, products] += backward
-    else:
-      self.QQ[products, products[0], products[1]] -= backward
-      self.QQ[reactants, products[0], products[1]] += backward
-    
-    self.refresh()
+    self.add_simple_(reactants, products, forward)
+    self.add_simple_(products, reactants, backward)
   
   def rate(self, _, x):
     buffer = np.zeros(self.n)
