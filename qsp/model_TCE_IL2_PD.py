@@ -97,7 +97,7 @@ class PD:
       self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
       
       self.index = {}
-      for key, value in enumerate(self.analytes):
+      for key, value in items(self.analytes):
         if type(value) is list:
           self.index[key] = [system.analytes.index(analyte) for analyte in value]
         else:
