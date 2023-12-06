@@ -104,9 +104,9 @@ class PD:
           self.index[key] = system.analytes.index(value)
       
       for index_compartment in self.index_compartments:
-        self.params["birth_8"][index_compartment] = system.x[self.index["8"], index_compartment] * self.params["death_8"]
-        self.params["birth_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_8"]
-        self.params["birth_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_8"]
+        self.params["births_8"][index_compartment] = system.x[self.index["8"], index_compartment] * self.params["death_8"]
+        self.params["births_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_8"]
+        self.params["births_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_8"]
     
     index = self.index
     t = t.number(units.h)
