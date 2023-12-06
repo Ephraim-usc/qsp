@@ -48,8 +48,25 @@ class equilibrium:
       system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
 
 
+PD_params = {}
+PD_params["prolif_EMAX_8"] = (math.log(2) / (9.1 * units.h * 1.34)).number(1 / units.h)
+PD_params["prolif_EMAX_4"] = (math.log(2) / (9.1 * units.h * 2.34)).number(1 / units.h)
+PD_params["prolif_EMAX_nk"] = (math.log(2) / (9.1 * units.h * 1.22)).number(1 / units.h)
+PD_params["prolif_EC50_8"] = 109
+PD_params["prolif_EC50_4"] = 109
+PD_params["prolif_EC50_nk"] = 109
+PD_params["prolif_hill_8"] = 3.06
+PD_params["prolif_hill_4"] = 1
+PD_params["prolif_hill_nk"] = 1.3
+PD_params["death_8"] = (math.log(2) / (70.95 * units.h)).number(1 / units.h)
+PD_params["death_4"] = (math.log(2) / (138.55 * units.h)).number(1 / units.h)
+PD_params["death_nk"] = (math.log(2) / (44.65 * units.h)).number(1 / units.h)
+PD_params["death_8"] = (x).number(1 / units.h)
+PD_params["death_4"] = (x).number(1 / units.h)
+PD_params["death_nk"] = (x).number(1 / units.h)
+
 class PD:
-  def __init__(self, compartments, params):
+  def __init__(self, compartments, params = PD_params):
     self.system = None
     self.compartments = compartments
     self.params = params.copy()
@@ -88,9 +105,9 @@ class PD:
     index = self.index
     t = t.number(units.h)
     for index_compartment in self.index_compartments:
-      prolif_8 = hill(system.x[index["Rcomplexes_8"], index_compartment].sum() / system.x[index["8"], index_compartment], self.params["prolif_EMAX_8"], self.params["prolif_EC50_8"], self.params["prolif_coef_8"])
-      prolif_4 = hill(system.x[index["Rcomplexes_4"], index_compartment].sum() / system.x[index["4"], index_compartment], self.params["prolif_EMAX_4"], self.params["prolif_EC50_4"], self.params["prolif_coef_4"])
-      prolif_nk = hill(system.x[index["Rcomplexes_nk"], index_compartment].sum() / system.x[index["nk"], index_compartment], self.params["prolif_EMAX_nk"], self.params["prolif_EC50_nk"], self.params["prolif_coef_nk"])
+      prolif_8 = hill(system.x[index["Rcomplexes_8"], index_compartment].sum() / system.x[index["8"], index_compartment], self.params["prolif_EMAX_8"], self.params["prolif_EC50_8"], self.params["prolif_hill_8"])
+      prolif_4 = hill(system.x[index["Rcomplexes_4"], index_compartment].sum() / system.x[index["4"], index_compartment], self.params["prolif_EMAX_4"], self.params["prolif_EC50_4"], self.params["prolif_hill_4"])
+      prolif_nk = hill(system.x[index["Rcomplexes_nk"], index_compartment].sum() / system.x[index["nk"], index_compartment], self.params["prolif_EMAX_nk"], self.params["prolif_EC50_nk"], self.params["prolif_hill_nk"])
       
       system.x[index["A"], index_compartment] += system.x[index["trimers_8_A"], index_compartment].sum() * (self.params["death_8"])
       system.x[index["B"], index_compartment] += system.x[index["trimers_8_B"], index_compartment].sum() * (self.params["death_8"])
@@ -109,9 +126,9 @@ class PD:
       system.x[index["R4"], index_compartment] += (self.params["birth_4"] + system.x[index["4"], index_compartment] * prolif_4) * num_C_4 * t
       system.x[index["Rnk"], index_compartment] += (self.params["birth_nk"] + system.x[index["nk"], index_compartment] * prolif_nk) * num_C_nk * t
       
-      system.x[index_8, index_compartment] += (self.params["birth_8"] + system.x[index_8, index_compartment] * (-self.params["death_8"] + prolif_8)) * t
-      system.x[index_4, index_compartment] += (self.params["birth_4"] + system.x[index_8, index_compartment] * (-self.params["death_4"] + prolif_8)) * t
-      system.x[index_nk, index_compartment] += (self.params["birth_nk"] + system.x[index_8, index_compartment] * (-self.params["death_nk"] + prolif_8)) * t
+      system.x[index["8"], index_compartment] += (self.params["birth_8"] + system.x[index_8, index_compartment] * (-self.params["death_8"] + prolif_8)) * t
+      system.x[index["4"], index_compartment] += (self.params["birth_4"] + system.x[index_8, index_compartment] * (-self.params["death_4"] + prolif_8)) * t
+      system.x[index["nk"], index_compartment] += (self.params["birth_nk"] + system.x[index_8, index_compartment] * (-self.params["death_nk"] + prolif_8)) * t
 
 
 ############ drug ############
