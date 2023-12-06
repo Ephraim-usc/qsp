@@ -27,7 +27,7 @@ num_R_nk = 3000
 
 
 def hill(x, EMAX, EC50, coef):
-  return EMAX * (x**coef) / ((x**coef + EC50**coef)
+  return EMAX * (x**coef) / (x**coef + EC50**coef)
 
 class equilibrium:
   def __init__(self, compartments, analytes):
