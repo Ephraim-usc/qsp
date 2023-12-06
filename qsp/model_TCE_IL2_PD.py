@@ -128,10 +128,10 @@ class PD:
       system.x[index["all_nk"], index_compartment] += system.x[index["all_nk"], index_compartment] * (-self.params["death_nk"])
       
       system.x[index["C8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * prolif_8) * num_C_8 * t
-      system.x[index["R8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * prolif_8) * num_C_8 * t
+      system.x[index["R8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * prolif_8) * num_R_8 * t
       system.x[index["C4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * prolif_4) * num_C_4 * t
-      system.x[index["R4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * prolif_4) * num_C_4 * t
-      system.x[index["Rnk"], index_compartment] += (self.params["births_nk"][index_compartment] + system.x[index["nk"], index_compartment] * prolif_nk) * num_C_nk * t
+      system.x[index["R4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * prolif_4) * num_R_4 * t
+      system.x[index["Rnk"], index_compartment] += (self.params["births_nk"][index_compartment] + system.x[index["nk"], index_compartment] * prolif_nk) * num_R_nk * t
       
       system.x[index["8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * (-self.params["death_8"] + prolif_8)) * t
       system.x[index["4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * (-self.params["death_4"] + prolif_8)) * t
