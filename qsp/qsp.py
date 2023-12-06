@@ -174,6 +174,7 @@ class RS: # reaction system
         self.quadratic_k += [forward] * 2
   
   def add_simple(self, reactants, products, forward, backward):
+    self.active = True
     self.add_simple_(reactants, products, forward)
     self.add_simple_(products, reactants, backward)
   
