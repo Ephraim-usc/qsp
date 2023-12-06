@@ -455,6 +455,9 @@ def model(TCE, tumors, organs, connect_tumors = True):
     system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
+  # PD process
+  system.add_process(PD(system.compartments))
+  
   return system
 
 
