@@ -150,36 +150,43 @@ class RS: # reaction system
     self.quadratic_j = []
     self.quadratic_o = []
     self.quadratic_k = []
-  
-  def add_simple_(self, reactants, products, forward):
-    if forward == 0:
-      return
-    
-    if len(reactants) == 1:
-      if len(products) == 1:
-        self.linear_i += reactants
-        self.linear_o += products
-        self.linear_k += [forward]
-      else:
-        self.linear_i += reactants * 2
-        self.linear_o += products
-        self.linear_k += [forward] * 2
+
+  def add_linear(self, reactants, products, forward):
+    if len(products) == 1:
+      self.linear_i += reactants
+      self.linear_o += products
+      self.linear_k += [forward]
     else:
-      if len(products) == 1:
-        self.quadratic_i += [reactants[0]]
-        self.quadratic_j += [reactants[1]]
-        self.quadratic_o += products
-        self.quadratic_k += [forward]
-      else:
-        self.quadratic_i += [reactants[0]] * 2
-        self.quadratic_j += [reactants[1]] * 2
-        self.quadratic_o += products
-        self.quadratic_k += [forward] * 2
+      self.linear_i += reactants
+      self.linear_o += products
+      self.linear_k += [forward, forward]
+  
+  def add_quadratic(self, reactants, products, forward):
+    if len(products) == 1:
+      self.quadratic_i += [reactants[0]]
+      self.quadratic_j += [reactants[1]]
+      self.quadratic_o += products
+      self.quadratic_k += [forward]
+    else:
+      self.quadratic_i += [reactants[0], reactants[0]]
+      self.quadratic_j += [reactants[1], reactants[1]]
+      self.quadratic_o += products
+      self.quadratic_k += [forward, forward]
   
   def add_simple(self, reactants, products, forward, backward):
     self.active = True
-    self.add_simple_(reactants, products, forward)
-    self.add_simple_(products, reactants, backward)
+    if len(reactants) == 1:
+      self.add_linear(reactants, reactants, -forward)
+      self.add_linear(reactants, products, forward)
+    else:
+      self.add_quadratic(reactants, reactants, -forward)
+      self.add_quadratic(reactants, products, forward)
+    if len(products) == 1:
+      self.add_linear(products, products, -backward)
+      self.add_linear(products, reactants, backward)
+    else:
+      self.add_quadratic(products, products, -backward)
+      self.add_quadratic(products, reactants, backward)
   
   def rate(self, _, x):
     buffer = np.zeros(self.n)
