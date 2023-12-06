@@ -72,6 +72,7 @@ class PD:
     self.params = params.copy()
     
     self.analytes = {}
+    self.analytes["A"] = "A"; self.analytes["B"] = "B"
     self.analytes["8"] = "8"; self.analytes["C8"] = "C8"; self.analytes["R8"] = "R8"
     self.analytes["4"] = "4"; self.analytes["C4"] = "C4"; self.analytes["R4"] = "R4"
     self.analytes["nk"] = "nk"; self.analytes["Rnk"] = "Rnk"
