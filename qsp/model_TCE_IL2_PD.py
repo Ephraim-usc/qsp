@@ -83,7 +83,7 @@ migration_params["marg_hill_nk"] = 1
 class PD:
   def __init__(self, proliferation_params = proliferation_params, migration_params = migration_params):
     self.system = None
-    self.params = (proliferation_params + migration_params).copy()
+    self.params = {**proliferation_params, **migration_params}.copy()
     
     self.analytes = {}
     self.analytes["A"] = "A"; self.analytes["B"] = "B"
@@ -112,7 +112,7 @@ class PD:
       self.index_plasma = system.compartments.index("plasma")
       self.index_lymph = system.compartments.index("lymph")
       self.index_tumors = [system.compartments.index(tumor["name"]) for tumor in system.tumors]
-      self.index_organs = [system.compartments.index(organ["name"]) for tumor in system.organs]
+      self.index_organs = [system.compartments.index(organ["name"]) for organ in system.organs]
       
       self.index = {}
       for key, value in self.analytes.items():
@@ -121,14 +121,14 @@ class PD:
         else:
           self.index[key] = system.analytes.index(value)
       
-      for index_compartment in self.index_compartments:
+      for index_compartment in [self.index_lymph] + self.index_tumors + self.index_organs:
         self.params["births_8"][index_compartment] = system.x[self.index["8"], index_compartment] * self.params["death_8"]
         self.params["births_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_8"]
         self.params["births_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_8"]
       
-      self.params["marg_8"] = params["influx"] * system.x[self.index["8"], index_lymph] * system.x[self.index["8"], index_lymph] / (system.x[self.index["8"], index_plasma] * system.x[self.index["8"], index_plasma])
-      self.params["marg_4"] = params["influx"] * system.x[self.index["4"], index_lymph] * system.x[self.index["4"], index_lymph] / (system.x[self.index["4"], index_plasma] * system.x[self.index["4"], index_plasma])
-      self.params["marg_nk"] = params["influx"] * system.x[self.index["nk"], index_lymph] * system.x[self.index["nk"], index_lymph] / (system.x[self.index["nk"], index_plasma] * system.x[self.index["nk"], index_plasma])
+      self.params["marg_8"] = self.params["influx"] * system.x[self.index["8"], index_lymph] * system.x[self.index["8"], index_lymph] / (system.x[self.index["8"], index_plasma] * system.x[self.index["8"], index_plasma])
+      self.params["marg_4"] = self.params["influx"] * system.x[self.index["4"], index_lymph] * system.x[self.index["4"], index_lymph] / (system.x[self.index["4"], index_plasma] * system.x[self.index["4"], index_plasma])
+      self.params["marg_nk"] = self.params["influx"] * system.x[self.index["nk"], index_lymph] * system.x[self.index["nk"], index_lymph] / (system.x[self.index["nk"], index_plasma] * system.x[self.index["nk"], index_plasma])
     
     # body of the process
     index = self.index
