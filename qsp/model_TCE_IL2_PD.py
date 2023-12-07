@@ -444,9 +444,9 @@ def model(TCE, tumors, organs, connect_tumors = True):
     system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
-    system.add_x("8", tumor["name"], organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("4", tumor["name"], organ["num_4"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("nk", tumor["name"], organ["num_nk"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("8", organ["name"], organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("4", organ["name"], organ["num_4"] / organ["volume_interstitial"] / units.avagadro)
+    system.add_x("nk", organ["name"], organ["num_nk"] / organ["volume_interstitial"] / units.avagadro)
     
     system.add_x("C8", organ["name"], num_C_8 * organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("R8", organ["name"], num_R_8 * organ["num_8"] / organ["volume_interstitial"] / units.avagadro)
