@@ -65,11 +65,25 @@ proliferation_params["births_8"] = {} # birth rates are initialized at runtime a
 proliferation_params["births_4"] = {}
 proliferation_params["births_nk"] = {}
 
-class proliferation:
-  def __init__(self, compartments, params = proliferation_params):
+migration_params = {}
+migration_params["influx"] = (math.log(2) / (8.3 * units.h)).number(1 / units.h)
+migration_params["marg_EMAX"] = None # natural marginalization rates are estimated according to equilibrium
+migration_params["marg_EMAX"] = None
+migration_params["marg_EMAX"] = None
+migration_params["marg_EMAX_8"] = 20
+migration_params["marg_EMAX_4"] = 8.24
+migration_params["marg_EMAX_nk"] = 20
+migration_params["marg_EC50_8"] = 350
+migration_params["marg_EC50_4"] = 350
+migration_params["marg_EC50_nk"] = 350
+migration_params["marg_hill_8"] = 1
+migration_params["marg_hill_4"] = 1
+migration_params["marg_hill_nk"] = 1
+
+class PD:
+  def __init__(self, proliferation_params = proliferation_params, migration_params = migration_params):
     self.system = None
-    self.compartments = compartments
-    self.params = params.copy()
+    self.params = (proliferation_params + migration_params).copy()
     
     self.analytes = {}
     self.analytes["A"] = "A"; self.analytes["B"] = "B"
@@ -95,7 +109,10 @@ class proliferation:
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
+      self.index_plasma = system.compartments.index("plasma")
+      self.index_lymph = system.compartments.index("lymph")
+      self.index_tumors = [system.compartments.index(tumor["name"]) for tumor in system.tumors]
+      self.index_organs = [system.compartments.index(organ["name"]) for tumor in system.organs]
       
       self.index = {}
       for key, value in self.analytes.items():
@@ -108,10 +125,17 @@ class proliferation:
         self.params["births_8"][index_compartment] = system.x[self.index["8"], index_compartment] * self.params["death_8"]
         self.params["births_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_8"]
         self.params["births_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_8"]
+      
+      self.params["marg_8"] = params["influx"] * system.x[self.index["8"], index_lymph] * system.x[self.index["8"], index_lymph] / (system.x[self.index["8"], index_plasma] * system.x[self.index["8"], index_plasma])
+      self.params["marg_4"] = params["influx"] * system.x[self.index["4"], index_lymph] * system.x[self.index["4"], index_lymph] / (system.x[self.index["4"], index_plasma] * system.x[self.index["4"], index_plasma])
+      self.params["marg_nk"] = params["influx"] * system.x[self.index["nk"], index_lymph] * system.x[self.index["nk"], index_lymph] / (system.x[self.index["nk"], index_plasma] * system.x[self.index["nk"], index_plasma])
     
+    # body of the process
     index = self.index
     t = t.number(units.h)
-    for index_compartment in self.index_compartments:
+    
+    # proliferation
+    for index_compartment in [self.index_lymph] + self.index_tumors + self.index_organs:
       prolif_8 = hill(system.x[index["Rcomplexes_8"], index_compartment].sum() / system.x[index["8"], index_compartment], self.params["prolif_EMAX_8"], self.params["prolif_EC50_8"], self.params["prolif_hill_8"])
       prolif_4 = hill(system.x[index["Rcomplexes_4"], index_compartment].sum() / system.x[index["4"], index_compartment], self.params["prolif_EMAX_4"], self.params["prolif_EC50_4"], self.params["prolif_hill_4"])
       prolif_nk = hill(system.x[index["Rcomplexes_nk"], index_compartment].sum() / system.x[index["nk"], index_compartment], self.params["prolif_EMAX_nk"], self.params["prolif_EC50_nk"], self.params["prolif_hill_nk"])
@@ -137,6 +161,26 @@ class proliferation:
       system.x[index["4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * (-self.params["death_4"] + prolif_8)) * t
       system.x[index["nk"], index_compartment] += (self.params["births_nk"][index_compartment] + system.x[index["nk"], index_compartment] * (-self.params["death_nk"] + prolif_8)) * t
 
+    # migration
+    marg_8 = hill(system.x[index["Rcomplexes_8"], self.index_plasma].sum() / system.x[index["8"], self.index_plasma], self.params["marg_EMAX_8"], self.params["marg_EC50_8"], self.params["marg_hill_8"])
+    marg_4 = hill(system.x[index["Rcomplexes_4"], self.index_plasma].sum() / system.x[index["4"], self.index_plasma], self.params["marg_EMAX_4"], self.params["marg_EC50_4"], self.params["marg_hill_4"])
+    marg_nk = hill(system.x[index["Rcomplexes_nk"], self.index_plasma].sum() / system.x[index["nk"], self.index_plasma], self.params["marg_EMAX_nk"], self.params["marg_EC50_nk"], self.params["marg_hill_nk"])
+    
+    migration_8 = system.V[index["all_8"], self.index_lymph] * system.x[index["all_8"], self.index_lymph] * self.params["influx"] * t - system.V[index["all_8"], self.index_plasma] * system.x[index["all_8"], self.index_plasma] * self.params["marg_8"] * marg_8 * t
+    migration_4 = system.V[index["all_4"], self.index_lymph] * system.x[index["all_4"], self.index_lymph] * self.params["influx"] * t - system.V[index["all_4"], self.index_plasma] * system.x[index["all_4"], self.index_plasma] * self.params["marg_4"] * marg_4 * t
+    migration_nk = system.V[index["all_nk"], self.index_lymph] * system.x[index["all_nk"], self.index_lymph] * self.params["influx"] * t - system.V[index["all_nk"], self.index_plasma] * system.x[index["all_nk"], self.index_plasma] * self.params["marg_nk"] * marg_nk * t
+    
+    # applying the migration
+    system.x[index["all_8"], index_plasma] += migration_8 / system.V[index["all_8"], index_plasma]
+    system.x[index["all_4"], index_plasma] += migration_4 / system.V[index["all_8"], index_plasma]
+    system.x[index["all_nk"], index_plasma] += migration_nk / system.V[index["all_8"], index_plasma]
+    
+    system.x[index["all_8"], index_lymph] -= migration_8 / system.V[index["all_8"], index_plasma]
+    system.x[index["all_4"], index_lymph] -= migration_4 / system.V[index["all_8"], index_plasma]
+    system.x[index["all_nk"], index_lymph] -= migration_nk / system.V[index["all_8"], index_plasma]
+    
+    
+  
 
 ############ drug ############
 
