@@ -48,25 +48,25 @@ class equilibrium:
       system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
 
 
-PD_params = {}
-PD_params["prolif_EMAX_8"] = (math.log(2) / (9.1 * units.h * 1.34)).number(1 / units.h)
-PD_params["prolif_EMAX_4"] = (math.log(2) / (9.1 * units.h * 2.34)).number(1 / units.h)
-PD_params["prolif_EMAX_nk"] = (math.log(2) / (9.1 * units.h * 1.22)).number(1 / units.h)
-PD_params["prolif_EC50_8"] = 109
-PD_params["prolif_EC50_4"] = 109
-PD_params["prolif_EC50_nk"] = 109
-PD_params["prolif_hill_8"] = 3.06
-PD_params["prolif_hill_4"] = 1
-PD_params["prolif_hill_nk"] = 1.3
-PD_params["death_8"] = (math.log(2) / (70.95 * units.h)).number(1 / units.h)
-PD_params["death_4"] = (math.log(2) / (138.55 * units.h)).number(1 / units.h)
-PD_params["death_nk"] = (math.log(2) / (44.65 * units.h)).number(1 / units.h)
-PD_params["births_8"] = {} # birth rates are initialized at runtime according to the initial number of immume cells
-PD_params["births_4"] = {}
-PD_params["births_nk"] = {}
+proliferation_params = {}
+proliferation_params["prolif_EMAX_8"] = (math.log(2) / (9.1 * units.h * 1.34)).number(1 / units.h)
+proliferation_params["prolif_EMAX_4"] = (math.log(2) / (9.1 * units.h * 2.34)).number(1 / units.h)
+proliferation_params["prolif_EMAX_nk"] = (math.log(2) / (9.1 * units.h * 1.22)).number(1 / units.h)
+proliferation_params["prolif_EC50_8"] = 109
+proliferation_params["prolif_EC50_4"] = 109
+proliferation_params["prolif_EC50_nk"] = 109
+proliferation_params["prolif_hill_8"] = 3.06
+proliferation_params["prolif_hill_4"] = 1
+proliferation_params["prolif_hill_nk"] = 1.3
+proliferation_params["death_8"] = (math.log(2) / (70.95 * units.h)).number(1 / units.h)
+proliferation_params["death_4"] = (math.log(2) / (138.55 * units.h)).number(1 / units.h)
+proliferation_params["death_nk"] = (math.log(2) / (44.65 * units.h)).number(1 / units.h)
+proliferation_params["births_8"] = {} # birth rates are initialized at runtime according to the initial number of immume cells
+proliferation_params["births_4"] = {}
+proliferation_params["births_nk"] = {}
 
-class PD:
-  def __init__(self, compartments, params = PD_params):
+class proliferation:
+  def __init__(self, compartments, params = proliferation_params):
     self.system = None
     self.compartments = compartments
     self.params = params.copy()
@@ -456,8 +456,8 @@ def model(TCE, tumors, organs, connect_tumors = True):
     system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
-  # PD process
-  system.add_process(PD(system.compartments))
+  # proliferation process
+  system.add_process(proliferation(["lymph"] + [organ["name"] for organ in system.tumors + system.organs]))
   
   return system
 
