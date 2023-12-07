@@ -514,7 +514,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
   # proliferation process
-  system.add_process(proliferation(["lymph"] + [organ["name"] for organ in system.tumors + system.organs]))
+  system.add_process(PD())
   
   return system
 
