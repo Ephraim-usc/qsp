@@ -116,16 +116,16 @@ class PD:
       prolif_4 = hill(system.x[index["Rcomplexes_4"], index_compartment].sum() / system.x[index["4"], index_compartment], self.params["prolif_EMAX_4"], self.params["prolif_EC50_4"], self.params["prolif_hill_4"])
       prolif_nk = hill(system.x[index["Rcomplexes_nk"], index_compartment].sum() / system.x[index["nk"], index_compartment], self.params["prolif_EMAX_nk"], self.params["prolif_EC50_nk"], self.params["prolif_hill_nk"])
       
-      system.x[index["A"], index_compartment] += system.x[index["trimers_8_A"], index_compartment].sum() * (self.params["death_8"])
-      system.x[index["B"], index_compartment] += system.x[index["trimers_8_B"], index_compartment].sum() * (self.params["death_8"])
-      system.x[index["A"], index_compartment] += system.x[index["trimers_4_A"], index_compartment].sum() * (self.params["death_4"])
-      system.x[index["B"], index_compartment] += system.x[index["trimers_4_B"], index_compartment].sum() * (self.params["death_4"])
-      system.x[index["A"], index_compartment] += system.x[index["trimers_nk_A"], index_compartment].sum() * (self.params["death_nk"])
-      system.x[index["B"], index_compartment] += system.x[index["trimers_nk_B"], index_compartment].sum() * (self.params["death_nk"])
+      system.x[index["A"], index_compartment] += system.x[index["trimers_8_A"], index_compartment].sum() * self.params["death_8"] * t
+      system.x[index["B"], index_compartment] += system.x[index["trimers_8_B"], index_compartment].sum() * self.params["death_8"] * t
+      system.x[index["A"], index_compartment] += system.x[index["trimers_4_A"], index_compartment].sum() * self.params["death_4"] * t
+      system.x[index["B"], index_compartment] += system.x[index["trimers_4_B"], index_compartment].sum() * self.params["death_4"] * t
+      system.x[index["A"], index_compartment] += system.x[index["trimers_nk_A"], index_compartment].sum() * self.params["death_nk"] * t
+      system.x[index["B"], index_compartment] += system.x[index["trimers_nk_B"], index_compartment].sum() * self.params["death_nk"] * t
       
-      system.x[index["all_8"], index_compartment] += system.x[index["all_8"], index_compartment] * (-self.params["death_8"])
-      system.x[index["all_4"], index_compartment] += system.x[index["all_4"], index_compartment] * (-self.params["death_4"])
-      system.x[index["all_nk"], index_compartment] += system.x[index["all_nk"], index_compartment] * (-self.params["death_nk"])
+      system.x[index["all_8"], index_compartment] += system.x[index["all_8"], index_compartment] * (-self.params["death_8"]) * t
+      system.x[index["all_4"], index_compartment] += system.x[index["all_4"], index_compartment] * (-self.params["death_4"]) * t
+      system.x[index["all_nk"], index_compartment] += system.x[index["all_nk"], index_compartment] * (-self.params["death_nk"]) * t
       
       system.x[index["C8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * prolif_8) * num_C_8 * t
       system.x[index["R8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * prolif_8) * num_R_8 * t
