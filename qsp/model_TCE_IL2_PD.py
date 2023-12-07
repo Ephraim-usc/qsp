@@ -167,9 +167,9 @@ class PD:
     marg_4 = hill(system.x[index["Rcomplexes_4"], self.index_plasma].sum() / system.x[index["4"], self.index_plasma], self.params["marg_EMAX_4"], self.params["marg_EC50_4"], self.params["marg_hill_4"])
     marg_nk = hill(system.x[index["Rcomplexes_nk"], self.index_plasma].sum() / system.x[index["nk"], self.index_plasma], self.params["marg_EMAX_nk"], self.params["marg_EC50_nk"], self.params["marg_hill_nk"])
 
-    migration_all_8 = system.V[index["8"], self.index_lymph] * system.x[index["8"], self.index_lymph] * self.params["influx"] * t - system.V[index["8"], self.index_plasma] * system.x[index["8"], self.index_plasma] * self.params["marg_8"] * marg_8 * t
-    migration_all_4 = system.V[index["4"], self.index_lymph] * system.x[index["4"], self.index_lymph] * self.params["influx"] * t - system.V[index["4"], self.index_plasma] * system.x[index["4"], self.index_plasma] * self.params["marg_4"] * marg_4 * t
-    migration_all_nk = system.V[index["nk"], self.index_lymph] * system.x[index["nk"], self.index_lymph] * self.params["influx"] * t - system.V[index["nk"], self.index_plasma] * system.x[index["nk"], self.index_plasma] * self.params["marg_nk"] * marg_nk * t
+    migration_8 = system.V[index["8"], self.index_lymph] * system.x[index["8"], self.index_lymph] * self.params["influx"] * t - system.V[index["8"], self.index_plasma] * system.x[index["8"], self.index_plasma] * self.params["marg_8"] * marg_8 * t
+    migration_4 = system.V[index["4"], self.index_lymph] * system.x[index["4"], self.index_lymph] * self.params["influx"] * t - system.V[index["4"], self.index_plasma] * system.x[index["4"], self.index_plasma] * self.params["marg_4"] * marg_4 * t
+    migration_nk = system.V[index["nk"], self.index_lymph] * system.x[index["nk"], self.index_lymph] * self.params["influx"] * t - system.V[index["nk"], self.index_plasma] * system.x[index["nk"], self.index_plasma] * self.params["marg_nk"] * marg_nk * t
     
     migration_all_8 = system.V[index["all_8"], self.index_lymph] * system.x[index["all_8"], self.index_lymph] * self.params["influx"] * t - system.V[index["all_8"], self.index_plasma] * system.x[index["all_8"], self.index_plasma] * self.params["marg_8"] * marg_8 * t
     migration_all_4 = system.V[index["all_4"], self.index_lymph] * system.x[index["all_4"], self.index_lymph] * self.params["influx"] * t - system.V[index["all_4"], self.index_plasma] * system.x[index["all_4"], self.index_plasma] * self.params["marg_4"] * marg_4 * t
@@ -178,7 +178,7 @@ class PD:
     # applying the migration
     system.x[index["8"], self.index_plasma] += migration_8 / system.V[index["8"], self.index_plasma]
     system.x[index["4"], self.index_plasma] += migration_4 / system.V[index["4"], self.index_plasma]
-    system.x[index["all_nk"], self.index_plasma] += migration_nk / system.V[index["all_nk"], self.index_plasma]
+    system.x[index["nk"], self.index_plasma] += migration_nk / system.V[index["nk"], self.index_plasma]
     
     system.x[index["all_8"], self.index_plasma] += migration_all_8 / system.V[index["all_8"], self.index_plasma]
     system.x[index["all_4"], self.index_plasma] += migration_all_4 / system.V[index["all_4"], self.index_plasma]
