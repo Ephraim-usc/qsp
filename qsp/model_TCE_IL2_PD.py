@@ -126,9 +126,9 @@ class PD:
         self.params["births_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_8"]
         self.params["births_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_8"]
       
-      self.params["marg_8"] = self.params["influx"] * system.x[self.index["8"], index_lymph] * system.x[self.index["8"], index_lymph] / (system.x[self.index["8"], index_plasma] * system.x[self.index["8"], index_plasma])
-      self.params["marg_4"] = self.params["influx"] * system.x[self.index["4"], index_lymph] * system.x[self.index["4"], index_lymph] / (system.x[self.index["4"], index_plasma] * system.x[self.index["4"], index_plasma])
-      self.params["marg_nk"] = self.params["influx"] * system.x[self.index["nk"], index_lymph] * system.x[self.index["nk"], index_lymph] / (system.x[self.index["nk"], index_plasma] * system.x[self.index["nk"], index_plasma])
+      self.params["marg_8"] = self.params["influx"] * system.x[self.index["8"], self.index_lymph] * system.x[self.index["8"], self.index_lymph] / (system.x[self.index["8"], self.index_plasma] * system.x[self.index["8"], self.index_plasma])
+      self.params["marg_4"] = self.params["influx"] * system.x[self.index["4"], self.index_lymph] * system.x[self.index["4"], self.index_lymph] / (system.x[self.index["4"], self.index_plasma] * system.x[self.index["4"], self.index_plasma])
+      self.params["marg_nk"] = self.params["influx"] * system.x[self.index["nk"], self.index_lymph] * system.x[self.index["nk"], self.index_lymph] / (system.x[self.index["nk"], self.index_plasma] * system.x[self.index["nk"], self.index_plasma])
     
     # body of the process
     index = self.index
@@ -172,13 +172,13 @@ class PD:
     migration_nk = system.V[index["all_nk"], self.index_lymph] * system.x[index["all_nk"], self.index_lymph] * self.params["influx"] * t - system.V[index["all_nk"], self.index_plasma] * system.x[index["all_nk"], self.index_plasma] * self.params["marg_nk"] * marg_nk * t
     
     # applying the migration
-    system.x[index["all_8"], index_plasma] += migration_8 / system.V[index["all_8"], index_plasma]
-    system.x[index["all_4"], index_plasma] += migration_4 / system.V[index["all_8"], index_plasma]
-    system.x[index["all_nk"], index_plasma] += migration_nk / system.V[index["all_8"], index_plasma]
+    system.x[index["all_8"], self.index_plasma] += migration_8 / system.V[index["all_8"], self.index_plasma]
+    system.x[index["all_4"], self.index_plasma] += migration_4 / system.V[index["all_8"], self.index_plasma]
+    system.x[index["all_nk"], self.index_plasma] += migration_nk / system.V[index["all_8"], self.index_plasma]
     
-    system.x[index["all_8"], index_lymph] -= migration_8 / system.V[index["all_8"], index_plasma]
-    system.x[index["all_4"], index_lymph] -= migration_4 / system.V[index["all_8"], index_plasma]
-    system.x[index["all_nk"], index_lymph] -= migration_nk / system.V[index["all_8"], index_plasma]
+    system.x[index["all_8"], self.index_lymph] -= migration_8 / system.V[index["all_8"], self.index_lymph]
+    system.x[index["all_4"], self.index_lymph] -= migration_4 / system.V[index["all_8"], self.index_lymph]
+    system.x[index["all_nk"], self.index_lymph] -= migration_nk / system.V[index["all_8"], self.index_lymph]
     
     
   
