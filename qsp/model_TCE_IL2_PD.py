@@ -173,12 +173,12 @@ class PD:
     
     # applying the migration
     system.x[index["all_8"], self.index_plasma] += migration_8 / system.V[index["all_8"], self.index_plasma]
-    system.x[index["all_4"], self.index_plasma] += migration_4 / system.V[index["all_8"], self.index_plasma]
-    system.x[index["all_nk"], self.index_plasma] += migration_nk / system.V[index["all_8"], self.index_plasma]
+    system.x[index["all_4"], self.index_plasma] += migration_4 / system.V[index["all_4"], self.index_plasma]
+    system.x[index["all_nk"], self.index_plasma] += migration_nk / system.V[index["all_nk"], self.index_plasma]
     
     system.x[index["all_8"], self.index_lymph] -= migration_8 / system.V[index["all_8"], self.index_lymph]
-    system.x[index["all_4"], self.index_lymph] -= migration_4 / system.V[index["all_8"], self.index_lymph]
-    system.x[index["all_nk"], self.index_lymph] -= migration_nk / system.V[index["all_8"], self.index_lymph]
+    system.x[index["all_4"], self.index_lymph] -= migration_4 / system.V[index["all_4"], self.index_lymph]
+    system.x[index["all_nk"], self.index_lymph] -= migration_nk / system.V[index["all_nk"], self.index_lymph]
     
     
   
