@@ -140,6 +140,7 @@ class PD:
       prolif_4 = hill(system.x[index["Rcomplexes_4"], index_compartment].sum() / system.x[index["4"], index_compartment], self.params["prolif_EMAX_4"], self.params["prolif_EC50_4"], self.params["prolif_hill_4"])
       prolif_nk = hill(system.x[index["Rcomplexes_nk"], index_compartment].sum() / system.x[index["nk"], index_compartment], self.params["prolif_EMAX_nk"], self.params["prolif_EC50_nk"], self.params["prolif_hill_nk"])
       
+      # target antigens released from trimers when immune cells die
       system.x[index["A"], index_compartment] += system.x[index["trimers_8_A"], index_compartment].sum() * self.params["death_8"] * t
       system.x[index["B"], index_compartment] += system.x[index["trimers_8_B"], index_compartment].sum() * self.params["death_8"] * t
       system.x[index["A"], index_compartment] += system.x[index["trimers_4_A"], index_compartment].sum() * self.params["death_4"] * t
@@ -160,8 +161,8 @@ class PD:
       system.x[index["8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * (-self.params["death_8"] + prolif_8)) * t
       system.x[index["4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * (-self.params["death_4"] + prolif_8)) * t
       system.x[index["nk"], index_compartment] += (self.params["births_nk"][index_compartment] + system.x[index["nk"], index_compartment] * (-self.params["death_nk"] + prolif_8)) * t
-
-    # migration
+    
+    # computing total amounts of migration
     marg_8 = hill(system.x[index["Rcomplexes_8"], self.index_plasma].sum() / system.x[index["8"], self.index_plasma], self.params["marg_EMAX_8"], self.params["marg_EC50_8"], self.params["marg_hill_8"])
     marg_4 = hill(system.x[index["Rcomplexes_4"], self.index_plasma].sum() / system.x[index["4"], self.index_plasma], self.params["marg_EMAX_4"], self.params["marg_EC50_4"], self.params["marg_hill_4"])
     marg_nk = hill(system.x[index["Rcomplexes_nk"], self.index_plasma].sum() / system.x[index["nk"], self.index_plasma], self.params["marg_EMAX_nk"], self.params["marg_EC50_nk"], self.params["marg_hill_nk"])
