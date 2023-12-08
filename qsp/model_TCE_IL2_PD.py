@@ -123,8 +123,8 @@ class PD:
       
       for index_compartment in [self.index_lymph] + self.index_tumors + self.index_organs:
         self.params["births_8"][index_compartment] = system.x[self.index["8"], index_compartment] * self.params["death_8"]
-        self.params["births_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_8"]
-        self.params["births_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_8"]
+        self.params["births_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_4"]
+        self.params["births_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_nk"]
       
       self.params["marg_8"] = self.params["influx"] * system.V[self.index["8"], self.index_lymph] * system.x[self.index["8"], self.index_lymph] / (system.V[self.index["8"], self.index_plasma] * system.x[self.index["8"], self.index_plasma])
       self.params["marg_4"] = self.params["influx"] * system.V[self.index["4"], self.index_lymph] * system.x[self.index["4"], self.index_lymph] / (system.V[self.index["4"], self.index_plasma] * system.x[self.index["4"], self.index_plasma])
@@ -159,8 +159,8 @@ class PD:
       system.x[index["Rnk"], index_compartment] += (self.params["births_nk"][index_compartment] + system.x[index["nk"], index_compartment] * prolif_nk) * num_R_nk * t
       
       system.x[index["8"], index_compartment] += (self.params["births_8"][index_compartment] + system.x[index["8"], index_compartment] * (-self.params["death_8"] + prolif_8)) * t
-      system.x[index["4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * (-self.params["death_4"] + prolif_8)) * t
-      system.x[index["nk"], index_compartment] += (self.params["births_nk"][index_compartment] + system.x[index["nk"], index_compartment] * (-self.params["death_nk"] + prolif_8)) * t
+      system.x[index["4"], index_compartment] += (self.params["births_4"][index_compartment] + system.x[index["4"], index_compartment] * (-self.params["death_4"] + prolif_4)) * t
+      system.x[index["nk"], index_compartment] += (self.params["births_nk"][index_compartment] + system.x[index["nk"], index_compartment] * (-self.params["death_nk"] + prolif_nk)) * t
     
     # computing total amounts of migration
     marg_8 = hill(system.x[index["Rcomplexes_8"], self.index_plasma].sum() / system.x[index["8"], self.index_plasma], self.params["marg_EMAX_8"], self.params["marg_EC50_8"], self.params["marg_hill_8"])
