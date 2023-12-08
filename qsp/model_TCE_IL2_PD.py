@@ -279,29 +279,35 @@ class internalization:
       system.x[self.idx_antigens_target, index_compartment] += delta_target @ self.Q_target
 
 
-VIBY_I = {}
-VIBY_I.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
-VIBY_I.update({"off_R": 10**-4 / units.s, "affn_R": 1 * units.nM, "affm_R": 20 * units.nM})
-VIBY_I.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
-VIBY_I.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
-VIBY_I.update({"avidity_effector": 19, "avidity_target": 19})
-VIBY_I.update({"clearance": math.log(2)/(70 * units.h)}); VIBY_I["smalls"] = ["mnn", "nnn"]
+
+VIB = {}
+VIB.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
+VIB.update({"off_R": 10**-4 / units.s, "affn_R": 1 * units.nM, "affm_R": 20 * units.nM})
+VIB.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
+VIB.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
+VIB.update({"avidity_effector": 19, "avidity_target": 19})
+VIB.update({"clearance": math.log(2)/(70 * units.h)})
+VIBX["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
+VIBX["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
+
+VIBX = VIB.copy(); VIBX["smalls"] = []
+VIBY = VIB.copy(); VIBY["smalls"] = ["mnn", "nnn"]
+
+VIBX_I = VIBX.copy()
+VIBX_I["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)]
+VIBX_I["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)]
+
+VIBX_II = VIBX.copy()
+VIBX_II["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)]
+VIBX_II["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)]
+
+VIBY_I = VIBY.copy()
 VIBY_I["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)]
 VIBY_I["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)]
-VIBY_I["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
-VIBY_I["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
 
-VIBY_II = {}
-VIBY_II.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
-VIBY_II.update({"off_R": 10**-4 / units.s, "affn_R": 1 * units.nM, "affm_R": 20 * units.nM})
-VIBY_II.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
-VIBY_II.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
-VIBY_II.update({"avidity_effector": 19, "avidity_target": 19})
-VIBY_II.update({"clearance": math.log(2)/(70 * units.h)}); VIBY_II["smalls"] = ["mnn", "nnn"]
+VIBY_II = VIBY.copy()
 VIBY_II["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)]
 VIBY_II["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)]
-VIBY_II["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
-VIBY_II["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
 
 
 
@@ -535,7 +541,8 @@ def plot(system, name):
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_drugs.png")
-  
+
+  '''
   groups = [["C"], ["R"], ["Rnk"],
             [analyte for analyte in analytes if re.search("C-[mn][mn][mn]$", analyte)],
             [analyte for analyte in analytes if re.search("R-[mn][mn][mn]$", analyte)],
@@ -552,6 +559,7 @@ def plot(system, name):
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_effectors.png")
+  '''
   
   groups = [["A"], ["B"],
             [analyte for analyte in analytes if re.match("[mn][mn][mn]-A$", analyte)],
