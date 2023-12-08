@@ -209,7 +209,7 @@ class transform:
       Q[reactants, reactants] -= rate.number(1/units.h)
       Q[reactants, products] += rate.number(1/units.h)
     self.Q = Q
-
+    
     self.analyteses = []
     self.analyteses.append(drugs)
     for effector in effectors:
@@ -262,25 +262,21 @@ class internalization:
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      
-      if callable(self.compartments):
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments(system) if compartment in system.compartments]
-      else:
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
+      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
       
       self.idx_dimers_effector = [system.analytes.index(analyte) for analyte in dimers_effector]
       self.idx_dimers_target = [system.analytes.index(analyte) for analyte in dimers_target]
       self.idx_antigens_effector = [system.analytes.index(analyte) for analyte in antigens_effector]
       self.idx_antigens_target = [system.analytes.index(analyte) for analyte in antigens_target]
     
-    for compartment in self.compartments_:
-      delta_effector = system.x[self.idx_dimers_effector, compartment] * (1 - np.exp(self.q_effector * t.number(units.h)))
-      system.x[self.idx_dimers_effector, compartment] -= delta_effector
-      system.x[self.idx_antigens_effector, compartment] += delta_effector @ self.Q_effector
+    for index_compartment in self.index_compartments:
+      delta_effector = system.x[self.idx_dimers_effector, index_compartment] * (1 - np.exp(self.q_effector * t.number(units.h)))
+      system.x[self.idx_dimers_effector, index_compartment] -= delta_effector
+      system.x[self.idx_antigens_effector, index_compartment] += delta_effector @ self.Q_effector
       
-      delta_target = system.x[self.idx_dimers_target, compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
-      system.x[self.idx_dimers_target, compartment] -= delta_target
-      system.x[self.idx_antigens_target, compartment] += delta_target @ self.Q_target
+      delta_target = system.x[self.idx_dimers_target, index_compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
+      system.x[self.idx_dimers_target, index_compartment] -= delta_target
+      system.x[self.idx_antigens_target, index_compartment] += delta_target @ self.Q_target
 
 
 VIBY_I = {}
@@ -290,13 +286,10 @@ VIBY_I.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200
 VIBY_I.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY_I.update({"avidity_effector": 19, "avidity_target": 19})
 VIBY_I.update({"clearance": math.log(2)/(70 * units.h)}); VIBY_I["smalls"] = ["mnn", "nnn"]
-VIBY_I["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
-                                    rates = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)])
-VIBY_I["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)])
-VIBY_I["internalization"] = internalization(compartments = lambda system: system.compartments,
-                                          rates_effector = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)],
-                                          rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
+VIBY_I["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)]
+VIBY_I["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)]
+VIBY_I["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
+VIBY_I["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
 
 VIBY_II = {}
 VIBY_II.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
@@ -305,13 +298,10 @@ VIBY_II.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 20
 VIBY_II.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIBY_II.update({"avidity_effector": 19, "avidity_target": 19})
 VIBY_II.update({"clearance": math.log(2)/(70 * units.h)}); VIBY_II["smalls"] = ["mnn", "nnn"]
-VIBY_II["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
-                                    rates = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)])
-VIBY_II["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)])
-VIBY_II["internalization"] = internalization(compartments = lambda system: system.compartments,
-                                          rates_effector = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)],
-                                          rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
+VIBY_II["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)]
+VIBY_II["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)]
+VIBY_II["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
+VIBY_II["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
 
 
 
@@ -419,8 +409,8 @@ def model(TCE, tumors, organs, connect_tumors = True):
     system.add_process(equilibrium([tumor["name"] for tumor in tumors], drugs))
   
   # mask cleavage
-  system.add_process(TCE["cleavage_plasma"])
-  system.add_process(TCE["cleavage_tumor"])
+  system.add_process(tranform(compartments = [central["name"] for central in centrals] + [organ["name"] for organ in system.organs], rates = TCE["cleavage_plasma"]))
+  system.add_process(tranform(compartments = [tumor["name"] for tumor in tumors], rates = TCE["cleavage_tumor"]))
   
   # target binding
   for drug in drugs:
@@ -468,7 +458,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
         system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
   
   # internalization
-  system.add_process(TCE["internalization"])
+  system.add_process(internalization(compartments = system.compartments, rates_effector = TCE["internalization_effector"], rates_target = TCE["internalization_target"]))
   
   # initial concentrations
   for central in centrals:
