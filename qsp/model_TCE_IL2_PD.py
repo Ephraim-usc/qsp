@@ -126,9 +126,9 @@ class PD:
         self.params["births_4"][index_compartment] = system.x[self.index["4"], index_compartment] * self.params["death_8"]
         self.params["births_nk"][index_compartment] = system.x[self.index["nk"], index_compartment] * self.params["death_8"]
       
-      self.params["marg_8"] = self.params["influx"] * system.x[self.index["8"], self.index_lymph] * system.x[self.index["8"], self.index_lymph] / (system.x[self.index["8"], self.index_plasma] * system.x[self.index["8"], self.index_plasma])
-      self.params["marg_4"] = self.params["influx"] * system.x[self.index["4"], self.index_lymph] * system.x[self.index["4"], self.index_lymph] / (system.x[self.index["4"], self.index_plasma] * system.x[self.index["4"], self.index_plasma])
-      self.params["marg_nk"] = self.params["influx"] * system.x[self.index["nk"], self.index_lymph] * system.x[self.index["nk"], self.index_lymph] / (system.x[self.index["nk"], self.index_plasma] * system.x[self.index["nk"], self.index_plasma])
+      self.params["marg_8"] = self.params["influx"] * system.V[self.index["8"], self.index_lymph] * system.x[self.index["8"], self.index_lymph] / (system.V[self.index["8"], self.index_plasma] * system.x[self.index["8"], self.index_plasma])
+      self.params["marg_4"] = self.params["influx"] * system.V[self.index["4"], self.index_lymph] * system.x[self.index["4"], self.index_lymph] / (system.V[self.index["4"], self.index_plasma] * system.x[self.index["4"], self.index_plasma])
+      self.params["marg_nk"] = self.params["influx"] * system.V[self.index["nk"], self.index_lymph] * system.x[self.index["nk"], self.index_lymph] / (system.V[self.index["nk"], self.index_plasma] * system.x[self.index["nk"], self.index_plasma])
     
     # body of the process
     index = self.index
@@ -166,7 +166,7 @@ class PD:
     marg_8 = hill(system.x[index["Rcomplexes_8"], self.index_plasma].sum() / system.x[index["8"], self.index_plasma], self.params["marg_EMAX_8"], self.params["marg_EC50_8"], self.params["marg_hill_8"])
     marg_4 = hill(system.x[index["Rcomplexes_4"], self.index_plasma].sum() / system.x[index["4"], self.index_plasma], self.params["marg_EMAX_4"], self.params["marg_EC50_4"], self.params["marg_hill_4"])
     marg_nk = hill(system.x[index["Rcomplexes_nk"], self.index_plasma].sum() / system.x[index["nk"], self.index_plasma], self.params["marg_EMAX_nk"], self.params["marg_EC50_nk"], self.params["marg_hill_nk"])
-
+    
     migration_8 = system.V[index["8"], self.index_lymph] * system.x[index["8"], self.index_lymph] * self.params["influx"] * t - system.V[index["8"], self.index_plasma] * system.x[index["8"], self.index_plasma] * self.params["marg_8"] * (1 + marg_8) * t
     migration_4 = system.V[index["4"], self.index_lymph] * system.x[index["4"], self.index_lymph] * self.params["influx"] * t - system.V[index["4"], self.index_plasma] * system.x[index["4"], self.index_plasma] * self.params["marg_4"] * (1 + marg_4) * t
     migration_nk = system.V[index["nk"], self.index_lymph] * system.x[index["nk"], self.index_lymph] * self.params["influx"] * t - system.V[index["nk"], self.index_plasma] * system.x[index["nk"], self.index_plasma] * self.params["marg_nk"] * (1 + marg_nk) * t
