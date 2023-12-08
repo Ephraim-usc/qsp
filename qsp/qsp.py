@@ -368,8 +368,8 @@ class System:
     print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\ntime in computing processes: {D:.8f}s\n", flush = True)
   
   def plot(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e-3, output = None):
-    if compartment is None:
-      compartment = self.compartments
+    if compartments is None:
+      compartments = self.compartments
     compartments = [self.compartments.index(compartment) for compartment in compartments]
     
     if groups is None:
