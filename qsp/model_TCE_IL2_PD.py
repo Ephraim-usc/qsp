@@ -209,29 +209,26 @@ class transform:
       Q[reactants, reactants] -= rate.number(1/units.h)
       Q[reactants, products] += rate.number(1/units.h)
     self.Q = Q
+
+    self.analyteses = []
+    self.analyteses.append(drugs)
+    for effector in effectors:
+      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
+    for target in targets:
+      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
+    for effector in effectors:
+      for target in targets:
+        self.analyteses.append([f"{effector}-{drug}-{target}" for drug in drugs])
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      
-      if callable(self.compartments):
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments(system) if compartment in system.compartments]
-      else:
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
-      
-      self.analyteses_ = []
-      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
-      for effector in effectors:
-        self.analyteses_.append([system.analytes.index(f"{effector}-{drug}") for drug in drugs])
-      for target in targets:
-        self.analyteses_.append([system.analytes.index(f"{drug}-{target}") for drug in drugs])
-      for effector in effectors:
-        for target in targets:
-          self.analyteses_.append([system.analytes.index(f"{effector}-{drug}-{target}") for drug in drugs])
+      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
+      self.indexeses = [[system.analytes.index(analyte) for analyte in _analytes] for _analytes in self.analyteses]
     
-    for compartment in self.compartments_:
-      for analytes_ in self.analyteses_:
-        system.x[analytes_, compartment] = system.x[analytes_, compartment] @ expm(self.Q * t.number(units.h))
+    for index_compartment in self.index_compartments:
+      for indexes in self.indexeses:
+        system.x[indexes, index_compartment] = system.x[indexes, index_compartment] @ expm(self.Q * t.number(units.h))
 
 
 class internalization:
