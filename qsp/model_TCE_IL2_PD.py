@@ -287,8 +287,8 @@ VIB.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * 
 VIB.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
 VIB.update({"avidity_effector": 19, "avidity_target": 19})
 VIB.update({"clearance": math.log(2)/(70 * units.h)})
-VIBX["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
-VIBX["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
+VIB["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
+VIB["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
 
 VIBX = VIB.copy(); VIBX["smalls"] = []
 VIBY = VIB.copy(); VIBY["smalls"] = ["mnn", "nnn"]
