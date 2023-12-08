@@ -409,8 +409,8 @@ def model(TCE, tumors, organs, connect_tumors = True):
     system.add_process(equilibrium([tumor["name"] for tumor in tumors], drugs))
   
   # mask cleavage
-  system.add_process(tranform(compartments = [central["name"] for central in centrals] + [organ["name"] for organ in system.organs], rates = TCE["cleavage_plasma"]))
-  system.add_process(tranform(compartments = [tumor["name"] for tumor in tumors], rates = TCE["cleavage_tumor"]))
+  system.add_process(transform(compartments = [central["name"] for central in centrals] + [organ["name"] for organ in system.organs], rates = TCE["cleavage_plasma"]))
+  system.add_process(transform(compartments = [tumor["name"] for tumor in tumors], rates = TCE["cleavage_tumor"]))
   
   # target binding
   for drug in drugs:
