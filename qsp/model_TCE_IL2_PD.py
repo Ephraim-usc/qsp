@@ -527,9 +527,10 @@ def plot(system, name):
   labels = ["effector", "target", "drug", "effector-drug", "drug-target", "effector-drug-target"]
   colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
   linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+  system.plot(groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
+  
+  system.plot(groups = [["8"], ["4"], ["nk"]], linthresh = 1e-6, output = f"{name}_cells.png")
   
   groups = [[analyte for analyte in analytes if re.search("[mn][mn][mn]", analyte)],
             [analyte for analyte in analytes if re.search("[n][mn][mn]", analyte)],
@@ -538,8 +539,7 @@ def plot(system, name):
   labels = ["(effector)-xxx-(target)", "(effector)-nxx-(target)", "(effector)-xnx-(target)", "(effector)-xxn-(target)",]
   colors = ["black", "tab:orange", "tab:red", "tab:blue"]
   linestyles = ["solid", "dashed", "dashed", "dashed"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+  system.plot(groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_drugs.png")
 
   '''
@@ -556,8 +556,7 @@ def plot(system, name):
   colors = ["tab:orange", "tab:blue", "tab:red", 
             "wheat", "skyblue", "tab:green", "pink", "wheat", "skyblue", "tab:green", "pink"]
   linestyles = ["solid", "solid", "solid", "dashed", "dashed", "dashed", "dashed", "solid", "solid", "solid", "solid"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+  system.plot(groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_effectors.png")
   '''
   
@@ -572,6 +571,5 @@ def plot(system, name):
   colors = ["tab:blue", "tab:red", 
             "skyblue", "pink", "tab:purple", "skyblue", "pink", "tab:purple"]
   linestyles = ["solid", "solid", "dashed", "dashed", "dashed", "solid", "solid", "solid"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+  system.plot(groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_targets.png")
