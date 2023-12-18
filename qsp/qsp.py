@@ -263,6 +263,9 @@ class System:
   def add_process(self, process):
     self.processes.append(process)
   
+  def add_cell(self, cell, initial_analytes, all_analytes):
+    
+  
   
   def get_x(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
@@ -295,6 +298,8 @@ class System:
   def add_z(self, variable, value):
     variable = self.variables.index(variable)
     self.z[variable] += value
+
+  
   
   def print(self):
     V = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
