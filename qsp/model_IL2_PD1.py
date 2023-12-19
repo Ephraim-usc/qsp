@@ -377,6 +377,7 @@ Treg["effectors"] = ["P", "R", "RR", "PR", "PRR"]
 Treg["initials"] = {"P": 30000, "R": 300}
 Treg["death"] = 0.01 / units.d
 Treg["alpha"] = True
+Treg["signals"] = {"PD1":["P", "PR", "PRR"], "IL2":["R", "RR", "PR", "PRR"]}
 
 
 nTh = {"name": "nTh"}
@@ -407,18 +408,17 @@ nTm["initials"] = {}
 nTm["death"] = 0.002 / units.d
 nTm["alpha"] = False
 
-
 aTm = {"name": "aTm"}
 aTm["markers"] = ["P", "R"]
 aTm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
 aTm["initials"] = {"P": 30000, "R": 1500}
 aTm["death"] = 0.01 / units.d
-aTm["alpha"] = False
+aTm["alpha"] = True
 
 Tm = {"name": "Tm"}
 Tm["markers"] = ["P", "R"]
 Tm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-Tm["initials"] = {"P": 30000, "R": 300}
+Tm["initials"] = {"P": 30000, "R": 1500}
 Tm["death"] = 0.01 / units.d
 Tm["alpha"] = False
 
