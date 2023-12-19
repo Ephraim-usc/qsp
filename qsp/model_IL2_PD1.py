@@ -365,83 +365,91 @@ other.update({"num_A": 10000, "num_B": 0})
 
 Treg = {"name": "Treg"}
 Treg["markers"] = ["P", "R"]
-Treg["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-Treg["chemicals"] = drugs
 Treg["initials"] = {"P": 30000, "R": 300}
+Treg["ligands"] = drugs
+Treg["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 Treg["death"] = 0.01 / units.d
 Treg["alpha"] = True
-Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 
 nTh = {"name": "nTh"}
 nTh["markers"] = []
-nTh["effectors"] = []
-nTh["chemicals"] = []
 nTh["initials"] = {}
+nTh["ligands"] = []
+nTh["bindings"] = []
+nTh["signals"] = {}
 nTh["death"] = 0.002 / units.d
 nTh["alpha"] = False
-nTh["signals"] = []
 
 aTh = {"name": "aTh"}
 aTh["markers"] = ["P", "R"]
-aTh["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-aTh["chemicals"] = drugs
 aTh["initials"] = {"P": 30000, "R": 300}
+aTh["ligands"] = drugs
+aTh["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+aTh["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 aTh["death"] = 0.01 / units.d
 aTh["alpha"] = False
 
-Th = {"name": "aTh"}
+Th = {"name": "Th"}
 Th["markers"] = ["P", "R"]
-Th["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-Th["chemicals"] = drugs
 Th["initials"] = {"P": 30000, "R": 300}
+Th["ligands"] = drugs
+Th["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+Th["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 Th["death"] = 0.01 / units.d
 Th["alpha"] = False
 
 nTm = {"name": "nTm"}
 nTm["markers"] = []
-nTm["effectors"] = []
-nTm["chemicals"] = drugs
 nTm["initials"] = {}
+nTm["ligands"] = []
+nTm["bindings"] = []
+nTm["signals"] = {}
 nTm["death"] = 0.002 / units.d
 nTm["alpha"] = False
 
 aTm = {"name": "aTm"}
 aTm["markers"] = ["P", "R"]
-aTm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-aTm["chemicals"] = drugs
 aTm["initials"] = {"P": 30000, "R": 1500}
+aTm["ligands"] = drugs
+aTm["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+aTm["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 aTm["death"] = 0.01 / units.d
 aTm["alpha"] = True
 
 Tm = {"name": "Tm"}
 Tm["markers"] = ["P", "R"]
-Tm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-Tm["chemicals"] = drugs
 Tm["initials"] = {"P": 30000, "R": 1500}
+Tm["ligands"] = drugs
+Tm["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+Tm["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 Tm["death"] = 0.01 / units.d
 Tm["alpha"] = False
 
 Teff = {"name": "Teff"}
 Teff["markers"] = ["P", "R"]
-Teff["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-Teff["chemicals"] = drugs
 Teff["initials"] = {"P": 30000, "R": 1500}
+Teff["ligands"] = drugs
+Teff["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+Teff["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 Teff["death"] = 0.01 / units.d
 Teff["alpha"] = True
 
 Tex = {"name": "Tex"}
 Tex["markers"] = ["P", "R"]
-Tex["effectors"] = ["P", "R", "RR", "PR", "PRR"]
-Tex["chemicals"] = drugs
 Tex["initials"] = {"P": 30000, "R": 1500}
+Tex["ligands"] = drugs
+Tex["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+Tex["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 Tex["death"] = 0.1 / units.d
 Tex["alpha"] = True
 
 NK = {"name": "NK"}
 NK["markers"] = ["R"]
-NK["effectors"] = ["R", "RR"]
-NK["chemicals"] = drugs
 NK["initials"] = {"R": 3000}
+NK["ligands"] = drugs
+NK["bindings"] = ["R", "RR"]
+NK["signals"] = {"IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 NK["death"] = 0.02 / units.d
 NK["alpha"] = True
 
