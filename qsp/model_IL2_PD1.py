@@ -4,12 +4,13 @@ import re
 ### this model is mostly from ...
 
 cells = ["Treg", "nTh", "aTh", "Th", "nTm", "aTm", "Tm", "Teff", "Tex", "NK"]
-effectors = [["P", "R", "RR", "PR", "PRR"]]
-antigens_effector = [f"{cell}:{effector}" for cell in cells for effector in ["P", "R"]]
-drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]]
-dimers = [f"{cell}:{effector}-{drug}" for cell in cells for effector in effectors for drug in drugs]
-analytes = drugs + antigens_effector + dimers
+markers = ["P", "R"] # PD-1 and IL-2R
+effectors = ["P", "R", "RR", "PR", "PRR"]
 
+drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]]
+monomers = [f"{cell}:{marker}" for cell in cells for marker in markers]
+dimers = [f"{cell}:{effector}-{drug}" for cell in cells for effector in effectors for drug in drugs]
+analytes = drugs + monomers + dimers
 
 
 ############ constants ############
@@ -366,6 +367,81 @@ other.update({"plasma_flow": 100000 * units.ml/units.h, "lymphatic_flow_ratio": 
 other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 other.update({"num_cell": 1e13 * 0.5, "num_8": 1.1E+10 * 0.33, "num_4": 1.1E+10 * 0.67, "num_nk": 3.1E+09})
 other.update({"num_A": 10000, "num_B": 0})
+
+
+############ cells ############
+
+Treg = {"name": "Treg"}
+Treg["markers"] = ["P", "R"]
+Treg["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Treg["initials"] = {"P": 30000, "R": 300}
+Treg["death"] = 0.01 / units.d
+Treg["alpha"] = True
+
+
+nTh = {"name": "nTh"}
+nTh["markers"] = []
+nTh["effectors"] = []
+nTh["initials"] = {}
+nTh["death"] = 0.002 / units.d
+nTh["alpha"] = False
+
+aTh = {"name": "aTh"}
+aTh["markers"] = ["P", "R"]
+aTh["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+aTh["initials"] = {"P": 30000, "R": 300}
+aTh["death"] = 0.01 / units.d
+aTh["alpha"] = False
+
+Th = {"name": "aTh"}
+Th["markers"] = ["P", "R"]
+Th["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Th["initials"] = {"P": 30000, "R": 300}
+Th["death"] = 0.01 / units.d
+Th["alpha"] = False
+
+nTm = {"name": "nTm"}
+nTm["markers"] = []
+nTm["effectors"] = []
+nTm["initials"] = {}
+nTm["death"] = 0.002 / units.d
+nTm["alpha"] = False
+
+
+aTm = {"name": "aTm"}
+aTm["markers"] = ["P", "R"]
+aTm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+aTm["initials"] = {"P": 30000, "R": 1500}
+aTm["death"] = 0.01 / units.d
+aTm["alpha"] = False
+
+Tm = {"name": "Tm"}
+Tm["markers"] = ["P", "R"]
+Tm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Tm["initials"] = {"P": 30000, "R": 300}
+Tm["death"] = 0.01 / units.d
+Tm["alpha"] = False
+
+Teff = {"name": "Teff"}
+Teff["markers"] = ["P", "R"]
+Teff["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Teff["initials"] = {"P": 30000, "R": 1500}
+Teff["death"] = 0.01 / units.d
+Teff["alpha"] = True
+
+Tex = {"name": "Tex"}
+Tex["markers"] = ["P", "R"]
+Tex["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Tex["initials"] = {"P": 30000, "R": 1500}
+Tex["death"] = 0.1 / units.d
+Tex["alpha"] = True
+
+NK = {"name": "NK"}
+NK["markers"] = ["R"]
+NK["effectors"] = ["R", "RR"]
+NK["initials"] = {"R": 3000}
+NK["death"] = 0.02 / units.d
+NK["alpha"] = True
 
 
 ############ model ############
