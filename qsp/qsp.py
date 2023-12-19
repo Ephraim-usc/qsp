@@ -190,18 +190,19 @@ class RS: # reaction system
 
 class System:
   def __init__(self, analytes, compartments, variables = None, cells = None):
-    analytes = analytes + [cell["name"] + f":{binding}-{ligand}" for cell in cells for ligand in cell["ligands"] for binding in cell["bindings"]]
+    variables = [] if variables is None else variables
+    cells = [] if cells is None else cells
     
+    analytes = analytes + [cell["name"] + f":{binding}-{ligand}" for cell in cells for ligand in cell["ligands"] for binding in cell["bindings"]]
     self.analytes = analytes
     self.n_analytes = len(analytes)
+    
     self.compartments = compartments
     self.n_compartments = len(compartments)
     
-    variables = [] if variables is None else variables
     self.variables = variables
     self.n_variables = len(variables)
     
-    cells = [] if cells is None else cells
     self.cells = cells
     self.n_cells = len(cells)
     
@@ -277,9 +278,6 @@ class System:
   
   def add_process(self, process):
     self.processes.append(process)
-  
-  def add_cell(self, cell, initial_analytes, all_analytes):
-    
   
   
   def get_x(self, analyte, compartment):
