@@ -225,7 +225,7 @@ class System:
       for signal_name, signal_definition in cell["signals"].items():
         definition = {cell["name"] + f":{key}-{ligand}":value for ligand in cell["ligands"] for key, value in signal_definition.items()}
         self.signal_definitions[cell["name"]][signal_name] = dict2array(definition, self.analytes, dtype = float)
-        self.signal_values[cell["name"]][signal_name] = np.zeros(nself.n_compartments, dtype = float)
+        self.signal_values[cell["name"]][signal_name] = np.zeros(self.n_compartments, dtype = float)
     
     self.history = []
   
