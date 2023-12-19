@@ -9,13 +9,6 @@ drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]] + ["IL2"]
 
 molecular_weight = 150000 * units.g/units.mol
 
-num_C_8 = 124000
-num_C_4 = 124000
-num_R_8 = 1500
-num_R_4 = 300
-num_R_nk = 3000
-
-
 def hill(x, EMAX, EC50, coef):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
 
@@ -181,9 +174,8 @@ class PD:
     system.x[index["all_8"], self.index_lymph] -= migration_all_8 / system.V[index["all_8"], self.index_lymph]
     system.x[index["all_4"], self.index_lymph] -= migration_all_4 / system.V[index["all_4"], self.index_lymph]
     system.x[index["all_nk"], self.index_lymph] -= migration_all_nk / system.V[index["all_nk"], self.index_lymph]
-    
-    
-  
+
+
 
 ############ drug ############
 
