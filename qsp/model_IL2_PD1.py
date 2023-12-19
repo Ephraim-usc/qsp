@@ -377,7 +377,7 @@ Treg["effectors"] = ["P", "R", "RR", "PR", "PRR"]
 Treg["initials"] = {"P": 30000, "R": 300}
 Treg["death"] = 0.01 / units.d
 Treg["alpha"] = True
-Treg["signals"] = {"PD1":["P", "PR", "PRR"], "IL2":["R", "RR", "PR", "PRR"]}
+Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 
 
 nTh = {"name": "nTh"}
