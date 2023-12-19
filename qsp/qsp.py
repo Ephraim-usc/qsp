@@ -220,8 +220,8 @@ class System:
     self.signal_definitions = {}
     self.signal_values = {}
     for cell in self.cells:
-      self.signals_definitions[cell["name"]] = {}
-      self.signals_values[cell["name"]] = {}
+      self.signal_definitions[cell["name"]] = {}
+      self.signal_values[cell["name"]] = {}
       for signal_name, signal_definition in cell["signals"].items():
         definition = {cell["name"] + f":{key}-{ligand}":value for ligand in cell["ligands"] for key, value in signal_definition.items()}
         self.signal_definitions[cell["name"]][signal_name] = dict2array(definition, self.analytes, dtype = float)
