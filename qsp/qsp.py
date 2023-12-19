@@ -212,7 +212,15 @@ class System:
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
     self.z = np.zeros(self.n_variables, dtype = float) # any object
-    self.c = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
+    self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # in units.nM
+    
+    self.signals = {}
+    for cell in self.cells:
+      self.signals[cell["name"]] = {}
+      for signal, key in cell["signals"].items():
+        self.signals[cell["name"]][signal]["key"] = dict2array(key, self.analytes, dtype = float)
+        self.signals[cell["name"]][signal]["value"] = np.zeros(nself.n_compartments, dtype = float)
+    
     self.history = []
   
   def get_volume(self, analyte, compartment):
