@@ -3,15 +3,7 @@ import re
 
 ### this model is mostly from ...
 
-cells = ["Treg", "nTh", "aTh", "Th", "nTm", "aTm", "Tm", "Teff", "Tex", "NK"]
-markers = ["P", "R"] # PD-1 and IL-2R
-effectors = ["P", "R", "RR", "PR", "PRR"]
-
-drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]]
-monomers = [f"{cell}:{marker}" for cell in cells for marker in markers]
-dimers = [f"{cell}:{effector}-{drug}" for cell in cells for effector in effectors for drug in drugs]
-analytes = drugs + monomers + dimers
-
+drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]] + ["IL2"]
 
 ############ constants ############
 
@@ -374,6 +366,7 @@ other.update({"num_A": 10000, "num_B": 0})
 Treg = {"name": "Treg"}
 Treg["markers"] = ["P", "R"]
 Treg["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Treg["chemicals"] = drugs
 Treg["initials"] = {"P": 30000, "R": 300}
 Treg["death"] = 0.01 / units.d
 Treg["alpha"] = True
@@ -382,13 +375,16 @@ Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1,
 nTh = {"name": "nTh"}
 nTh["markers"] = []
 nTh["effectors"] = []
+nTh["chemicals"] = []
 nTh["initials"] = {}
 nTh["death"] = 0.002 / units.d
 nTh["alpha"] = False
+nTh["signals"] = []
 
 aTh = {"name": "aTh"}
 aTh["markers"] = ["P", "R"]
 aTh["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+aTh["chemicals"] = drugs
 aTh["initials"] = {"P": 30000, "R": 300}
 aTh["death"] = 0.01 / units.d
 aTh["alpha"] = False
@@ -396,6 +392,7 @@ aTh["alpha"] = False
 Th = {"name": "aTh"}
 Th["markers"] = ["P", "R"]
 Th["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Th["chemicals"] = drugs
 Th["initials"] = {"P": 30000, "R": 300}
 Th["death"] = 0.01 / units.d
 Th["alpha"] = False
@@ -403,6 +400,7 @@ Th["alpha"] = False
 nTm = {"name": "nTm"}
 nTm["markers"] = []
 nTm["effectors"] = []
+nTm["chemicals"] = drugs
 nTm["initials"] = {}
 nTm["death"] = 0.002 / units.d
 nTm["alpha"] = False
@@ -410,6 +408,7 @@ nTm["alpha"] = False
 aTm = {"name": "aTm"}
 aTm["markers"] = ["P", "R"]
 aTm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+aTm["chemicals"] = drugs
 aTm["initials"] = {"P": 30000, "R": 1500}
 aTm["death"] = 0.01 / units.d
 aTm["alpha"] = True
@@ -417,6 +416,7 @@ aTm["alpha"] = True
 Tm = {"name": "Tm"}
 Tm["markers"] = ["P", "R"]
 Tm["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Tm["chemicals"] = drugs
 Tm["initials"] = {"P": 30000, "R": 1500}
 Tm["death"] = 0.01 / units.d
 Tm["alpha"] = False
@@ -424,6 +424,7 @@ Tm["alpha"] = False
 Teff = {"name": "Teff"}
 Teff["markers"] = ["P", "R"]
 Teff["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Teff["chemicals"] = drugs
 Teff["initials"] = {"P": 30000, "R": 1500}
 Teff["death"] = 0.01 / units.d
 Teff["alpha"] = True
@@ -431,6 +432,7 @@ Teff["alpha"] = True
 Tex = {"name": "Tex"}
 Tex["markers"] = ["P", "R"]
 Tex["effectors"] = ["P", "R", "RR", "PR", "PRR"]
+Tex["chemicals"] = drugs
 Tex["initials"] = {"P": 30000, "R": 1500}
 Tex["death"] = 0.1 / units.d
 Tex["alpha"] = True
@@ -438,6 +440,7 @@ Tex["alpha"] = True
 NK = {"name": "NK"}
 NK["markers"] = ["R"]
 NK["effectors"] = ["R", "RR"]
+NK["chemicals"] = drugs
 NK["initials"] = {"R": 3000}
 NK["death"] = 0.02 / units.d
 NK["alpha"] = True
@@ -449,7 +452,7 @@ cells = [Treg, nTh, aTh, Th, nTm, aTm, Tm, Teff, Tex, NK]
 def model(TCE, tumors, organs, connect_tumors = True):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
-  system = System(analytes, compartments, cells = cells)
+  system = System(drugs, compartments, cells = cells)
   system.centrals = [plasma, lymph]
   system.tumors = tumors
   system.organs = organs
