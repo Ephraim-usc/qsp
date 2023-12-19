@@ -449,7 +449,7 @@ NK["markers"] = ["R"]
 NK["initials"] = {"R": 3000}
 NK["ligands"] = drugs
 NK["bindings"] = ["R", "RR"]
-NK["signals"] = {"IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
+NK["signals"] = {"IL2":{"R":1, "RR":2}}
 NK["death"] = 0.02 / units.d
 NK["alpha"] = True
 
