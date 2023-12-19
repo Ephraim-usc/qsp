@@ -220,9 +220,10 @@ class System:
     self.signals = {}
     for cell in self.cells:
       self.signals[cell["name"]] = {}
-      for signal, key in cell["signals"].items():
-        self.signals[cell["name"]][signal]["key"] = dict2array(key, self.analytes, dtype = float)
-        self.signals[cell["name"]][signal]["value"] = np.zeros(nself.n_compartments, dtype = float)
+      for signal_name, signal_definition in cell["signals"].items():
+        definition = {cell["name"] + f":{key}-{ligand}":value for ligand in cell["ligands"] for key, value in signal_definition.items()}
+        self.signals[cell["name"]][signal_name]["definition"] = dict2array(definition, self.analytes, dtype = float)
+        self.signals[cell["name"]][signal_name]["values"] = np.zeros(nself.n_compartments, dtype = float)
     
     self.history = []
   
