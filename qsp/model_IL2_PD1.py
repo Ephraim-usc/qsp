@@ -379,7 +379,6 @@ Treg["death"] = 0.01 / units.d
 Treg["alpha"] = True
 Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
 
-
 nTh = {"name": "nTh"}
 nTh["markers"] = []
 nTh["effectors"] = []
@@ -443,13 +442,14 @@ NK["initials"] = {"R": 3000}
 NK["death"] = 0.02 / units.d
 NK["alpha"] = True
 
+cells = [Treg, nTh, aTh, Th, nTm, aTm, Tm, Teff, Tex, NK]
 
 ############ model ############
 
 def model(TCE, tumors, organs, connect_tumors = True):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
-  system = System(analytes, compartments)
+  system = System(analytes, compartments, cells = cells)
   system.centrals = [plasma, lymph]
   system.tumors = tumors
   system.organs = organs
