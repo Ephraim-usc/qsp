@@ -190,6 +190,8 @@ class RS: # reaction system
 
 class System:
   def __init__(self, analytes, compartments, variables = None, cells = None):
+    analytes = analytes + [cell["name"] + f":{binding}-{ligand}" for cell in cells for ligand in cell["ligands"] for binding in cell["bindings"]]
+    
     self.analytes = analytes
     self.n_analytes = len(analytes)
     self.compartments = compartments
