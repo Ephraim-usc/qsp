@@ -217,13 +217,15 @@ class System:
     self.z = np.zeros(self.n_variables, dtype = float) # any object
     self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # in units.nM
     
-    self.signals = {}
+    self.signal_definitions = {}
+    self.signal_values = {}
     for cell in self.cells:
-      self.signals[cell["name"]] = {}
+      self.signals_definitions[cell["name"]] = {}
+      self.signals_values[cell["name"]] = {}
       for signal_name, signal_definition in cell["signals"].items():
         definition = {cell["name"] + f":{key}-{ligand}":value for ligand in cell["ligands"] for key, value in signal_definition.items()}
-        self.signals[cell["name"]][signal_name]["definition"] = dict2array(definition, self.analytes, dtype = float)
-        self.signals[cell["name"]][signal_name]["values"] = np.zeros(nself.n_compartments, dtype = float)
+        self.signal_definitions[cell["name"]][signal_name] = dict2array(definition, self.analytes, dtype = float)
+        self.signal_values[cell["name"]][signal_name] = np.zeros(nself.n_compartments, dtype = float)
     
     self.history = []
   
