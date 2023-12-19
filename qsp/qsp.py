@@ -189,7 +189,7 @@ class RS: # reaction system
 
 
 class System:
-  def __init__(self, analytes, compartments, variables = None):
+  def __init__(self, analytes, compartments, variables = None, cells = None):
     self.analytes = analytes
     self.n_analytes = len(analytes)
     self.compartments = compartments
@@ -198,6 +198,10 @@ class System:
     variables = [] if variables is None else variables
     self.variables = variables
     self.n_variables = len(variables)
+    
+    cells = [] if cells is None else cells
+    self.cells = cells
+    self.n_cells = len(cells)
     
     self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.ml
     self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # in 1/units.h
@@ -208,6 +212,7 @@ class System:
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
     self.z = np.zeros(self.n_variables, dtype = float) # any object
+    self.c = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
     self.history = []
   
   def get_volume(self, analyte, compartment):
