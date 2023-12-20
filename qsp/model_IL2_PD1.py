@@ -2,6 +2,70 @@ from .qsp import *
 import itertools
 from sympy import Symbol
 
+############ constants ############
+
+molecular_weight = 150000 * units.g/units.mol
+
+def hill(x, EMAX, EC50, coef):
+  return EMAX * (x**coef) / (x**coef + EC50**coef)
+
+class equilibrium:
+  def __init__(self, compartments, analytes):
+    self.system = None
+    self.compartments = compartments
+    self.analytes = analytes
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      
+      self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments]
+      self.analytes_ = [system.analytes.index(analyte) for analyte in self.analytes]
+    
+    for analyte_ in self.analytes_:
+      x = system.x[analyte_, self.compartments_]
+      volumes = system.V[analyte_, self.compartments_]
+      system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
+
+class transform:
+  def __init__(self, compartments, rates):
+    self.system = None
+    self.compartments = compartments
+    
+    Q = np.zeros([len(drugs), len(drugs)])
+    for reactant, product, rate in rates:
+      reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
+      products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
+      Q[reactants, reactants] -= rate.number(1/units.h)
+      Q[reactants, products] += rate.number(1/units.h)
+    self.Q = Q
+    
+    self.analyteses = []
+    self.analyteses.append(drugs)
+    for effector in effectors:
+      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
+    for target in targets:
+      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
+    for effector in effectors:
+      for target in targets:
+        self.analyteses.append([f"{effector}-{drug}-{target}" for drug in drugs])
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
+      self.indexeses = [[system.analytes.index(analyte) for analyte in _analytes] for _analytes in self.analyteses]
+    
+    for index_compartment in self.index_compartments:
+      for indexes in self.indexeses:
+        system.x[indexes, index_compartment] = system.x[indexes, index_compartment] @ expm(self.Q * t.number(units.h))
+
+
+
+
+
+
+
 class Signal:
   def __init__(self):
     self.dict = {}
