@@ -5,6 +5,15 @@ import re
 
 drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]] + ["IL2"]
 
+X = 
+
+class ligand:
+  def __init__(self, n_sites, site_states):
+    self.n_sites = n_sites
+    self.site_states = site_states
+
+
+
 ############ constants ############
 
 molecular_weight = 150000 * units.g/units.mol
