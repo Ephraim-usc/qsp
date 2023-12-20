@@ -15,7 +15,7 @@ signal = Signal()
 
 
 class Ligand:
-  def __init__(self, name, n_sites, site_states, targets, transforming = False):
+  def __init__(self, name, n_sites, site_states, targets, smalls = None):
     self.name = name
     self.n_sites = n_sites
     self.site_states = site_states
@@ -24,8 +24,8 @@ class Ligand:
     self.targets = targets
     
     self.V = np.ones([self.n_sites, self.n_sites]) # avidity
-    if transforming:
-      self.Q = np.zeros([self.n_states, self.n_states], dtype = object)
+    self.Q = np.zeros([self.n_states, self.n_states], dtype = object) # transforming matrix
+    self.smalls = smalls if smalls is not None else [] # states that are small molecules
   
   def set_avidity(self, site_A, site_B, avidity, symmetric = True):
     self.V[site_A, site_B] = avidity
@@ -57,12 +57,11 @@ class Ligand:
 X = Ligand(name = "X", 
            n_sites = 3, 
            site_states = [["n"], ["m", "n"], ["m", "n"]], 
-           targets = [["PD1"], ["IL2Rαβγ", "IL2Rβγ"], ["IL2Rαβγ", "IL2Rβγ"]], 
-           transforming = True)
+           targets = [["P"], ["α", "R"], ["α", "R"]])
 X.add_transform(1, "m", "n", signal["enzyme"] * 0.01/units.h)
 X.add_transform(2, "m", "n", signal["enzyme"] * 0.01/units.h)
 
-IL2 = Ligand("IL2", 1, [["n"]], [["IL2Rαβγ", "IL2Rβγ"]])
+IL2 = Ligand("IL2", 1, [["n"]], [["α", "R"]], smalls = ["n"])
 
 
 class Cell:
@@ -74,16 +73,16 @@ class Cell:
     self.death = death.number(1/units.h) if death is not None else None
     self.prolif = prolif.number(1/units.h) if prolif is not None else None
 
-Treg = Cell("Treg", ["PD1", "IL2Rαβγ"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
 nTh = Cell("nTh", [], [], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
-aTh = Cell("aTh", ["PD1", "IL2Rβγ"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Th = Cell("Th", ["PD1", "IL2Rβγ"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+aTh = Cell("aTh", ["P", "R"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Th = Cell("Th", ["P", "R"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
 nTm = Cell("nTm", [], [], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
-aTm = Cell("aTm", ["PD1", "IL2Rαβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Tm = Cell("Tm", ["PD1", "IL2Rβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Teff = Cell("Teff", ["PD1", "IL2Rαβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Tex = Cell("Tex", ["PD1", "IL2Rαβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
-NK = Cell("NK", ["IL2Rαβγ"], [30000, 3000], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
+aTm = Cell("aTm", ["P", "α"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Tm = Cell("Tm", ["P", "R"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
+NK = Cell("NK", ["α"], [30000, 3000], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
 
 
 
@@ -96,8 +95,14 @@ ligands = [X, IL2]
 
 analytes_markers = [f"{cell.name}:{marker}" for cell in cells for marker in cell.markers]
 analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in ligand.states]
+analytes_dimers = []
+for cell in cells:
+  for ligand in ligands:
+    targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in ligand.targets]
+    complexes = ["".join(complex) for complex in itertools.product(*targets_in_markers)][1:] # remove the non-binding complex
+    analytes_dimers += [f"{cell.name}:{complex}-{ligand.name}:{state}" for state in ligand.states for complex in complexes]
 
-analytes = 
+analytes = analytes_ligands + analytes_markers + analytes_dimers
 
 
 
