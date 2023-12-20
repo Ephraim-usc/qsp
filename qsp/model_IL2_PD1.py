@@ -15,13 +15,14 @@ signal = Signal()
 
 
 class Ligand:
-  def __init__(self, name, n_sites, site_states, targets, smalls = None):
+  def __init__(self, name, n_sites, site_states, targets, clearance, smalls = None):
     self.name = name
     self.n_sites = n_sites
     self.site_states = site_states
     self.states = ["".join(tmp) for tmp in itertools.product(*site_states)]
     self.n_states = len(self.states)
     self.targets = targets
+    self.clearance = clearance.number(1/units.h)
     
     self.V = np.ones([self.n_sites, self.n_sites]) # avidity
     self.Q = np.zeros([self.n_states, self.n_states], dtype = object) # transforming matrix
@@ -57,11 +58,12 @@ class Ligand:
 X = Ligand(name = "X", 
            n_sites = 3, 
            site_states = [["n"], ["m", "n"], ["m", "n"]], 
-           targets = [["P"], ["α", "R"], ["α", "R"]])
+           targets = [["P"], ["α", "R"], ["α", "R"]],
+           clearance = math.log(2)/(70 * units.h))
 X.add_transform(1, "m", "n", signal["enzyme"] * 0.01/units.h)
 X.add_transform(2, "m", "n", signal["enzyme"] * 0.01/units.h)
 
-IL2 = Ligand("IL2", 1, [["n"]], [["α", "R"]], smalls = ["n"])
+IL2 = Ligand("IL2", 1, [["n"]], [["α", "R"]], math.log(2)/(70 * units.h), smalls = ["n"])
 
 
 class Cell:
@@ -124,9 +126,11 @@ for analyte in analytes:
 
 # whole-body clearance
 for compartment in compartments:
-  for drug in drugs:
-    system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
-  
+  for ligand in ligands:
+    for state in ligand.states:
+      analyte = f"{ligand.name}:{state}"
+      system.add_flow(analyte, compartment, None, system.get_volume(analyte, compartment) * ligand.clearance / units.h)
+
 # small forms plasma clearance
 for small in TCE["smalls"]:
   system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
