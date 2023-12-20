@@ -2,7 +2,16 @@ from .qsp import *
 import itertools
 from sympy import Symbol
 
-signals = {}
+class Signal:
+  def __init__(self):
+    self.dict = {}
+  
+  def __getitem__(self, key):
+    if key not in self.dict: 
+      self.dict[key] = Symbol(key)
+    return self.dict[key]
+
+signal = Signal()
 
 
 class Ligand:
@@ -45,17 +54,15 @@ class Ligand:
     print(Q)
 
 
-enzyme = Symbol("enzyme")
-
 X = Ligand(name = "X", 
            n_sites = 3, 
            site_states = [["n"], ["m", "n"], ["m", "n"]], 
            targets = [["PD1"], ["IL2Rαβγ", "IL2Rβγ"], ["IL2Rαβγ", "IL2Rβγ"]], 
            transforming = True)
-X.add_transform(1, "m", "n", enzyme * 0.01/units.h)
-X.add_transform(2, "m", "n", enzyme * 0.01/units.h)
+X.add_transform(1, "m", "n", signal["enzyme"] * 0.01/units.h)
+X.add_transform(2, "m", "n", signal["enzyme"] * 0.01/units.h)
 
-IL2 = Ligand(1, [["n"]])
+IL2 = Ligand("IL2", 1, [["n"]], [["IL2Rαβγ", "IL2Rβγ"]])
 
 
 class Cell:
@@ -67,18 +74,38 @@ class Cell:
     self.death = death.number(1/units.h) if death is not None else None
     self.prolif = prolif.number(1/units.h) if prolif is not None else None
 
-Treg = Cell("Treg", ["PD1", "IL2Rαβγ"], [30000, 300], birth = is_tumor * 1 * units.nM/units.d, death = 0.01 / units.d)
+Treg = Cell("Treg", ["PD1", "IL2Rαβγ"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+nTh = Cell("nTh", [], [], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
+aTh = Cell("aTh", ["PD1", "IL2Rβγ"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Th = Cell("Th", ["PD1", "IL2Rβγ"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+nTm = Cell("nTm", [], [], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
+aTm = Cell("aTm", ["PD1", "IL2Rαβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Tm = Cell("Tm", ["PD1", "IL2Rβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Teff = Cell("Teff", ["PD1", "IL2Rαβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Tex = Cell("Tex", ["PD1", "IL2Rαβγ"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
+NK = Cell("NK", ["IL2Rαβγ"], [30000, 3000], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
 
 
 
-Treg = {"name": "Treg"}
-Treg["markers"] = ["P", "R"]
-Treg["initials"] = {"P": 30000, "R": 300}
-Treg["ligands"] = drugs
-Treg["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-Treg["death"] = 0.01 / units.d
-Treg["alpha"] = True
+
+
+def PDSystem(centrals, organs, tumors, cells, ligands):
+  
+cells = [Treg, nTh, aTh, Th, nTm, aTm, Tm, Teff, Tex, NK]
+ligands = [X, IL2]
+
+analytes_markers = [f"{cell.name}:{marker}" for cell in cells for marker in cell.markers]
+analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in ligand.states]
+
+analytes = 
+
+
+
+
+
+
+
+
 
 
 
