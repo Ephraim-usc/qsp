@@ -40,7 +40,8 @@ class Ligand:
     print(Q)
 
 X = Ligand(3, [["n"], ["m", "n"], ["m", "n"]], True)
-X.add_transform(1, "m", "n", 0.2/units.h)
+X.add_transform(1, "m", "n", 0.05/units.h)
+X.add_transform(2, "m", "n", 0.05/units.h)
 
 
 ############ constants ############
