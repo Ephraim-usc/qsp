@@ -1,5 +1,7 @@
 from .qsp import *
-import re
+import itertools
+from sympy import symbols
+s1, s2, s3, s4, s5 = symbols("s1 s2 s3 s4 s5")
 
 ### this model is mostly from ...
 
@@ -7,16 +9,25 @@ drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]] + ["IL2"]
 
 X = 
 
-import itertools
+
 
 class Ligand:
-  def __init__(self, n_sites, site_states, transforming = False):
+  def __init__(self, name, n_sites, site_states, targets, transforming = False):
+    self.name = name
     self.n_sites = n_sites
     self.site_states = site_states
     self.states = ["".join(tmp) for tmp in itertools.product(*site_states)]
     self.n_states = len(self.states)
+    self.targets = targets
+    
+    self.V = np.ones([self.n_sites, self.n_sites]) # avidity
     if transforming:
-      self.Q = np.zeros([self.n_states, self.n_states])
+      self.Q = np.zeros([self.n_states, self.n_states], dtype = object)
+  
+  def set_avidity(self, site_A, site_B, avidity, symmetric = True):
+    self.V[site_A, site_B] = avidity
+    if symmetric:
+      self.V[site_B, site_A] = avidity
   
   def add_transform(self, sites, state_from, state_to, rate):
     if type(sites) is not list:
@@ -39,10 +50,37 @@ class Ligand:
     Q = pd.DataFrame(self.Q, index = self.states, columns = self.states)
     print(Q)
 
-X = Ligand(3, [["n"], ["m", "n"], ["m", "n"]], True)
-X.add_transform(1, "m", "n", 0.05/units.h)
-X.add_transform(2, "m", "n", 0.05/units.h)
+X = Ligand(name = "X", 
+           n_sites = 3, 
+           sites_states = [["n"], ["m", "n"], ["m", "n"]], 
+           targets = [["PD1"], ["IL2Rαβγ", "IL2Rβγ"], ["IL2Rαβγ", "IL2Rβγ"]], 
+           transforming = True)
+X.add_transform(1, "m", "n", s1 * 0.01/units.h)
+X.add_transform(2, "m", "n", s1 * 0.01/units.h)
 
+IL2 = Ligand(1, [["n"]])
+
+
+class Cell:
+  def __init__(self, name, markers, initials):
+    self.name = name
+    self.markers = markers
+    self.initials = initials
+
+
+Treg = Cell("Treg", ["PD1", "IL2Rαβγ"], [30000, 300])
+
+
+Treg = {"name": "Treg"}
+Treg["markers"] = ["P", "R"]
+Treg["initials"] = {"P": 30000, "R": 300}
+Treg["ligands"] = drugs
+Treg["bindings"] = ["P", "R", "RR", "PR", "PRR"]
+Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
+Treg["death"] = 0.01 / units.d
+Treg["alpha"] = True
+
+    
 
 ############ constants ############
 
