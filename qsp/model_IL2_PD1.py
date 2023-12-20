@@ -125,29 +125,35 @@ for analyte in analytes:
     system.set_volume(analyte, organ["name"], organ["volume_interstitial"])
 
 # whole-body clearance
-for compartment in compartments:
-  for ligand in ligands:
-    for state in ligand.states:
-      analyte = f"{ligand.name}:{state}"
-      system.add_flow(analyte, compartment, None, system.get_volume(analyte, compartment) * ligand.clearance / units.h)
+for analyte in analytes_ligands:
+  analyte = f"{ligand.name}:{state}"
+  system.add_flow(analyte, compartment, None, system.get_volume(analyte, compartment) * ligand.clearance / units.h)
 
 # small forms plasma clearance
-for small in TCE["smalls"]:
-  system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
+for ligand in ligands:
+  for state in ligand.smalls:
+    analyte = f"{ligand.name}:{state}"
+    system.add_flow(analyte, "plasma", None, system.get_volume(analyte, compartment) * math.log(2)/(45 * units.MIN))
 
+for analyte in analytes_ligands:
+  # drug tumor flow
+  for tumor in tumors:
+    system.add_flow(analyte, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+    system.add_flow(analyte, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+  
+  # drug organ flow
+  for organ in organs:
+    system.add_flow(analyte, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
+    system.add_flow(analyte, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+    system.add_flow(analyte, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
 
-  for drug in drugs:
-    # drug tumor flow
-    for tumor in tumors:
-      system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-      system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-    
-    # drug organ flow
-    for organ in organs:
-      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
-      system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
-      system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+# exchange ligands between tumors if tumors are connected
+if connect_tumors:
+  system.add_process(equilibrium([tumor["name"] for tumor in tumors], analytes_ligands))
 
+# mask cleavage
+system.add_process(transform(compartments = [central["name"] for central in centrals] + [organ["name"] for organ in system.organs], rates = TCE["cleavage_plasma"]))
+system.add_process(transform(compartments = [tumor["name"] for tumor in tumors], rates = TCE["cleavage_tumor"]))
 
 
 
