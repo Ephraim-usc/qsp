@@ -88,8 +88,10 @@ NK = Cell("NK", ["α"], [30000, 3000], birth = signal["tumor"] * 1 * units.nM/un
 
 
 
-def PDSystem(centrals, organs, tumors, cells, ligands):
-  
+def PDSystem(organs, tumors, cells, ligands):
+
+organs = [bone, lung]
+tumors = [UT44]
 cells = [Treg, nTh, aTh, Th, nTm, aTm, Tm, Teff, Tex, NK]
 ligands = [X, IL2]
 
@@ -105,11 +107,42 @@ for cell in cells:
 analytes = analytes_ligands + analytes_markers + analytes_dimers
 
 
+centrals = [plasma, lymph]
+compartments = [organ["name"] for organ in centrals + tumors + organs]
+system = System(analytes, compartments)
+system.centrals = [plasma, lymph]
+system.tumors = tumors
+system.organs = organs
+
+for analyte in analytes:
+  for central in centrals:
+    system.set_volume(analyte, central["name"], central["volume"])
+  for tumor in tumors:
+    system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
+  for organ in organs:
+    system.set_volume(analyte, organ["name"], organ["volume_interstitial"])
+
+# whole-body clearance
+for compartment in compartments:
+  for drug in drugs:
+    system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
+  
+# small forms plasma clearance
+for small in TCE["smalls"]:
+  system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
 
 
-
-
-
+  for drug in drugs:
+    # drug tumor flow
+    for tumor in tumors:
+      system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+      system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+    
+    # drug organ flow
+    for organ in organs:
+      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
+      system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+      system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
 
 
 
