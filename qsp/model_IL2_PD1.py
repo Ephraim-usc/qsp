@@ -7,11 +7,40 @@ drugs = [f"{r1}{r2}" for r1 in ["m", "n"] for r2 in ["m", "n"]] + ["IL2"]
 
 X = 
 
-class ligand:
-  def __init__(self, n_sites, site_states):
+import itertools
+
+class Ligand:
+  def __init__(self, n_sites, site_states, transforming = False):
     self.n_sites = n_sites
     self.site_states = site_states
+    self.states = ["".join(tmp) for tmp in itertools.product(*site_states)]
+    self.n_states = len(self.states)
+    if transforming:
+      self.Q = np.zeros([self.n_states, self.n_states])
+  
+  def add_transform(self, sites, state_from, state_to, rate):
+    if type(sites) is not list:
+      sites = [sites]
+    
+    site_states_from = self.site_states.copy()
+    site_states_to = self.site_states.copy()
+    for site, site_state_from, site_state_to in zip(sites, state_from, state_to):
+      site_states_from[site] = [state_from]
+      site_states_to[site] = [state_to]
+    states_from = ["".join(tmp) for tmp in itertools.product(*site_states_from)]
+    states_to = ["".join(tmp) for tmp in itertools.product(*site_states_to)]
+    
+    idx_from = [self.states.index(tmp) for tmp in states_from]
+    idx_to = [self.states.index(tmp) for tmp in states_to]
+    self.Q[idx_from, idx_from] -= rate.number(1/units.h)
+    self.Q[idx_from, idx_to] += rate.number(1/units.h)
+  
+  def print(self):
+    Q = pd.DataFrame(self.Q, index = self.states, columns = self.states)
+    print(Q)
 
+X = Ligand(3, [["n"], ["m", "n"], ["m", "n"]], True)
+X.add_transform(1, "m", "n", 0.2/units.h)
 
 
 ############ constants ############
