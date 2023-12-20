@@ -9,7 +9,7 @@ molecular_weight = 150000 * units.g/units.mol
 def hill(x, EMAX, EC50, coef):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
 
-class equilibrium:
+class process_equilibrium:
   def __init__(self, compartments, analytes):
     self.system = None
     self.compartments = compartments
@@ -27,28 +27,18 @@ class equilibrium:
       volumes = system.V[analyte_, self.compartments_]
       system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
 
-class transform:
-  def __init__(self, compartments, rates):
+class process_transform:
+  def __init__(self, cells, ligands):
     self.system = None
-    self.compartments = compartments
+    self.ligands = ligands.copy()
+    self.Qs = [ligand.Q for ligand in ligands]
+    self.analytes_dict = {}
+    for ligand in ligands:
+      self.analytes_dict[ligand.name] = [[f"{ligand.name}:{state}" for state in ligand.states]] + [[f"{ligand.name}:{state}" for state in ligand.states] for cell in cells for ]
+      
     
-    Q = np.zeros([len(drugs), len(drugs)])
-    for reactant, product, rate in rates:
-      reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
-      products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
-      Q[reactants, reactants] -= rate.number(1/units.h)
-      Q[reactants, products] += rate.number(1/units.h)
-    self.Q = Q
-    
-    self.analyteses = []
-    self.analyteses.append(drugs)
-    for effector in effectors:
-      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
-    for target in targets:
-      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
-    for effector in effectors:
-      for target in targets:
-        self.analyteses.append([f"{effector}-{drug}-{target}" for drug in drugs])
+    self.analyteseses = [[[f"{ligand.name}:{state}" for state in ligand.states]] + [[f"{cell.name}:{ligand.name}:{state}" for state in ligand.states] for cell in cells] for ligand in ligands]
+    self.analyteses.append([])
   
   def __call__(self, system, t):
     if self.system is not system:
@@ -114,6 +104,15 @@ class Ligand:
     self.Q[idx_from, idx_from] -= rate.number(1/units.h)
     self.Q[idx_from, idx_to] += rate.number(1/units.h)
   
+  def get_dimers(self, cell, state = None): # find all dimers formed when a ligand binds to a cell (for a given state or all states of the ligand)
+    targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
+    complexes = ["".join(complex) for complex in itertools.product(*targets_in_markers)][1:] # remove the non-binding complex
+    if state is not None:
+      dimers = [f"{cell.name}:{complex}-{self.name}:{state}" for complex in complexes]
+    else:
+      dimers = [f"{cell.name}:{complex}-{self.name}:{state}" for state in self.states for complex in complexes]
+    return dimers
+  
   def print(self):
     Q = pd.DataFrame(self.Q, index = self.states, columns = self.states)
     print(Q)
@@ -166,9 +165,7 @@ analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in 
 analytes_dimers = []
 for cell in cells:
   for ligand in ligands:
-    targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in ligand.targets]
-    complexes = ["".join(complex) for complex in itertools.product(*targets_in_markers)][1:] # remove the non-binding complex
-    analytes_dimers += [f"{cell.name}:{complex}-{ligand.name}:{state}" for state in ligand.states for complex in complexes]
+    analytes_dimers += ligand.get_dimers(cell)
 
 analytes = analytes_ligands + analytes_markers + analytes_dimers
 
