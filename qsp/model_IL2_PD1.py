@@ -114,17 +114,32 @@ class Ligand:
       self.Q[idx_from, idx_to] += rate.number(1/units.h)
   
   def get_bindings(self, cell): # find all binding modes formed when a ligand binds to a cell
-    targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
-    bindings = ["".join(complex) for complex in itertools.product(*targets_in_markers)][1:] # remove the all non-binding mode
+    site_bindings = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
+    bindings = ["".join(complex) for complex in itertools.product(*site_bindings)][1:] # remove the all non-binding mode
     return bindings
-
+  
   def get_reactions(self, cell):
-    targets_in_markers = [[target for target in targets if target in cell.markers] for targets in self.targets]
+    site_bindings = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
     
     reactions = []
-    for site in range(self.n_sites):
-      
-      
+    for state in self.states:
+      for site in range(self.n_sites):
+        site_bindings_from = site_bindings.copy()
+        site_bindings_from[site] = ["_"]
+        bindings_from = ["".join(complex) for complex in itertools.product(*site_bindings_from)]
+        for marker in targets_in_markers[site]:
+          site_bindings_to = site_bindings.copy()
+          site_bindings_to[site] = [marker]
+          bindings_to = ["".join(complex) for complex in itertools.product(*site_bindings_to)]
+          for binding_from, binding_to in zip(bindings_from, bindings_to):
+            if binding_from == len(binding_from) * "_":
+              analyte_from = f"{self.name}:{state}"
+            else:
+              analyte_from = f"{cell.name}:{binding_from}-{self.name}:{state}"
+            analyte_to = f"{cell.name}:{binding_to}-{self.name}:{state}"
+            reactions.append(([analyte_from, marker], [analyte_to]))
+    
+    return reactions
   
   def print(self):
     Q = pd.DataFrame(np.array(self.Q), index = self.states, columns = self.states)
