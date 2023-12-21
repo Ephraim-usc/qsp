@@ -163,13 +163,15 @@ analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in 
 analytes_dimers = [f"{cell.name}:{binding}-{ligand.name}:{state}" for ligand in ligands for cell in cells for binding in ligand.get_bindings(cell) for state in ligand.states]
 analytes = analytes_ligands + analytes_markers + analytes_dimers
 
-
 centrals = [plasma, lymph]
 compartments = [organ["name"] for organ in centrals + tumors + organs]
 system = System(analytes, compartments)
+
 system.centrals = [plasma, lymph]
 system.tumors = tumors
 system.organs = organs
+system.signals = [{} for idx_compartment in range(system.n_compartments)]
+
 
 for analyte in analytes:
   for central in centrals:
