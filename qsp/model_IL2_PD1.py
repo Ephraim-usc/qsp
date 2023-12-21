@@ -66,17 +66,24 @@ class Signal:
       self.dict[key] = sympy.Symbol(key)
     return self.dict[key]
 
-signal = Signal()
+signals = Signal()
+
 
 
 class Ligand:
-  def __init__(self, name, n_sites, site_states, targets, clearance, smalls = None):
+  def __init__(self, name, targets, masks, clearance, smalls = None): # currently only consider mask/naked states
     self.name = name
-    self.n_sites = n_sites
-    self.site_states = site_states
-    self.states = ["".join(tmp) for tmp in itertools.product(*site_states)]
+    
+    self.n_sites = len(targets)
+    self.targets = [list(tmp.keys()) for tmp in targets]
+    self.affs = [[value[0] for key,value in tmp.items()] for tmp in targets]
+    self.offs = [[value[1] for key,value in tmp.items()] for tmp in targets]
+    
+    self.masks = masks
+    self.site_states = [["n"] if mask is None else ["m", "n"] for mask in masks]
+    self.states = ["".join(tmp) for tmp in itertools.product(*self.site_states)]
     self.n_states = len(self.states)
-    self.targets = targets
+    
     self.clearance = clearance.number(1/units.h)
     
     self.V = np.ones([self.n_sites, self.n_sites]) # avidity
@@ -88,15 +95,15 @@ class Ligand:
     if symmetric:
       self.V[site_B, site_A] = avidity
   
-  def add_transform(self, sites, state_from, state_to, rate):
+  def add_cleavage(self, sites, rate):
     if type(sites) is not list:
       sites = [sites]
     
     site_states_from = self.site_states.copy()
     site_states_to = self.site_states.copy()
-    for site, site_state_from, site_state_to in zip(sites, state_from, state_to):
-      site_states_from[site] = [state_from]
-      site_states_to[site] = [state_to]
+    for site in sites:
+      site_states_from[site] = ["m"]
+      site_states_to[site] = ["n"]
     states_from = ["".join(tmp) for tmp in itertools.product(*site_states_from)]
     states_to = ["".join(tmp) for tmp in itertools.product(*site_states_to)]
     
@@ -115,16 +122,23 @@ class Ligand:
     Q = pd.DataFrame(np.array(self.Q), index = self.states, columns = self.states)
     print(Q)
 
-
 X = Ligand(name = "X", 
-           n_sites = 3, 
-           site_states = [["n"], ["m", "n"], ["m", "n"]], 
-           targets = [["P"], ["α", "R"], ["α", "R"]],
+           targets = [{"P": (1 * units.nM, 1e-4 / units.s)}, \
+                      {"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}, \
+                      {"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}],
+           masks = [None, 20, 20],
            clearance = math.log(2)/(70 * units.h))
-X.add_transform(1, "m", "n", signal["enzyme"] * 0.01/units.h)
-X.add_transform(2, "m", "n", signal["enzyme"] * 0.01/units.h)
+X.add_cleavage(1, signals["enzyme"] * 0.01/units.h)
+X.add_cleavage(2, signals["enzyme"] * 0.01/units.h)
+X.set_avidity(0, 1, 20)
+X.set_avidity(0, 2, 20)
+X.set_avidity(1, 2, 20)
 
-IL2 = Ligand("IL2", 1, [["n"]], [["α", "R"]], math.log(2)/(70 * units.h), smalls = ["n"])
+IL2 = Ligand(name = "IL2", 
+             targets = [{"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}],
+             masks = [None],
+             clearance = math.log(2)/(70 * units.h), 
+             smalls = ["n"])
 
 
 class Cell:
