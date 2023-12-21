@@ -113,10 +113,17 @@ class Ligand:
       self.Q[idx_from, idx_from] -= rate.number(1/units.h)
       self.Q[idx_from, idx_to] += rate.number(1/units.h)
   
-  def get_bindings(self, cell, state = None): # find all binding modes formed when a ligand binds to a cell
+  def get_bindings(self, cell): # find all binding modes formed when a ligand binds to a cell
     targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
     bindings = ["".join(complex) for complex in itertools.product(*targets_in_markers)][1:] # remove the all non-binding mode
     return bindings
+
+  def get_reactions(self, cell):
+    targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
+    
+    reactions = []
+    for state in self.states:
+      
   
   def print(self):
     Q = pd.DataFrame(np.array(self.Q), index = self.states, columns = self.states)
