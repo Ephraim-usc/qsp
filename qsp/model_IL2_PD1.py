@@ -33,22 +33,20 @@ class process_transform:
     self.ligands = ligands.copy()
     self.Qs = [ligand.Q for ligand in ligands]
     self.analytes_dict = {}
-    for ligand in ligands:
-      self.analytes_dict[ligand.name] = [[f"{ligand.name}:{state}" for state in ligand.states]] + [[f"{ligand.name}:{state}" for state in ligand.states] for cell in cells for ]
-      
-    
-    self.analyteseses = [[[f"{ligand.name}:{state}" for state in ligand.states]] + [[f"{cell.name}:{ligand.name}:{state}" for state in ligand.states] for cell in cells] for ligand in ligands]
-    self.analyteses.append([])
+    self.analyteseses = [[[f"{ligand.name}:{state}" for state in ligand.states]] + \
+                         [[f"{cell.name}:{binding}-{ligand.name}:{state}" for state in ligand.states] for cell in cells for binding in ligand.get_bindings(cell)] \
+                         for ligand in ligands]
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
-      self.indexeses = [[system.analytes.index(analyte) for analyte in _analytes] for _analytes in self.analyteses]
+      self.idxeseses = [[[system.analytes.index(analyte) for analyte in analytes] for analytes in analyteses] for analyteses in self.analyteseses]
     
-    for index_compartment in self.index_compartments:
-      for indexes in self.indexeses:
-        system.x[indexes, index_compartment] = system.x[indexes, index_compartment] @ expm(self.Q * t.number(units.h))
+    for idx_compartment in range(system.n_compartments):
+      for idxeses, Q in zip(self.idxeseses, self.Qs):
+        Q = Q
+        for idxes in idxeses:
+          system.x[idxes, idx_compartment] = system.x[idxes, idx_compartment] @ expm(Q * t.number(units.h))
 
 
 
@@ -104,14 +102,10 @@ class Ligand:
     self.Q[idx_from, idx_from] -= rate.number(1/units.h)
     self.Q[idx_from, idx_to] += rate.number(1/units.h)
   
-  def get_dimers(self, cell, state = None): # find all dimers formed when a ligand binds to a cell (for a given state or all states of the ligand)
+  def get_bindings(self, cell, state = None): # find all binding modes formed when a ligand binds to a cell
     targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
-    complexes = ["".join(complex) for complex in itertools.product(*targets_in_markers)][1:] # remove the non-binding complex
-    if state is not None:
-      dimers = [f"{cell.name}:{complex}-{self.name}:{state}" for complex in complexes]
-    else:
-      dimers = [f"{cell.name}:{complex}-{self.name}:{state}" for state in self.states for complex in complexes]
-    return dimers
+    bindings = ["".join(complex) for complex in itertools.product(*targets_in_markers)][1:] # remove the all non-binding mode
+    return bindings
   
   def print(self):
     Q = pd.DataFrame(self.Q, index = self.states, columns = self.states)
@@ -162,11 +156,7 @@ ligands = [X, IL2]
 
 analytes_markers = [f"{cell.name}:{marker}" for cell in cells for marker in cell.markers]
 analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in ligand.states]
-analytes_dimers = []
-for cell in cells:
-  for ligand in ligands:
-    analytes_dimers += ligand.get_dimers(cell)
-
+analytes_dimers = [f"{cell.name}:{binding}-{ligand.name}:{state}" for ligand in ligands for cell in cells for binding in ligand.get_bindings(cell) for state in ligand.states]
 analytes = analytes_ligands + analytes_markers + analytes_dimers
 
 
