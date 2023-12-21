@@ -47,7 +47,7 @@ class process_transform:
     
     for idx_compartment in range(system.n_compartments):
       for idxeses, Q in zip(self.idxeseses, self.Qs):
-        Q = np.array(Q.evalf(system.signals[idx_compartment]), dtype = np.float64)
+        Q = np.array(Q.evalf(subs = system.signals[idx_compartment]), dtype = np.float64)
         for idxes in idxeses:
           system.x[idxes, idx_compartment] = system.x[idxes, idx_compartment] @ expm(Q * t.number(units.h))
 
@@ -171,6 +171,8 @@ system.centrals = [plasma, lymph]
 system.tumors = tumors
 system.organs = organs
 system.signals = [{} for idx_compartment in range(system.n_compartments)]
+for organ in centrals + tumors + organs:
+  system.signals[system.compartments.index(organ["name"])]["enzyme"] = organ["enzyme"]
 
 
 for analyte in analytes:
@@ -531,6 +533,7 @@ UT44.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability"
 UT44.update({"diffusion": 10 * units.micrometer**2 / units.s})
 UT44.update({"density_cell": 3e8 * 0.44 / units.ml, "density_8": 3e8 * 0.05 / units.ml, "density_4": 3e8 * 0.1 / units.ml, "density_nk": 3e8 * 0.02 / units.ml})
 UT44.update({"num_A": 7e5, "num_B": 1.45e6})
+UT44.update({"enzyme": 15})
 
 FTC238 = {"name": "tumor"}
 FTC238.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
@@ -539,7 +542,7 @@ FTC238.update({"capillary_radius": 10 * units.micrometer, "capillary_permeabilit
 FTC238.update({"diffusion": 10 * units.micrometer**2 / units.s})
 FTC238.update({"density_cell": 3e8 * 0.44 / units.ml, "density_8": 3e8 * 0.05 / units.ml, "density_4": 3e8 * 0.1 / units.ml, "density_nk": 3e8 * 0.02 / units.ml})
 FTC238.update({"num_A": 1e5, "num_B": 1e5})
-
+FTC238.update({"enzyme": 15})
 
 ############ organs ############
 
@@ -547,11 +550,13 @@ plasma = {"name": "plasma"}
 plasma.update({"volume": 3126 * units.ml})
 plasma.update({"num_8": 7.9E+09 * 0.33, "num_4": 7.9E+09 * 0.67, "num_nk": 1.6E+09})
 plasma.update({"conc_A": 5 * units.ug/units.ml / (170 * units.kDa), "conc_B": 0 * units.nM})
+plasma.update({"enzyme": 1})
 
 lymph = {"name": "lymph"}
 lymph.update({"volume": 274 * units.ml})
 lymph.update({"num_8": 3.6E+11 * 0.33, "num_4": 3.6E+11 * 0.67, "num_nk": 6.7E+08})
 lymph.update({"conc_A": 0 * units.nM, "conc_B": 0 * units.nM})
+lymph.update({"enzyme": 1})
 
 bone = {"name": "bone"}
 bone.update({"volume_plasma": 224 * units.ml, "volume_interstitial": 1891 * units.ml})
@@ -559,6 +564,7 @@ bone.update({"plasma_flow": 2591 * units.ml/units.h, "lymphatic_flow_ratio": 0.0
 bone.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 bone.update({"num_cell": 4.77E+09 * 0.5, "num_8": 2.1E+10 * 0.33, "num_4": 2.1E+10 * 0.67, "num_nk": 3.3E+09})
 bone.update({"num_A": 0, "num_B": 0})
+bone.update({"enzyme": 1})
 
 lung = {"name": "lung"}
 lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
@@ -566,6 +572,7 @@ lung.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 lung.update({"num_cell": 2.36E+11 * 0.5, "num_8": 1.3E+10 * 0.33, "num_4": 1.3E+10 * 0.67, "num_nk": 7.2E+08})
 lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
+lung.update({"enzyme": 1})
 
 SI = {"name": "SI"}
 SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
@@ -573,6 +580,7 @@ SI.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 SI.update({"num_cell": 7.2e11 * 0.5, "num_8": 1.8E+10 * 0.33, "num_4": 1.8E+10 * 0.67, "num_nk": 8.1E+08})
 SI.update({"num_A": 57075, "num_B": 39649})
+SI.update({"enzyme": 1})
 
 other = {"name": "other"}
 other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 5000 * units.ml})
@@ -580,6 +588,7 @@ other.update({"plasma_flow": 100000 * units.ml/units.h, "lymphatic_flow_ratio": 
 other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
 other.update({"num_cell": 1e13 * 0.5, "num_8": 1.1E+10 * 0.33, "num_4": 1.1E+10 * 0.67, "num_nk": 3.1E+09})
 other.update({"num_A": 10000, "num_B": 0})
+other.update({"enzyme": 10})
 
 
 ############ cells ############
