@@ -137,8 +137,14 @@ class Ligand:
             else:
               analyte_from = f"{cell.name}:{binding_from}-{self.name}:{state}"
             analyte_to = f"{cell.name}:{binding_to}-{self.name}:{state}"
-            reactions.append(([analyte_from, marker], [analyte_to]))
-    
+            
+            aff = 1 * units.nM
+            if state[site] == "m":
+              aff *= self.masks[site]
+            aff *= max([(self.V[i, site] if binding_from[i] != "_" else 1) for i in range(self.n_sites)]) # take the maximum avidity from currently bound sites
+            off = 1e-4/units.s
+            
+            reactions.append(([analyte_from, marker], [analyte_to], aff, off))
     return reactions
   
   def print(self):
