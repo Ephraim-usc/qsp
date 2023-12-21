@@ -1,10 +1,13 @@
 from .qsp import *
 import itertools
-from sympy import Symbol
+import sympy
 
 ############ constants ############
 
 molecular_weight = 150000 * units.g/units.mol
+
+def evalf_array(array, subs):
+  return
 
 def hill(x, EMAX, EC50, coef):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
@@ -44,7 +47,7 @@ class process_transform:
     
     for idx_compartment in range(system.n_compartments):
       for idxeses, Q in zip(self.idxeseses, self.Qs):
-        Q = Q
+        Q = np.array(Q.evalf(system.signals[idx_compartment]), dtype = np.float64)
         for idxes in idxeses:
           system.x[idxes, idx_compartment] = system.x[idxes, idx_compartment] @ expm(Q * t.number(units.h))
 
@@ -60,7 +63,7 @@ class Signal:
   
   def __getitem__(self, key):
     if key not in self.dict: 
-      self.dict[key] = Symbol(key)
+      self.dict[key] = sympy.Symbol(key)
     return self.dict[key]
 
 signal = Signal()
@@ -77,7 +80,7 @@ class Ligand:
     self.clearance = clearance.number(1/units.h)
     
     self.V = np.ones([self.n_sites, self.n_sites]) # avidity
-    self.Q = np.zeros([self.n_states, self.n_states], dtype = object) # transforming matrix
+    self.Q = sympy.zeros(self.n_states, self.n_states) # transforming matrix, may contain signal variables
     self.smalls = smalls if smalls is not None else [] # states that are small molecules
   
   def set_avidity(self, site_A, site_B, avidity, symmetric = True):
@@ -97,10 +100,11 @@ class Ligand:
     states_from = ["".join(tmp) for tmp in itertools.product(*site_states_from)]
     states_to = ["".join(tmp) for tmp in itertools.product(*site_states_to)]
     
-    idx_from = [self.states.index(tmp) for tmp in states_from]
-    idx_to = [self.states.index(tmp) for tmp in states_to]
-    self.Q[idx_from, idx_from] -= rate.number(1/units.h)
-    self.Q[idx_from, idx_to] += rate.number(1/units.h)
+    idxes_from = [self.states.index(tmp) for tmp in states_from]
+    idxes_to = [self.states.index(tmp) for tmp in states_to]
+    for idx_from, idx_to in zip(idxes_from, idxes_to):
+      self.Q[idx_from, idx_from] -= rate.number(1/units.h)
+      self.Q[idx_from, idx_to] += rate.number(1/units.h)
   
   def get_bindings(self, cell, state = None): # find all binding modes formed when a ligand binds to a cell
     targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
@@ -108,7 +112,7 @@ class Ligand:
     return bindings
   
   def print(self):
-    Q = pd.DataFrame(self.Q, index = self.states, columns = self.states)
+    Q = pd.DataFrame(np.array(self.Q), index = self.states, columns = self.states)
     print(Q)
 
 
