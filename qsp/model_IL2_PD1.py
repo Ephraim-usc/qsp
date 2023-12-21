@@ -119,10 +119,11 @@ class Ligand:
     return bindings
 
   def get_reactions(self, cell):
-    targets_in_markers = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
+    targets_in_markers = [[target for target in targets if target in cell.markers] for targets in self.targets]
     
     reactions = []
-    for state in self.states:
+    for site in range(self.n_sites):
+      
       
   
   def print(self):
