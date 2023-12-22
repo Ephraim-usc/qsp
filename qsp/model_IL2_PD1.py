@@ -142,7 +142,7 @@ class Ligand:
               aff *= self.masks[site]
             aff /= max([(self.V[i, site] if binding_from[i] != "_" else 1) for i in range(self.n_sites)]) # take the maximum avidity from currently bound sites
             
-            reactions.append(([analyte_from, marker], [analyte_to], aff, off))
+            reactions.append(([analyte_from, f"{cell.name}:{marker}"], [analyte_to], aff, off))
     return reactions
   
   def print(self):
@@ -225,9 +225,11 @@ for analyte in analytes:
     system.set_volume(analyte, organ["name"], organ["volume_interstitial"])
 
 # whole-body clearance
-for analyte in analytes_ligands:
-  analyte = f"{ligand.name}:{state}"
-  system.add_flow(analyte, compartment, None, system.get_volume(analyte, compartment) * ligand.clearance / units.h)
+for compartment in compartments:
+  for ligand in ligands:
+    for state in ligand.states:
+      analyte = f"{ligand.name}:{state}"
+      system.add_flow(analyte, compartment, None, system.get_volume(analyte, compartment) * ligand.clearance / units.h)
 
 # small forms plasma clearance
 for ligand in ligands:
@@ -254,7 +256,12 @@ if connect_tumors:
 # mask cleavage
 system.add_process(process_transform(cells, ligands))
 
-
+# binding reactions
+for compartment in compartments:
+  for cell in cells:
+    for ligand in ligands:
+      for reactants, products, aff, off in ligand.get_reactions(cell):
+        system.add_simple(compartment, reactants, products, off/aff, off)
 
 
 
