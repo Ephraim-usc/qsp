@@ -71,13 +71,12 @@ signals = Signal()
 
 
 class Ligand:
-  def __init__(self, name, targets, masks, clearance, smalls = None): # currently only consider mask/naked states
+  def __init__(self, name, affs_offs, masks, clearance, smalls = None): # currently only consider mask/naked states
     self.name = name
     
-    self.n_sites = len(targets)
-    self.targets = [list(tmp.keys()) for tmp in targets]
-    self.affs = [[value[0] for key,value in tmp.items()] for tmp in targets]
-    self.offs = [[value[1] for key,value in tmp.items()] for tmp in targets]
+    self.n_sites = len(affs_offs)
+    self.affs_offs = affs_offs
+    self.targets = [list(tmp.keys()) for tmp in affs_offs]
     
     self.masks = masks
     self.site_states = [["n"] if mask is None else ["m", "n"] for mask in masks]
@@ -127,7 +126,7 @@ class Ligand:
         site_bindings_from = site_bindings.copy()
         site_bindings_from[site] = ["_"]
         bindings_from = ["".join(complex) for complex in itertools.product(*site_bindings_from)]
-        for marker in targets_in_markers[site]:
+        for marker in site_bindings[site][1:]:
           site_bindings_to = site_bindings.copy()
           site_bindings_to[site] = [marker]
           bindings_to = ["".join(complex) for complex in itertools.product(*site_bindings_to)]
@@ -138,11 +137,10 @@ class Ligand:
               analyte_from = f"{cell.name}:{binding_from}-{self.name}:{state}"
             analyte_to = f"{cell.name}:{binding_to}-{self.name}:{state}"
             
-            aff = 1 * units.nM
+            aff, off = self.affs_offs[site][marker]
             if state[site] == "m":
               aff *= self.masks[site]
-            aff *= max([(self.V[i, site] if binding_from[i] != "_" else 1) for i in range(self.n_sites)]) # take the maximum avidity from currently bound sites
-            off = 1e-4/units.s
+            aff /= max([(self.V[i, site] if binding_from[i] != "_" else 1) for i in range(self.n_sites)]) # take the maximum avidity from currently bound sites
             
             reactions.append(([analyte_from, marker], [analyte_to], aff, off))
     return reactions
@@ -152,7 +150,7 @@ class Ligand:
     print(Q)
 
 X = Ligand(name = "X", 
-           targets = [{"P": (1 * units.nM, 1e-4 / units.s)}, \
+           affs_offs = [{"P": (1 * units.nM, 1e-4 / units.s)}, \
                       {"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}, \
                       {"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}],
            masks = [None, 20, 20],
@@ -164,7 +162,7 @@ X.set_avidity(0, 2, 20)
 X.set_avidity(1, 2, 20)
 
 IL2 = Ligand(name = "IL2", 
-             targets = [{"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}],
+             affs_offs = [{"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}],
              masks = [None],
              clearance = math.log(2)/(70 * units.h), 
              smalls = ["n"])
@@ -179,16 +177,16 @@ class Cell:
     self.death = death.number(1/units.h) if death is not None else None
     self.prolif = prolif.number(1/units.h) if prolif is not None else None
 
-Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-nTh = Cell("nTh", [], [], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
-aTh = Cell("aTh", ["P", "R"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Th = Cell("Th", ["P", "R"], [30000, 300], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-nTm = Cell("nTm", [], [], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
-aTm = Cell("aTm", ["P", "α"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Tm = Cell("Tm", ["P", "R"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
-NK = Cell("NK", ["α"], [30000, 3000], birth = signal["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
+Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+nTh = Cell("nTh", [], [], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
+aTh = Cell("aTh", ["P", "R"], [30000, 300], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Th = Cell("Th", ["P", "R"], [30000, 300], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+nTm = Cell("nTm", [], [], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
+aTm = Cell("aTm", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Tm = Cell("Tm", ["P", "R"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
+NK = Cell("NK", ["α"], [30000, 3000], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
 
 
 
