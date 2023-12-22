@@ -176,6 +176,15 @@ class Cell:
     self.birth = birth.number(units.nM/units.h) if birth is not None else None
     self.death = death.number(1/units.h) if death is not None else None
     self.prolif = prolif.number(1/units.h) if prolif is not None else None
+  
+  def get_all_dimers(self, ligands):
+    buffer = []
+    for ligand in ligands:
+      buffer += [f"{cell.name}:{binding}-{ligand.name}:{state}" for binding in ligand.get_bindings(self) for state in ligand.states]
+    return buffer
+  
+  def get_marker_dimers():
+    return
 
 Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
 nTh = Cell("nTh", [], [], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
