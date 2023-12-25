@@ -13,6 +13,14 @@ def evalf_array(expr, subs_array, n):
 def hill(x, EMAX, EC50, coef):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
 
+def add_cell(system, cell, compartment, value):
+  value = value.number(units.nM)
+  idx_cell = system.cells.index(cell)
+  idx_compartment = system.compartments.index(compartment)
+  idx_markers = [system.analytes.index(f"{cell.name}:{marker}") for marker in cell.markers]
+  system.c[idx_cell, idx_compartment] += value
+  system.x[idx_markers, idx_compartment] += np.array(cell.initials) * value
+  
 
 class process_compute_cellular_signals:
   def __init__(self, cells, ligands):
