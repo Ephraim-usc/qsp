@@ -55,9 +55,12 @@ class process_cell_dynamics:
       self.system = system
     
     for cell in self.cells:
-      deaths = evalf_array(cell.death, self.system.signals_cellular[cell.name], system.n_compartments) if isinstance(cell.death, sympy.Expr) else cell.death
-      prolifs = evalf_array(cell.prolif, system.signals_cellular[cell.name], system.n_compartments) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
-      births = evalf_array(cell.birth, system.signals_cellular[cell.name], system.n_compartments) if isinstance(cell.birth, sympy.Expr) else cell.birth
+      signals = {**system.signals_cellular[cell.name], **system.signals_env}
+      deaths = evalf_array(cell.death, signals, system.n_compartments) if isinstance(cell.death, sympy.Expr) else cell.death
+      prolifs = evalf_array(cell.prolif, signals, system.n_compartments) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
+      births = evalf_array(cell.birth, signals, system.n_compartments) if isinstance(cell.birth, sympy.Expr) else cell.birth
+      
+      
 
 
 class process_equilibrium:
@@ -107,15 +110,17 @@ class process_transform:
 
 
 class Signal:
-  def __init__(self):
+  def __init__(self, category):
+    self.category = category
     self.dict = {}
   
   def __getitem__(self, key):
-    if key not in self.dict: 
-      self.dict[key] = sympy.Symbol(key)
+    if key not in self.dict:
+      self.dict[key] = sympy.Symbol(f"{self.category}_{key}")
     return self.dict[key]
 
-signals = Signal()
+SIGNALS_ENV = Signal("env")
+SIGNALS_CELLULAR = Signal("cel")
 
 
 
@@ -240,6 +245,14 @@ class Cell:
       buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in bindings_with_repeats for state in ligand.states]
     return buffer
 
+Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Th = Cell("Th", ["P", "R"], [30000, 300], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, prolif = 0.01 * SIGNALS_CELLULAR["α"] / units.d, death = 0.01 / units.d)
+Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
+NK = Cell("NK", ["α"], [30000, 3000], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
+
+
+'''
 Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
 nTh = Cell("nTh", [], [], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
 aTh = Cell("aTh", ["P", "R"], [30000, 300], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
@@ -250,7 +263,7 @@ Tm = Cell("Tm", ["P", "R"], [30000, 1500], birth = signals["tumor"] * 1 * units.
 Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, prolif = 0.01 * signals["α"] / units.d, death = 0.01 / units.d)
 Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
 NK = Cell("NK", ["α"], [30000, 3000], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
-
+'''
 
 
 
@@ -274,9 +287,8 @@ system = System(analytes, compartments)
 system.centrals = [plasma, lymph]
 system.tumors = tumors
 system.organs = organs
-system.signals_env = [{} for idx_compartment in range(system.n_compartments)]
-for organ in centrals + tumors + organs:
-  system.signals_env[system.compartments.index(organ["name"])]["enzyme"] = organ["enzyme"]
+system.signals_env = {}
+system.signals_env[SIGNALS_ENV["enzyme"]] = [organ["enzyme"] for organ in centrals + tumors + organs]
 
 
 for analyte in analytes:
