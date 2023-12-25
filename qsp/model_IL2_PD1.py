@@ -51,34 +51,41 @@ class process_cell_dynamics:
     self.cells = cells
     
     self.all_analytes = {}
+    self.marker_analytes = {}
+    self.initials = {}
     for cell in cells:
       self.all_analytes[cell.name] = cell.get_all_analytes(ligands)
-    
-    #self.initials_analytes = {}
+      self.marker_analytes[cell.name] = [f"{cell.name}:{marker}" for marker in cell.markers]
+      self.initials[cell.name] = cell.initials
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
       
       self.all_analytes_idxes = {}
+      self.marker_analytes_idxes = {}
       for cell in self.cells:
         self.all_analytes_idxes[cell.name] = [system.analytes.index(analyte) for analyte in self.all_analytes[cell.name]]
+        self.marker_analytes_idxes[cell.name] = [system.analytes.index(analyte) for analyte in self.marker_analytes[cell.name]]
     
     t = t.number(units.h)
     for cell in self.cells:
       idx_cell = system.cells.index(cell)
       idx_all_analytes = self.all_analytes_idxes[cell.name]
+      idx_marker_analytes = self.marker_analytes_idxes[cell.name]
+      initials = self.initials[cell.name]
       
       signals = {**system.signals_cellular[cell.name], **system.signals_env}
       deaths = evalf_array(cell.death, signals, system.n_compartments).astype(float) if isinstance(cell.death, sympy.Expr) else cell.death
       prolifs = evalf_array(cell.prolif, signals, system.n_compartments).astype(float) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
       births = evalf_array(cell.birth, signals, system.n_compartments).astype(float) if isinstance(cell.birth, sympy.Expr) else cell.birth
       survivals = np.exp(-deaths * t)
-      news = births * t + system.c[idx_cell, :] * np.exp(prolifs * t)
+      news = births * t + system.c[idx_cell, :] * (np.exp(prolifs * t) - 1)
       
       system.x[idx_all_analytes, :] *= survivals
-      system.x[idx_all_analytes, :] += 
-      
+      system.x[idx_marker_analytes, :] += np.outer(initials, news)
+      system.c[idx_cell, :] *= survivals
+      system.c[idx_cell, :] += news
       
 
 
