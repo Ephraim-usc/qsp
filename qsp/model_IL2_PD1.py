@@ -12,6 +12,35 @@ def evalf_array(array, subs):
 def hill(x, EMAX, EC50, coef):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
 
+
+class process_compute_cellular_signals:
+  def __init__(self, cells, ligands):
+    self.system = None
+    self.cells = cells
+    self.ligands = ligands
+    
+    self.signals_analytes = {}
+    for cell in cells:
+      self.signals_analytes[cell.name] = {}
+      for marker in cell.markers:
+        self.signals_analytes[cell.name][marker] = cell.get_cellular_signal_dimers(marker, ligands)
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      
+      self.signals_idxes = {}
+      for cell in self.cells:
+        self.signals_idxes[cell.name] = {}
+        for marker in cell.markers:
+          self.signals_idxes[cell.name][marker] = [system.analytes.index(analyte) for analyte in self.signals_analytes[cell.name][marker]]
+    
+    for analyte_ in self.analytes_:
+      x = system.x[analyte_, self.compartments_]
+      volumes = system.V[analyte_, self.compartments_]
+      system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
+
+
 class process_equilibrium:
   def __init__(self, compartments, analytes):
     self.system = None
@@ -29,6 +58,7 @@ class process_equilibrium:
       x = system.x[analyte_, self.compartments_]
       volumes = system.V[analyte_, self.compartments_]
       system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
+
 
 class process_transform:
   def __init__(self, cells, ligands):
@@ -180,11 +210,16 @@ class Cell:
   def get_all_dimers(self, ligands):
     buffer = []
     for ligand in ligands:
-      buffer += [f"{cell.name}:{binding}-{ligand.name}:{state}" for binding in ligand.get_bindings(self) for state in ligand.states]
+      buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in ligand.get_bindings(self) for state in ligand.states]
     return buffer
   
-  def get_marker_dimers():
-    return
+  def get_cellular_signal_dimers(self, marker, ligands): # dimers with multiple markers bound are repeated
+    buffer = []
+    for ligand in ligands:
+      bindings = ligand.get_bindings(self); counts = [binding.count(marker) for binding in bindings]
+      bindings_with_repeats = [binding for binding, count in zip(bindings, counts) for i in range(count)]
+      buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in bindings_with_repeats for state in ligand.states]
+    return buffer
 
 Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
 nTh = Cell("nTh", [], [], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
@@ -205,7 +240,7 @@ def PDSystem(organs, tumors, cells, ligands):
 
 organs = [bone, lung]
 tumors = [UT44]
-cells = [Treg, nTh, aTh, Th, nTm, aTm, Tm, Teff, Tex, NK]
+cells = [Treg, Th, Teff, Tex, NK]
 ligands = [X, IL2]
 
 analytes_markers = [f"{cell.name}:{marker}" for cell in cells for marker in cell.markers]
@@ -220,9 +255,9 @@ system = System(analytes, compartments)
 system.centrals = [plasma, lymph]
 system.tumors = tumors
 system.organs = organs
-system.signals = [{} for idx_compartment in range(system.n_compartments)]
+system.signals_env = [{} for idx_compartment in range(system.n_compartments)]
 for organ in centrals + tumors + organs:
-  system.signals[system.compartments.index(organ["name"])]["enzyme"] = organ["enzyme"]
+  system.signals_env[system.compartments.index(organ["name"])]["enzyme"] = organ["enzyme"]
 
 
 for analyte in analytes:
@@ -507,121 +542,6 @@ class PD:
 
 
 
-############ drug ############
-
-class transform:
-  def __init__(self, compartments, rates):
-    self.system = None
-    self.compartments = compartments
-    
-    Q = np.zeros([len(drugs), len(drugs)])
-    for reactant, product, rate in rates:
-      reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
-      products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
-      Q[reactants, reactants] -= rate.number(1/units.h)
-      Q[reactants, products] += rate.number(1/units.h)
-    self.Q = Q
-    
-    self.analyteses = []
-    self.analyteses.append(drugs)
-    for effector in effectors:
-      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
-    for target in targets:
-      self.analyteses.append([f"{effector}-{drug}" for drug in drugs])
-    for effector in effectors:
-      for target in targets:
-        self.analyteses.append([f"{effector}-{drug}-{target}" for drug in drugs])
-  
-  def __call__(self, system, t):
-    if self.system is not system:
-      self.system = system
-      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
-      self.indexeses = [[system.analytes.index(analyte) for analyte in _analytes] for _analytes in self.analyteses]
-    
-    for index_compartment in self.index_compartments:
-      for indexes in self.indexeses:
-        system.x[indexes, index_compartment] = system.x[indexes, index_compartment] @ expm(self.Q * t.number(units.h))
-
-
-class internalization:
-  def __init__(self, compartments, rates_effector, rates_target):
-    self.system = None
-    self.compartments = compartments
-    
-    q_effector = np.zeros(len(dimers_effector))
-    Q_effector = np.zeros([len(dimers_effector), len(antigens_effector)])
-    for effector, antigens, rate in rates_effector:
-      idx_effector = [dimers_effector.index(f"{effector}-{drug}") for drug in drugs]
-      idx_antigens = [antigens_effector.index(antigen) for antigen in antigens]
-      q_effector[idx_effector] -= rate.number(1/units.h)
-      for i in idx_effector:
-        np.add.at(Q_effector, (i, idx_antigens), 1)
-    
-    q_target = np.zeros(len(dimers_target))
-    Q_target = np.zeros([len(dimers_target), len(antigens_target)])
-    for target, antigens, rate in rates_target:
-      idx_target = [dimers_target.index(f"{drug}-{target}") for drug in drugs]
-      idx_antigens = [antigens_target.index(antigen) for antigen in antigens]
-      q_target[idx_target] -= rate.number(1/units.h)
-      for i in idx_target:
-        np.add.at(Q_target, (i, idx_antigens), 1) # there may be repeated antigens
-    
-    self.q_effector = q_effector
-    self.Q_effector = Q_effector
-    self.q_target = q_target
-    self.Q_target = Q_target
-  
-  def __call__(self, system, t):
-    if self.system is not system:
-      self.system = system
-      self.index_compartments = [system.compartments.index(compartment) for compartment in self.compartments]
-      
-      self.idx_dimers_effector = [system.analytes.index(analyte) for analyte in dimers_effector]
-      self.idx_dimers_target = [system.analytes.index(analyte) for analyte in dimers_target]
-      self.idx_antigens_effector = [system.analytes.index(analyte) for analyte in antigens_effector]
-      self.idx_antigens_target = [system.analytes.index(analyte) for analyte in antigens_target]
-    
-    for index_compartment in self.index_compartments:
-      delta_effector = system.x[self.idx_dimers_effector, index_compartment] * (1 - np.exp(self.q_effector * t.number(units.h)))
-      system.x[self.idx_dimers_effector, index_compartment] -= delta_effector
-      system.x[self.idx_antigens_effector, index_compartment] += delta_effector @ self.Q_effector
-      
-      delta_target = system.x[self.idx_dimers_target, index_compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
-      system.x[self.idx_dimers_target, index_compartment] -= delta_target
-      system.x[self.idx_antigens_target, index_compartment] += delta_target @ self.Q_target
-
-
-
-VIB = {}
-VIB.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
-VIB.update({"off_R": 10**-4 / units.s, "affn_R": 1 * units.nM, "affm_R": 20 * units.nM})
-VIB.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
-VIB.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
-VIB.update({"avidity_effector": 19, "avidity_target": 19})
-VIB.update({"clearance": math.log(2)/(70 * units.h)})
-VIB["internalization_effector"] = [("C8", ["C8"], 0.1 / units.h), ("R8", ["R8"], 0.3 / units.h), ("CR8", ["C8", "R8"], 0.1 / units.h), ("C4", ["C4"], 0.1 / units.h), ("R4", ["R4"], 0.3 / units.h), ("CR4", ["C4", "R4"], 0.1 / units.h), ("Rnk", ["Rnk"], 0.3 / units.h)]
-VIB["internalization_target"] = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)]
-
-VIBX = VIB.copy(); VIBX["smalls"] = []
-VIBY = VIB.copy(); VIBY["smalls"] = ["mnn", "nnn"]
-
-VIBX_I = VIBX.copy()
-VIBX_I["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)]
-VIBX_I["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)]
-
-VIBX_II = VIBX.copy()
-VIBX_II["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)]
-VIBX_II["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)]
-
-VIBY_I = VIBY.copy()
-VIBY_I["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)]
-VIBY_I["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)]
-
-VIBY_II = VIBY.copy()
-VIBY_II["cleavage_plasma"] = [("m..", "n..", 0.05 / units.d), (".mm", ".nn", 0.05 / units.d)]
-VIBY_II["cleavage_tumor"] = [("m..", "n..", 0.15 / units.d), (".mm", ".nn", 0.15 / units.d)]
-
-
 
 ############ tumors ############
 
@@ -689,100 +609,6 @@ other.update({"num_cell": 1e13 * 0.5, "num_8": 1.1E+10 * 0.33, "num_4": 1.1E+10 
 other.update({"num_A": 10000, "num_B": 0})
 other.update({"enzyme": 10})
 
-
-############ cells ############
-
-Treg = {"name": "Treg"}
-Treg["markers"] = ["P", "R"]
-Treg["initials"] = {"P": 30000, "R": 300}
-Treg["ligands"] = drugs
-Treg["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-Treg["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-Treg["death"] = 0.01 / units.d
-Treg["alpha"] = True
-
-nTh = {"name": "nTh"}
-nTh["markers"] = []
-nTh["initials"] = {}
-nTh["ligands"] = []
-nTh["bindings"] = []
-nTh["signals"] = {}
-nTh["death"] = 0.002 / units.d
-nTh["alpha"] = False
-
-aTh = {"name": "aTh"}
-aTh["markers"] = ["P", "R"]
-aTh["initials"] = {"P": 30000, "R": 300}
-aTh["ligands"] = drugs
-aTh["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-aTh["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-aTh["death"] = 0.01 / units.d
-aTh["alpha"] = False
-
-Th = {"name": "Th"}
-Th["markers"] = ["P", "R"]
-Th["initials"] = {"P": 30000, "R": 300}
-Th["ligands"] = drugs
-Th["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-Th["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-Th["death"] = 0.01 / units.d
-Th["alpha"] = False
-
-nTm = {"name": "nTm"}
-nTm["markers"] = []
-nTm["initials"] = {}
-nTm["ligands"] = []
-nTm["bindings"] = []
-nTm["signals"] = {}
-nTm["death"] = 0.002 / units.d
-nTm["alpha"] = False
-
-aTm = {"name": "aTm"}
-aTm["markers"] = ["P", "R"]
-aTm["initials"] = {"P": 30000, "R": 1500}
-aTm["ligands"] = drugs
-aTm["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-aTm["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-aTm["death"] = 0.01 / units.d
-aTm["alpha"] = True
-
-Tm = {"name": "Tm"}
-Tm["markers"] = ["P", "R"]
-Tm["initials"] = {"P": 30000, "R": 1500}
-Tm["ligands"] = drugs
-Tm["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-Tm["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-Tm["death"] = 0.01 / units.d
-Tm["alpha"] = False
-
-Teff = {"name": "Teff"}
-Teff["markers"] = ["P", "R"]
-Teff["initials"] = {"P": 30000, "R": 1500}
-Teff["ligands"] = drugs
-Teff["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-Teff["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-Teff["death"] = 0.01 / units.d
-Teff["alpha"] = True
-
-Tex = {"name": "Tex"}
-Tex["markers"] = ["P", "R"]
-Tex["initials"] = {"P": 30000, "R": 1500}
-Tex["ligands"] = drugs
-Tex["bindings"] = ["P", "R", "RR", "PR", "PRR"]
-Tex["signals"] = {"PD1":{"P":1, "PR":1, "PRR":1}, "IL2":{"R":1, "RR":2, "PR":1, "PRR":2}}
-Tex["death"] = 0.1 / units.d
-Tex["alpha"] = True
-
-NK = {"name": "NK"}
-NK["markers"] = ["R"]
-NK["initials"] = {"R": 3000}
-NK["ligands"] = drugs
-NK["bindings"] = ["R", "RR"]
-NK["signals"] = {"IL2":{"R":1, "RR":2}}
-NK["death"] = 0.02 / units.d
-NK["alpha"] = True
-
-cells = [Treg, nTh, aTh, Th, nTm, aTm, Tm, Teff, Tex, NK]
 
 ############ model ############
 
