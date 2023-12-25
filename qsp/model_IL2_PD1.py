@@ -57,11 +57,12 @@ class process_cell_dynamics:
     t = t.number(units.h)
     for cell in self.cells:
       signals = {**system.signals_cellular[cell.name], **system.signals_env}
-      deaths = evalf_array(cell.death, signals, system.n_compartments) if isinstance(cell.death, sympy.Expr) else cell.death
-      prolifs = evalf_array(cell.prolif, signals, system.n_compartments) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
-      births = evalf_array(cell.birth, signals, system.n_compartments) if isinstance(cell.birth, sympy.Expr) else cell.birth
+      deaths = evalf_array(cell.death, signals, system.n_compartments).astype(float) if isinstance(cell.death, sympy.Expr) else cell.death
+      prolifs = evalf_array(cell.prolif, signals, system.n_compartments).astype(float) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
+      births = evalf_array(cell.birth, signals, system.n_compartments).astype(float) if isinstance(cell.birth, sympy.Expr) else cell.birth
       
-      survivals = 
+      survivals = np.exp(-deaths * t)
+      news = births * t + system.c * np.exp(prolifs * t)
       
       
 
@@ -293,6 +294,7 @@ system.organs = organs
 system.signals_env = {}
 system.signals_env[SIGNALS_ENV["tumor"]] = [1 if organ["name"] in [tumor["name"] for tumor in tumors] else 0 for organ in centrals + tumors + organs]
 system.signals_env[SIGNALS_ENV["enzyme"]] = [organ["enzyme"] for organ in centrals + tumors + organs]
+system.c = np.zeros([len(cells), system.n_compartments], dtype = float) # in units.nM
 
 
 for analyte in analytes:
