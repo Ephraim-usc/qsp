@@ -6,8 +6,9 @@ import sympy
 
 molecular_weight = 150000 * units.g/units.mol
 
-def evalf_array(array, subs):
-  return
+def evalf_array(expr, subs_array, n):
+  array_of_subs = [{key:value[i] for key, value in subs_array.items()} for i in range(n)]
+  return np.array([expr.evalf(subs = subs) for subs in array_of_subs])
 
 def hill(x, EMAX, EC50, coef):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
@@ -42,6 +43,21 @@ class process_compute_cellular_signals:
         idx = self.signals_idxes[cell.name][marker]
         signals[cell.name][marker] = system.x[idx, :].sum(axis = 0)
     system.signals_cellular = signals
+
+
+class process_cell_dynamics:
+  def __init__(self, cells):
+    self.system = None
+    self.cells = cells
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+    
+    for cell in self.cells:
+      deaths = evalf_array(cell.death, self.system.signals_cellular[cell.name], system.n_compartments) if isinstance(cell.death, sympy.Expr) else cell.death
+      prolifs = evalf_array(cell.prolif, system.signals_cellular[cell.name], system.n_compartments) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
+      births = evalf_array(cell.birth, system.signals_cellular[cell.name], system.n_compartments) if isinstance(cell.birth, sympy.Expr) else cell.birth
 
 
 class process_equilibrium:
@@ -231,7 +247,7 @@ Th = Cell("Th", ["P", "R"], [30000, 300], birth = signals["tumor"] * 1 * units.n
 nTm = Cell("nTm", [], [], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.002 / units.d)
 aTm = Cell("aTm", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
 Tm = Cell("Tm", ["P", "R"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
+Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, prolif = 0.01 * signals["α"] / units.d, death = 0.01 / units.d)
 Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
 NK = Cell("NK", ["α"], [30000, 3000], birth = signals["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
 
