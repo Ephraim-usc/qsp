@@ -70,6 +70,7 @@ class process_cell_dynamics:
     
     t = t.number(units.h)
     for cell in self.cells:
+      print(cell)
       idx_cell = system.cells.index(cell)
       idx_all_analytes = self.all_analytes_idxes[cell.name]
       idx_marker_analytes = self.marker_analytes_idxes[cell.name]
@@ -253,9 +254,9 @@ class Cell:
     self.name = name
     self.markers = markers
     self.initials = initials
-    self.birth = birth.number(units.nM/units.h) if birth is not None else None
-    self.death = death.number(1/units.h) if death is not None else None
-    self.prolif = prolif.number(1/units.h) if prolif is not None else None
+    self.birth = birth.number(units.nM/units.h) if birth is not None else 0.0
+    self.death = death.number(1/units.h) if death is not None else 0.0
+    self.prolif = prolif.number(1/units.h) if prolif is not None else 0.0
   
   def get_all_analytes(self, ligands):
     buffer = [f"{self.name}:{marker}" for marker in self.markers]
@@ -280,7 +281,7 @@ Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = SIGNALS_ENV["tumor"] * 1 
 Th = Cell("Th", ["P", "R"], [30000, 300], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
 Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, prolif = 0.01 * SIGNALS_CELLULAR["α"] / units.d, death = 0.01 / units.d)
 Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
-NK = Cell("NK", ["α"], [30000, 3000], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
+NK = Cell("NK", ["α"], [3000], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
 
 
 '''
