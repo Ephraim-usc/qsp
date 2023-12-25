@@ -46,14 +46,24 @@ class process_compute_cellular_signals:
 
 
 class process_cell_dynamics:
-  def __init__(self, cells):
+  def __init__(self, cells, ligands):
     self.system = None
     self.cells = cells
+    
+    self.all_dimers_analytes = {}
+    for cell in cells:
+      self.all_dimers_analytes[cell.name] = cell.get_all_dimers(ligands)
+    
+    #self.initials_analytes = {}
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-
+      
+      self.all_dimers_idxes = {}
+      for cell in self.cells:
+        self.all_dimers_idxes[cell.name] = [system.analytes.index(analyte) for analyte in self.all_dimers_analytes[cell.name]]
+    
     t = t.number(units.h)
     for cell in self.cells:
       signals = {**system.signals_cellular[cell.name], **system.signals_env}
