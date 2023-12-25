@@ -50,9 +50,9 @@ class process_cell_dynamics:
     self.system = None
     self.cells = cells
     
-    self.all_dimers_analytes = {}
+    self.all_analytes = {}
     for cell in cells:
-      self.all_dimers_analytes[cell.name] = cell.get_all_dimers(ligands)
+      self.all_analytes[cell.name] = cell.get_all_analytes(ligands)
     
     #self.initials_analytes = {}
   
@@ -60,19 +60,24 @@ class process_cell_dynamics:
     if self.system is not system:
       self.system = system
       
-      self.all_dimers_idxes = {}
+      self.all_analytes_idxes = {}
       for cell in self.cells:
-        self.all_dimers_idxes[cell.name] = [system.analytes.index(analyte) for analyte in self.all_dimers_analytes[cell.name]]
+        self.all_analytes_idxes[cell.name] = [system.analytes.index(analyte) for analyte in self.all_analytes[cell.name]]
     
     t = t.number(units.h)
     for cell in self.cells:
+      idx_cell = system.cells.index(cell)
+      idx_all_analytes = self.all_analytes_idxes[cell.name]
+      
       signals = {**system.signals_cellular[cell.name], **system.signals_env}
       deaths = evalf_array(cell.death, signals, system.n_compartments).astype(float) if isinstance(cell.death, sympy.Expr) else cell.death
       prolifs = evalf_array(cell.prolif, signals, system.n_compartments).astype(float) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
       births = evalf_array(cell.birth, signals, system.n_compartments).astype(float) if isinstance(cell.birth, sympy.Expr) else cell.birth
-      
       survivals = np.exp(-deaths * t)
-      news = births * t + system.c * np.exp(prolifs * t)
+      news = births * t + system.c[idx_cell, :] * np.exp(prolifs * t)
+      
+      system.x[idx_all_analytes, :] *= survivals
+      system.x[idx_all_analytes, :] += 
       
       
 
@@ -245,6 +250,11 @@ class Cell:
     self.death = death.number(1/units.h) if death is not None else None
     self.prolif = prolif.number(1/units.h) if prolif is not None else None
   
+  def get_all_analytes(self, ligands):
+    buffer = [f"{self.name}:{marker}" for marker in self.markers]
+    buffer += self.get_all_dimers(ligands)
+    return buffer
+  
   def get_all_dimers(self, ligands):
     buffer = []
     for ligand in ligands:
@@ -298,6 +308,7 @@ centrals = [plasma, lymph]
 compartments = [organ["name"] for organ in centrals + tumors + organs]
 system = System(analytes, compartments)
 
+system.cells = cells
 system.centrals = [plasma, lymph]
 system.tumors = tumors
 system.organs = organs
