@@ -41,7 +41,7 @@ class process_compute_cellular_signals:
       signals[cell.name] = {}
       for marker in cell.markers:
         idx = self.signals_idxes[cell.name][marker]
-        signals[cell.name][marker] = system.x[idx, :].sum(axis = 0)
+        signals[cell.name][SIGNALS_CELLULAR[marker]] = system.x[idx, :].sum(axis = 0)
     system.signals_cellular = signals
 
 
