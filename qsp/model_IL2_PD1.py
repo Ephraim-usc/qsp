@@ -35,10 +35,13 @@ class process_compute_cellular_signals:
         for marker in cell.markers:
           self.signals_idxes[cell.name][marker] = [system.analytes.index(analyte) for analyte in self.signals_analytes[cell.name][marker]]
     
-    for analyte_ in self.analytes_:
-      x = system.x[analyte_, self.compartments_]
-      volumes = system.V[analyte_, self.compartments_]
-      system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
+    signals = {}
+    for cell in self.cells:
+      signals[cell.name] = {}
+      for marker in cell.markers:
+        idx = self.signals_idxes[cell.name][marker]
+        signals[cell.name][marker] = system.x[idx, :].sum(axis = 0)
+    system.signals_cellular = signals
 
 
 class process_equilibrium:
