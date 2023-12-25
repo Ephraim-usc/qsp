@@ -53,12 +53,15 @@ class process_cell_dynamics:
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-    
+
+    t = t.number(units.h)
     for cell in self.cells:
       signals = {**system.signals_cellular[cell.name], **system.signals_env}
       deaths = evalf_array(cell.death, signals, system.n_compartments) if isinstance(cell.death, sympy.Expr) else cell.death
       prolifs = evalf_array(cell.prolif, signals, system.n_compartments) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
       births = evalf_array(cell.birth, signals, system.n_compartments) if isinstance(cell.birth, sympy.Expr) else cell.birth
+      
+      survivals = 
       
       
 
@@ -288,6 +291,7 @@ system.centrals = [plasma, lymph]
 system.tumors = tumors
 system.organs = organs
 system.signals_env = {}
+system.signals_env[SIGNALS_ENV["tumor"]] = [1 if organ["name"] in [tumor["name"] for tumor in tumors] else 0 for organ in centrals + tumors + organs]
 system.signals_env[SIGNALS_ENV["enzyme"]] = [organ["enzyme"] for organ in centrals + tumors + organs]
 
 
