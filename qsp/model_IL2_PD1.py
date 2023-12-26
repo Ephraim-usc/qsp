@@ -28,28 +28,31 @@ class process_compute_cellular_signals:
     self.cells = cells
     self.ligands = ligands
     
-    self.signals_analytes = {}
+    self.signal_dimers_analytes = {}
     for cell in cells:
-      self.signals_analytes[cell.name] = {}
+      self.signal_dimers_analytes[cell.name] = {}
       for marker in cell.markers:
-        self.signals_analytes[cell.name][marker] = cell.get_cellular_signal_dimers(marker, ligands)
+        self.signal_dimers_analytes[cell.name][marker] = cell.get_cellular_signal_dimers(marker, ligands)
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
       
-      self.signals_idxes = {}
+      self.signal_dimers_idxes = {}
       for cell in self.cells:
-        self.signals_idxes[cell.name] = {}
+        self.signal_dimers_idxes[cell.name] = {}
         for marker in cell.markers:
-          self.signals_idxes[cell.name][marker] = [system.analytes.index(analyte) for analyte in self.signals_analytes[cell.name][marker]]
+          self.signal_dimers_idxes[cell.name][marker] = [system.analytes.index(analyte) for analyte in self.signal_dimers_analytes[cell.name][marker]]
     
     signals = {}
     for cell in self.cells:
+      idx_cell = system.cells.index(cell)
       signals[cell.name] = {}
       for marker in cell.markers:
-        idx = self.signals_idxes[cell.name][marker]
-        signals[cell.name][SIGNALS_CEL[marker]] = system.x[idx, :].sum(axis = 0)
+        idx_signal_dimers = self.signal_dimers_idxes[cell.name][marker]
+        sum_dimers = system.x[idx_signal_dimers, :].sum(axis = 0)
+        sum_cells = system.c[idx_cell, :]
+        signals[cell.name][SIGNALS_CEL[marker]] = np.divide(sum_dimers, sum_cells, out = np.zeros_like(sum_dimers), where = sum_cells!=0)
     system.signals_cellular = signals
 
 
@@ -302,9 +305,9 @@ Th = Cell("Th", ["P", "R"], [30000, 300],
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d, 
           birth = SIGNALS_ENV["tumor"] * tumor_cell_total_density * 0.1 * (1-TREG_RATIO) * (0.01 / units.d))
 Tm = Cell("Tm", ["P", "R"], [30000, 1500], 
-          birth = signals["tumor"] * 1 * units.nM/units.d, 
+          birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, 
           death = 0.01 / units.d)
-Teff = Cell("Teff", ["P", "α"], [30000, 1500], 
+Teff = Cell("Teff", ["P", "α"], [30000, 1500],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
             prolif = SIGNALS_ENV["tumor"] * 0.01 / units.d * (SIGNALS_CEL["α"] - SIGNALS_CEL["P"]),
@@ -313,8 +316,8 @@ Teff = Cell("Teff", ["P", "α"], [30000, 1500],
 Tex = Cell("Tex", ["P", "α"], [30000, 1500], 
            death = 0.1 / units.d)
 NK = Cell("NK", ["α"], [3000],
-          death = SIGNALS_ENV["tumor"] * 0.02 / units.d, 
-          equil = tumor_cell_total_density * 0.02)
+          birth = SIGNALS_ENV["tumor"] * 0.02 / units.d * tumor_cell_total_density * 0.02,
+          death = SIGNALS_ENV["tumor"] * 0.02 / units.d)
 
 
 '''
