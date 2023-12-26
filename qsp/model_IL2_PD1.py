@@ -439,6 +439,10 @@ for tumor in tumors:
   add_cell(system, Teff, tumor["name"], tumor["density_8"] / units.avagadro)
   add_cell(system, NK, tumor["name"], tumor["density_nk"] / units.avagadro)
 
+# process of cell dynamics
+system.add_process(process_compute_cellular_signals(cells, ligands))
+system.add_process(process_cell_dynamics(cells, ligands))
+
 
 
 
