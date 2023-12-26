@@ -266,7 +266,7 @@ class Cell:
       self.birth = birth.number(units.nM/units.h)
     elif equil is not None:
       self.birth = (equil * death).number(units.nM/units.h)
-    elif:
+    else:
       self.birth = 0.0
     self.death = death.number(1/units.h) if death is not None else 0.0
     self.prolif = prolif.number(1/units.h) if prolif is not None else 0.0
@@ -290,11 +290,13 @@ class Cell:
       buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in bindings_with_repeats for state in ligand.states]
     return buffer
 
-Treg = Cell("Treg", ["P", "α"], [30000, 300], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Th = Cell("Th", ["P", "R"], [30000, 300], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.01 / units.d)
-Teff = Cell("Teff", ["P", "α"], [30000, 1500], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, prolif = 0.01 * SIGNALS_CELLULAR["α"] / units.d, death = 0.01 / units.d)
-Tex = Cell("Tex", ["P", "α"], [30000, 1500], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.1 / units.d)
-NK = Cell("NK", ["α"], [3000], birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, death = 0.02 / units.d)
+tumor_cell_total_density = 3e8 / units.ml / units.avagadro
+TREG_RATIO = 0.1
+Treg = Cell("Treg", ["P", "α"], [30000, 300], death = SIGNALS_ENV["tumor"] * 0.01 / units.d, equil = tumor_cell_total_density * 0.1 * TREG_RATIO)
+Th = Cell("Th", ["P", "R"], [30000, 300], death = SIGNALS_ENV["tumor"] * 0.01 / units.d, equil = tumor_cell_total_density * 0.1 * (1-TREG_RATIO))
+Teff = Cell("Teff", ["P", "α"], [30000, 1500], prolif = 0.01 * SIGNALS_CELLULAR["α"] / units.d, death = SIGNALS_ENV["tumor"] * 0.01 / units.d, equil = tumor_cell_total_density * 0.05)
+Tex = Cell("Tex", ["P", "α"], [30000, 1500], death = 0.1 / units.d)
+NK = Cell("NK", ["α"], [3000], death = SIGNALS_ENV["tumor"] * 0.02 / units.d, equil = tumor_cell_total_density * 0.02)
 
 
 '''
@@ -388,7 +390,6 @@ for compartment in compartments:
 
 
 # add cells
-TREG_RATIO = 0.1
 for central in centrals:
   add_cell(system, Treg, central["name"], central["num_4"] * TREG_RATIO / central["volume"] / units.avagadro)
   add_cell(system, Th, central["name"], central["num_4"] * (1-TREG_RATIO) / central["volume"] / units.avagadro)
