@@ -80,7 +80,7 @@ def evalf_array(expr, subs_array, n):
 def np_safe_divide(a, b):
   return np.divide(a, b, out = np.zeros_like(a), where = b!=0)
 
-def hill(x, EMAX, EC50, coef = 1):
+def hill(x, EC50, EMAX = 1, coef = 1):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
 
 def add_cell(system, cell, compartment, value):
@@ -378,7 +378,7 @@ Treg = Cell("Treg", ["P", "α"], [30000, 300],
 Th = Cell("Th", ["P", "R"], [30000, 300], 
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * (1-TREG_RATIO),
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
-          diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * hill(SIGNALS_CEL["R"], EMAX = 1, EC50 = 100),
+          diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * hill(SIGNALS_CEL["R"], EC50 = 100, coef = 1.0),
           diff_cell = Treg)
 Tm = Cell("Tm", ["P", "R"], [30000, 1500])
 Tex = Cell("Tex", ["P", "α"], [30000, 1500],
@@ -386,8 +386,8 @@ Tex = Cell("Tex", ["P", "α"], [30000, 1500],
 Teff = Cell("Teff", ["P", "α"], [30000, 1500],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
-            prolif = SIGNALS_ENV["tumor"] * 0.01 / units.d * (SIGNALS_CEL["α"] - SIGNALS_CEL["P"]),
-            diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * (SIGNALS_ENV["Treg_per_Teff"] + SIGNALS_CEL["P"] + SIGNALS_CEL["α"]),
+            prolif = SIGNALS_ENV["tumor"] * 1.386 / units.d * (hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
+            diff = SIGNALS_ENV["tumor"] * 1.386 / units.d * (hill(SIGNALS_ENV["Treg_per_Teff"], 5) - hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
             diff_cell = Tex)
 NK = Cell("NK", ["α"], [3000])
 
