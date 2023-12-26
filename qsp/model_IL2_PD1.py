@@ -258,11 +258,16 @@ IL2 = Ligand(name = "IL2",
 
 
 class Cell:
-  def __init__(self, name, markers, initials, birth = None, death = None, prolif = None):
+  def __init__(self, name, markers, initials, birth = None, death = None, equil = None, prolif = None):
     self.name = name
     self.markers = markers
     self.initials = initials
-    self.birth = birth.number(units.nM/units.h) if birth is not None else 0.0
+    if birth is not None:
+      self.birth = birth.number(units.nM/units.h)
+    elif equil is not None:
+      self.birth = (equil * death).number(units.nM/units.h)
+    elif:
+      self.birth = 0.0
     self.death = death.number(1/units.h) if death is not None else 0.0
     self.prolif = prolif.number(1/units.h) if prolif is not None else 0.0
   
