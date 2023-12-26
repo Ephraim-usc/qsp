@@ -412,11 +412,6 @@ NK = Cell("NK", ["α"], [30000, 3000], birth = signals["tumor"] * 1 * units.nM/u
 
 
 def PDSystem(organs, tumors, cells, ligands):
-  organs = [bone, lung]
-  tumors = [UT44]
-  cells = [Treg, Th, Teff, Tex, NK]
-  ligands = [X, IL2]
-  
   analytes_markers = [f"{cell.name}:{marker}" for cell in cells for marker in cell.markers]
   analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in ligand.states]
   analytes_dimers = [f"{cell.name}:{binding}-{ligand.name}:{state}" for ligand in ligands for cell in cells for binding in ligand.get_bindings(cell) for state in ligand.states]
