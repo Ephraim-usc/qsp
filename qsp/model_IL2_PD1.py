@@ -150,11 +150,13 @@ class process_transform:
       self.system = system
       self.idxeseses = [[[system.analytes.index(analyte) for analyte in analytes] for analytes in analyteses] for analyteses in self.analyteseses]
     
-    for idx_compartment in range(system.n_compartments):
-      for idxeses, Q in zip(self.idxeseses, self.Qs):
-        Q = np.array(Q.evalf(subs = system.signals[idx_compartment]), dtype = np.float64)
-        for idxes in idxeses:
-          system.x[idxes, idx_compartment] = system.x[idxes, idx_compartment] @ expm(Q * t.number(units.h))
+    t = t.number(units.h)
+    for idxeses, Q in zip(self.idxeseses, self.Qs): # for each ligand
+      print(Q)
+      Qs = evalf_array(Q, system.signals_env, system.n_compartments).astype(float) # Q matrices for each compartment
+      for idxes in idxeses: # for each class of analytes
+        for idx_compartment in range(system.n_compartments):
+          system.x[idxes, idx_compartment] = system.x[idxes, idx_compartment] @ expm(Qs[idx_compartment] * t)
 
 
 
@@ -262,8 +264,8 @@ X = Ligand(name = "X",
                       {"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}],
            masks = [None, 20, 20],
            clearance = math.log(2)/(70 * units.h))
-X.add_cleavage(1, signals["enzyme"] * 0.01/units.h)
-X.add_cleavage(2, signals["enzyme"] * 0.01/units.h)
+X.add_cleavage(1, SIGNALS_ENV["enzyme"] * 0.01/units.h)
+X.add_cleavage(2, SIGNALS_ENV["enzyme"] * 0.01/units.h)
 X.set_avidity(0, 1, 20)
 X.set_avidity(0, 2, 20)
 X.set_avidity(1, 2, 20)
@@ -406,7 +408,7 @@ for analyte in analytes_ligands:
     system.add_flow(analyte, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
 
 # exchange ligands between tumors if tumors are connected
-if connect_tumors:
+if len(tumors) > 1 and connect_tumors:
   system.add_process(equilibrium([tumor["name"] for tumor in tumors], analytes_ligands))
 
 # mask cleavage
