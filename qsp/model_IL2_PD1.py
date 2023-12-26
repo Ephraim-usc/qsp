@@ -49,7 +49,7 @@ class process_compute_cellular_signals:
       signals[cell.name] = {}
       for marker in cell.markers:
         idx = self.signals_idxes[cell.name][marker]
-        signals[cell.name][SIGNALS_CELLULAR[marker]] = system.x[idx, :].sum(axis = 0)
+        signals[cell.name][SIGNALS_CEL[marker]] = system.x[idx, :].sum(axis = 0)
     system.signals_cellular = signals
 
 
@@ -60,11 +60,9 @@ class process_cell_dynamics:
     
     self.all_analytes = {}
     self.marker_analytes = {}
-    self.initials = {}
     for cell in cells:
       self.all_analytes[cell.name] = cell.get_all_analytes(ligands)
       self.marker_analytes[cell.name] = [f"{cell.name}:{marker}" for marker in cell.markers]
-      self.initials[cell.name] = cell.initials
   
   def __call__(self, system, t):
     if self.system is not system:
@@ -78,23 +76,30 @@ class process_cell_dynamics:
     
     t = t.number(units.h)
     for cell in self.cells:
-      print(cell)
       idx_cell = system.cells.index(cell)
       idx_all_analytes = self.all_analytes_idxes[cell.name]
       idx_marker_analytes = self.marker_analytes_idxes[cell.name]
-      initials = self.initials[cell.name]
       
       signals = {**system.signals_cellular[cell.name], **system.signals_env}
       deaths = evalf_array(cell.death, signals, system.n_compartments).astype(float) if isinstance(cell.death, sympy.Expr) else cell.death
+      diffs = evalf_array(cell.diff, signals, system.n_compartments).astype(float) if isinstance(cell.diff, sympy.Expr) else cell.diff
       prolifs = evalf_array(cell.prolif, signals, system.n_compartments).astype(float) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
       births = evalf_array(cell.birth, signals, system.n_compartments).astype(float) if isinstance(cell.birth, sympy.Expr) else cell.birth
-      survivals = np.exp(-deaths * t)
-      news = births * t + system.c[idx_cell, :] * (np.exp(prolifs * t) - 1)
+      minus = 1 - np.exp(- (deaths + diffs) * t)
+      plus = births * t + system.c[idx_cell, :] * (np.exp(prolifs * t) - 1)
       
-      system.x[idx_all_analytes, :] *= survivals
-      system.x[idx_marker_analytes, :] += np.outer(initials, news)
-      system.c[idx_cell, :] *= survivals
-      system.c[idx_cell, :] += news
+      system.x[idx_all_analytes, :] -= system.x[idx_all_analytes, :] * minus
+      system.x[idx_marker_analytes, :] += np.outer(cell.initials, plus)
+      system.c[idx_cell, :] -= system.c[idx_cell, :] * minus
+      system.c[idx_cell, :] += plus
+      
+      if cell.diff_cell is not None:
+        idx_cell_dest = system.cells.index(cell.diff_cell)
+        idx_marker_analytes_dest = self.marker_analytes_idxes[cell.diff_cell.name]
+        
+        plus_dest = minus * diffs / (diffs + deaths) * cell.diff_copy
+        system.x[idx_marker_analytes_dest, :] += np.outer(cell.diff_cell.initials, plus_dest)
+        system.c[idx_cell_dest, :] += plus_dest
       
 
 
@@ -155,7 +160,7 @@ class Signal:
     return self.dict[key]
 
 SIGNALS_ENV = Signal("env")
-SIGNALS_CELLULAR = Signal("cel")
+SIGNALS_CEL = Signal("cel")
 
 
 
@@ -258,18 +263,16 @@ IL2 = Ligand(name = "IL2",
 
 
 class Cell:
-  def __init__(self, name, markers, initials, birth = None, death = None, equil = None, prolif = None):
+  def __init__(self, name, markers, initials, birth = None, death = None, prolif = None, diff = None, diff_copy = 1, diff_cell = None):
     self.name = name
     self.markers = markers
     self.initials = initials
-    if birth is not None:
-      self.birth = birth.number(units.nM/units.h)
-    elif equil is not None:
-      self.birth = (equil * death).number(units.nM/units.h)
-    else:
-      self.birth = 0.0
+    self.birth = birth.number(units.nM/units.h) if birth is not None else 0.0
     self.death = death.number(1/units.h) if death is not None else 0.0
     self.prolif = prolif.number(1/units.h) if prolif is not None else 0.0
+    self.diff = diff.number(1/units.h) if diff is not None else 0.0
+    self.diff_copy = diff_copy
+    self.diff_cell = diff_cell
   
   def get_all_analytes(self, ligands):
     buffer = [f"{self.name}:{marker}" for marker in self.markers]
@@ -292,11 +295,26 @@ class Cell:
 
 tumor_cell_total_density = 3e8 / units.ml / units.avagadro
 TREG_RATIO = 0.1
-Treg = Cell("Treg", ["P", "α"], [30000, 300], death = SIGNALS_ENV["tumor"] * 0.01 / units.d, equil = tumor_cell_total_density * 0.1 * TREG_RATIO)
-Th = Cell("Th", ["P", "R"], [30000, 300], death = SIGNALS_ENV["tumor"] * 0.01 / units.d, equil = tumor_cell_total_density * 0.1 * (1-TREG_RATIO))
-Teff = Cell("Teff", ["P", "α"], [30000, 1500], prolif = 0.01 * SIGNALS_CELLULAR["α"] / units.d, death = SIGNALS_ENV["tumor"] * 0.01 / units.d, equil = tumor_cell_total_density * 0.05)
-Tex = Cell("Tex", ["P", "α"], [30000, 1500], death = 0.1 / units.d)
-NK = Cell("NK", ["α"], [3000], death = SIGNALS_ENV["tumor"] * 0.02 / units.d, equil = tumor_cell_total_density * 0.02)
+Treg = Cell("Treg", ["P", "α"], [30000, 300], 
+            death = SIGNALS_ENV["tumor"] * 0.01 / units.d, 
+            birth = SIGNALS_ENV["tumor"] * tumor_cell_total_density * 0.1 * TREG_RATIO * (0.01 / units.d))
+Th = Cell("Th", ["P", "R"], [30000, 300], 
+          death = SIGNALS_ENV["tumor"] * 0.01 / units.d, 
+          birth = SIGNALS_ENV["tumor"] * tumor_cell_total_density * 0.1 * (1-TREG_RATIO) * (0.01 / units.d))
+Tm = Cell("Tm", ["P", "R"], [30000, 1500], 
+          birth = signals["tumor"] * 1 * units.nM/units.d, 
+          death = 0.01 / units.d)
+Teff = Cell("Teff", ["P", "α"], [30000, 1500], 
+            birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
+            death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
+            prolif = SIGNALS_ENV["tumor"] * 0.01 * SIGNALS_CEL["α"] / units.d,
+            diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * (SIGNALS_ENV["treg"] + SIGNALS_CEL["P"] + SIGNALS_CEL["α"]),
+            diff_cell = Tex)
+Tex = Cell("Tex", ["P", "α"], [30000, 1500], 
+           death = 0.1 / units.d)
+NK = Cell("NK", ["α"], [3000],
+          death = SIGNALS_ENV["tumor"] * 0.02 / units.d, 
+          equil = tumor_cell_total_density * 0.02)
 
 
 '''
