@@ -219,7 +219,6 @@ class process_transform:
     
     t = t.number(units.h)
     for idxeses, Q in zip(self.idxeseses, self.Qs): # for each ligand
-      print(Q)
       Qs = evalf_array(Q, system.signals_env, system.n_compartments).astype(float) # Q matrices for each compartment
       for idxes in idxeses: # for each class of analytes
         for idx_compartment in range(system.n_compartments):
