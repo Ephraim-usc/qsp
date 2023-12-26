@@ -80,7 +80,7 @@ def evalf_array(expr, subs_array, n):
 def np_safe_divide(a, b):
   return np.divide(a, b, out = np.zeros_like(a), where = b!=0)
 
-def hill(x, EMAX, EC50, coef):
+def hill(x, EMAX, EC50, coef = 1):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
 
 def add_cell(system, cell, compartment, value):
@@ -372,15 +372,15 @@ class Cell:
 
 tumor_cell_total_density = 3e8 / units.ml / units.avagadro
 TREG_RATIO = 0.1
-Treg = Cell("Treg", ["P", "α"], [30000, 300], 
-            death = SIGNALS_ENV["tumor"] * 0.01 / units.d, 
-            birth = SIGNALS_ENV["tumor"] * tumor_cell_total_density * 0.1 * TREG_RATIO * (0.01 / units.d))
+Treg = Cell("Treg", ["P", "α"], [30000, 300],
+            birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * TREG_RATIO,
+            death = SIGNALS_ENV["tumor"] * 0.01 / units.d)
 Th = Cell("Th", ["P", "R"], [30000, 300], 
-          death = SIGNALS_ENV["tumor"] * 0.01 / units.d, 
-          birth = SIGNALS_ENV["tumor"] * tumor_cell_total_density * 0.1 * (1-TREG_RATIO) * (0.01 / units.d))
-Tm = Cell("Tm", ["P", "R"], [30000, 1500], 
-          birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, 
-          death = 0.01 / units.d)
+          birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * (1-TREG_RATIO),
+          death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
+          diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * hill(SIGNALS_CEL["R"], EMAX = 1, EC50 = 100),
+          diff_cell = Treg)
+Tm = Cell("Tm", ["P", "R"], [30000, 1500])
 Tex = Cell("Tex", ["P", "α"], [30000, 1500],
            death = 0.1 / units.d)
 Teff = Cell("Teff", ["P", "α"], [30000, 1500],
@@ -389,9 +389,7 @@ Teff = Cell("Teff", ["P", "α"], [30000, 1500],
             prolif = SIGNALS_ENV["tumor"] * 0.01 / units.d * (SIGNALS_CEL["α"] - SIGNALS_CEL["P"]),
             diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * (SIGNALS_ENV["Treg_per_Teff"] + SIGNALS_CEL["P"] + SIGNALS_CEL["α"]),
             diff_cell = Tex)
-NK = Cell("NK", ["α"], [3000],
-          birth = SIGNALS_ENV["tumor"] * 0.02 / units.d * tumor_cell_total_density * 0.02,
-          death = SIGNALS_ENV["tumor"] * 0.02 / units.d)
+NK = Cell("NK", ["α"], [3000])
 
 
 '''
@@ -479,13 +477,13 @@ def PDSystem(organs, tumors, cells, ligands):
   for central in centrals:
     add_cell(system, Treg, central["name"], central["num_4"] * TREG_RATIO / central["volume"] / units.avagadro)
     add_cell(system, Th, central["name"], central["num_4"] * (1-TREG_RATIO) / central["volume"] / units.avagadro)
-    add_cell(system, Teff, central["name"], central["num_8"] / central["volume"] / units.avagadro)
+    add_cell(system, Tm, central["name"], central["num_8"] / central["volume"] / units.avagadro)
     add_cell(system, NK, central["name"], central["num_nk"] / central["volume"] / units.avagadro)
   
   for organ in organs:
     add_cell(system, Treg, organ["name"], organ["num_4"] * TREG_RATIO / central["volume"] / units.avagadro)
     add_cell(system, Th, organ["name"], organ["num_4"] * (1-TREG_RATIO) / central["volume"] / units.avagadro)
-    add_cell(system, Teff, organ["name"], organ["num_8"] / central["volume"] / units.avagadro)
+    add_cell(system, Tm, organ["name"], organ["num_8"] / central["volume"] / units.avagadro)
     add_cell(system, NK, organ["name"], organ["num_nk"] / central["volume"] / units.avagadro)
   
   for tumor in tumors:
