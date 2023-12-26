@@ -10,6 +10,9 @@ def evalf_array(expr, subs_array, n):
   array_of_subs = [{key:value[i] for key, value in subs_array.items()} for i in range(n)]
   return np.array([expr.evalf(subs = subs) for subs in array_of_subs])
 
+def np_safe_divide(a, b):
+  return np.divide(a, b, out = np.zeros_like(a), where = b!=0)
+
 def hill(x, EMAX, EC50, coef):
   return EMAX * (x**coef) / (x**coef + EC50**coef)
 
@@ -52,7 +55,7 @@ class process_compute_cellular_signals:
         idx_signal_dimers = self.signal_dimers_idxes[cell.name][marker]
         sum_dimers = system.x[idx_signal_dimers, :].sum(axis = 0)
         sum_cells = system.c[idx_cell, :]
-        signals[cell.name][SIGNALS_CEL[marker]] = np.divide(sum_dimers, sum_cells, out = np.zeros_like(sum_dimers), where = sum_cells!=0)
+        signals[cell.name][SIGNALS_CEL[marker]] = np_safe_divide(sum_dimers, sum_cells)
     system.signals_cellular = signals
 
 
@@ -82,9 +85,7 @@ class process_cell_dynamics:
       idx_cell_1 = system.cells.index(cell_1)
       for cell_2 in self.cells:
         idx_cell_2 = system.cells.index(cell_2)
-        sum_1 = system.c[idx_cell_1, :]
-        sum_2 = system.c[idx_cell_2, :]
-        system.signals_env[SIGNALS_ENV[f"{cell_1.name}_per_{cell_2.name}"]] = np.divide(sum_1, sum_2, out = np.zeros_like(sum_1), where = sum_2!=0)
+        system.signals_env[SIGNALS_ENV[f"{cell_1.name}_per_{cell_2.name}"]] = np_safe_divide(system.c[idx_cell_1, :], system.c[idx_cell_2, :])
     
     t = t.number(units.h)
     for cell in self.cells:
@@ -109,7 +110,7 @@ class process_cell_dynamics:
         idx_cell_dest = system.cells.index(cell.diff_cell)
         idx_marker_analytes_dest = self.marker_analytes_idxes[cell.diff_cell.name]
         
-        plus_dest = minus * diffs / (diffs + deaths) * cell.diff_copy
+        plus_dest = system.c[idx_cell, :] * minus * np_safe_divide(diffs, diffs + deaths) * cell.diff_copy
         system.x[idx_marker_analytes_dest, :] += np.outer(cell.diff_cell.initials, plus_dest)
         system.c[idx_cell_dest, :] += plus_dest
       
@@ -316,14 +317,14 @@ Th = Cell("Th", ["P", "R"], [30000, 300],
 Tm = Cell("Tm", ["P", "R"], [30000, 1500], 
           birth = SIGNALS_ENV["tumor"] * 1 * units.nM/units.d, 
           death = 0.01 / units.d)
+Tex = Cell("Tex", ["P", "α"], [30000, 1500],
+           death = 0.1 / units.d)
 Teff = Cell("Teff", ["P", "α"], [30000, 1500],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
             prolif = SIGNALS_ENV["tumor"] * 0.01 / units.d * (SIGNALS_CEL["α"] - SIGNALS_CEL["P"]),
             diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * (SIGNALS_ENV["Treg_per_Teff"] + SIGNALS_CEL["P"] + SIGNALS_CEL["α"]),
             diff_cell = Tex)
-Tex = Cell("Tex", ["P", "α"], [30000, 1500],
-           death = 0.1 / units.d)
 NK = Cell("NK", ["α"], [3000],
           birth = SIGNALS_ENV["tumor"] * 0.02 / units.d * tumor_cell_total_density * 0.02,
           death = SIGNALS_ENV["tumor"] * 0.02 / units.d)
