@@ -77,6 +77,15 @@ class process_cell_dynamics:
         self.all_analytes_idxes[cell.name] = [system.analytes.index(analyte) for analyte in self.all_analytes[cell.name]]
         self.marker_analytes_idxes[cell.name] = [system.analytes.index(analyte) for analyte in self.marker_analytes[cell.name]]
     
+    # computing pair-wise cell ratios
+    for cell_1 in self.cells:
+      idx_cell_1 = system.cells.index(cell_1)
+      for cell_2 in self.cells:
+        idx_cell_2 = system.cells.index(cell_2)
+        sum_1 = system.c[idx_cell_1, :]
+        sum_2 = system.c[idx_cell_2, :]
+        system.signals_env[SIGNALS_ENV[f"{cell_1.name}_per_{cell_2.name}"]] = np.divide(sum_1, sum_2, out = np.zeros_like(sum_1), where = sum_2!=0)
+    
     t = t.number(units.h)
     for cell in self.cells:
       idx_cell = system.cells.index(cell)
@@ -311,9 +320,9 @@ Teff = Cell("Teff", ["P", "α"], [30000, 1500],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
             prolif = SIGNALS_ENV["tumor"] * 0.01 / units.d * (SIGNALS_CEL["α"] - SIGNALS_CEL["P"]),
-            diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * (SIGNALS_ENV["treg"] + SIGNALS_CEL["P"] + SIGNALS_CEL["α"]),
+            diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * (SIGNALS_ENV["Treg_per_Teff"] + SIGNALS_CEL["P"] + SIGNALS_CEL["α"]),
             diff_cell = Tex)
-Tex = Cell("Tex", ["P", "α"], [30000, 1500], 
+Tex = Cell("Tex", ["P", "α"], [30000, 1500],
            death = 0.1 / units.d)
 NK = Cell("NK", ["α"], [3000],
           birth = SIGNALS_ENV["tumor"] * 0.02 / units.d * tumor_cell_total_density * 0.02,
