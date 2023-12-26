@@ -2,6 +2,73 @@ from .qsp import *
 import itertools
 import sympy
 
+############ tumors ############
+
+UT44 = {"name": "tumor"}
+UT44.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
+UT44.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
+UT44.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
+UT44.update({"diffusion": 10 * units.micrometer**2 / units.s})
+UT44.update({"density_cell": 3e8 * 0.44 / units.ml, "density_8": 3e8 * 0.05 / units.ml, "density_4": 3e8 * 0.1 / units.ml, "density_nk": 3e8 * 0.02 / units.ml})
+UT44.update({"num_A": 7e5, "num_B": 1.45e6})
+UT44.update({"enzyme": 15})
+
+FTC238 = {"name": "tumor"}
+FTC238.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
+FTC238.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
+FTC238.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
+FTC238.update({"diffusion": 10 * units.micrometer**2 / units.s})
+FTC238.update({"density_cell": 3e8 * 0.44 / units.ml, "density_8": 3e8 * 0.05 / units.ml, "density_4": 3e8 * 0.1 / units.ml, "density_nk": 3e8 * 0.02 / units.ml})
+FTC238.update({"num_A": 1e5, "num_B": 1e5})
+FTC238.update({"enzyme": 15})
+
+############ organs ############
+
+plasma = {"name": "plasma"}
+plasma.update({"volume": 3126 * units.ml})
+plasma.update({"num_8": 7.9E+09 * 0.33, "num_4": 7.9E+09 * 0.67, "num_nk": 1.6E+09})
+plasma.update({"conc_A": 5 * units.ug/units.ml / (170 * units.kDa), "conc_B": 0 * units.nM})
+plasma.update({"enzyme": 1})
+
+lymph = {"name": "lymph"}
+lymph.update({"volume": 274 * units.ml})
+lymph.update({"num_8": 3.6E+11 * 0.33, "num_4": 3.6E+11 * 0.67, "num_nk": 6.7E+08})
+lymph.update({"conc_A": 0 * units.nM, "conc_B": 0 * units.nM})
+lymph.update({"enzyme": 1})
+
+bone = {"name": "bone"}
+bone.update({"volume_plasma": 224 * units.ml, "volume_interstitial": 1891 * units.ml})
+bone.update({"plasma_flow": 2591 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+bone.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+bone.update({"num_cell": 4.77E+09 * 0.5, "num_8": 2.1E+10 * 0.33, "num_4": 2.1E+10 * 0.67, "num_nk": 3.3E+09})
+bone.update({"num_A": 0, "num_B": 0})
+bone.update({"enzyme": 1})
+
+lung = {"name": "lung"}
+lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
+lung.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+lung.update({"num_cell": 2.36E+11 * 0.5, "num_8": 1.3E+10 * 0.33, "num_4": 1.3E+10 * 0.67, "num_nk": 7.2E+08})
+lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
+lung.update({"enzyme": 1})
+
+SI = {"name": "SI"}
+SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
+SI.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+SI.update({"num_cell": 7.2e11 * 0.5, "num_8": 1.8E+10 * 0.33, "num_4": 1.8E+10 * 0.67, "num_nk": 8.1E+08})
+SI.update({"num_A": 57075, "num_B": 39649})
+SI.update({"enzyme": 1})
+
+other = {"name": "other"}
+other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 5000 * units.ml})
+other.update({"plasma_flow": 100000 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
+other.update({"num_cell": 1e13 * 0.5, "num_8": 1.1E+10 * 0.33, "num_4": 1.1E+10 * 0.67, "num_nk": 3.1E+09})
+other.update({"num_A": 10000, "num_B": 0})
+other.update({"enzyme": 10})
+
+
 ############ constants ############
 
 molecular_weight = 150000 * units.g/units.mol
@@ -161,9 +228,6 @@ class process_transform:
 
 
 
-
-
-
 class Signal:
   def __init__(self, category):
     self.category = category
@@ -176,7 +240,6 @@ class Signal:
 
 SIGNALS_ENV = Signal("env")
 SIGNALS_CEL = Signal("cel")
-
 
 
 class Ligand:
@@ -349,179 +412,96 @@ NK = Cell("NK", ["α"], [30000, 3000], birth = signals["tumor"] * 1 * units.nM/u
 
 
 def PDSystem(organs, tumors, cells, ligands):
-
-organs = [bone, lung]
-tumors = [UT44]
-cells = [Treg, Th, Teff, Tex, NK]
-ligands = [X, IL2]
-
-analytes_markers = [f"{cell.name}:{marker}" for cell in cells for marker in cell.markers]
-analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in ligand.states]
-analytes_dimers = [f"{cell.name}:{binding}-{ligand.name}:{state}" for ligand in ligands for cell in cells for binding in ligand.get_bindings(cell) for state in ligand.states]
-analytes = analytes_ligands + analytes_markers + analytes_dimers
-
-centrals = [plasma, lymph]
-compartments = [organ["name"] for organ in centrals + tumors + organs]
-system = System(analytes, compartments)
-
-system.cells = cells
-system.centrals = [plasma, lymph]
-system.tumors = tumors
-system.organs = organs
-system.signals_env = {}
-system.signals_env[SIGNALS_ENV["tumor"]] = [1 if organ["name"] in [tumor["name"] for tumor in tumors] else 0 for organ in centrals + tumors + organs]
-system.signals_env[SIGNALS_ENV["enzyme"]] = [organ["enzyme"] for organ in centrals + tumors + organs]
-system.c = np.zeros([len(cells), system.n_compartments], dtype = float) # in units.nM
-
-
-for analyte in analytes:
-  for central in centrals:
-    system.set_volume(analyte, central["name"], central["volume"])
-  for tumor in tumors:
-    system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
-  for organ in organs:
-    system.set_volume(analyte, organ["name"], organ["volume_interstitial"])
-
-# whole-body clearance
-for compartment in compartments:
-  for ligand in ligands:
-    for state in ligand.states:
-      analyte = f"{ligand.name}:{state}"
-      system.add_flow(analyte, compartment, None, system.get_volume(analyte, compartment) * ligand.clearance / units.h)
-
-# small forms plasma clearance
-for ligand in ligands:
-  for state in ligand.smalls:
-    analyte = f"{ligand.name}:{state}"
-    system.add_flow(analyte, "plasma", None, system.get_volume(analyte, compartment) * math.log(2)/(45 * units.MIN))
-
-for analyte in analytes_ligands:
-  # drug tumor flow
-  for tumor in tumors:
-    system.add_flow(analyte, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-    system.add_flow(analyte, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+  organs = [bone, lung]
+  tumors = [UT44]
+  cells = [Treg, Th, Teff, Tex, NK]
+  ligands = [X, IL2]
   
-  # drug organ flow
-  for organ in organs:
-    system.add_flow(analyte, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
-    system.add_flow(analyte, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
-    system.add_flow(analyte, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
-
-# exchange ligands between tumors if tumors are connected
-if len(tumors) > 1 and connect_tumors:
-  system.add_process(equilibrium([tumor["name"] for tumor in tumors], analytes_ligands))
-
-# mask cleavage
-system.add_process(process_transform(cells, ligands))
-
-# binding reactions
-for compartment in compartments:
-  for cell in cells:
+  analytes_markers = [f"{cell.name}:{marker}" for cell in cells for marker in cell.markers]
+  analytes_ligands = [f"{ligand.name}:{state}" for ligand in ligands for state in ligand.states]
+  analytes_dimers = [f"{cell.name}:{binding}-{ligand.name}:{state}" for ligand in ligands for cell in cells for binding in ligand.get_bindings(cell) for state in ligand.states]
+  analytes = analytes_ligands + analytes_markers + analytes_dimers
+  
+  centrals = [plasma, lymph]
+  compartments = [organ["name"] for organ in centrals + tumors + organs]
+  system = System(analytes, compartments, cells = cells)
+  
+  system.cells = cells
+  system.centrals = [plasma, lymph]
+  system.tumors = tumors
+  system.organs = organs
+  system.signals_env = {}
+  system.signals_env[SIGNALS_ENV["tumor"]] = [1 if organ["name"] in [tumor["name"] for tumor in tumors] else 0 for organ in centrals + tumors + organs]
+  system.signals_env[SIGNALS_ENV["enzyme"]] = [organ["enzyme"] for organ in centrals + tumors + organs]
+  
+  for analyte in analytes:
+    for central in centrals:
+      system.set_volume(analyte, central["name"], central["volume"])
+    for tumor in tumors:
+      system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
+    for organ in organs:
+      system.set_volume(analyte, organ["name"], organ["volume_interstitial"])
+  
+  # whole-body clearance
+  for compartment in compartments:
     for ligand in ligands:
-      for reactants, products, aff, off in ligand.get_reactions(cell):
-        system.add_simple(compartment, reactants, products, off/aff, off)
+      for state in ligand.states:
+        analyte = f"{ligand.name}:{state}"
+        system.add_flow(analyte, compartment, None, system.get_volume(analyte, compartment) * ligand.clearance / units.h)
+  
+  # small forms plasma clearance
+  for ligand in ligands:
+    for state in ligand.smalls:
+      analyte = f"{ligand.name}:{state}"
+      system.add_flow(analyte, "plasma", None, system.get_volume(analyte, compartment) * math.log(2)/(45 * units.MIN))
+  
+  for analyte in analytes_ligands:
+    # drug tumor flow
+    for tumor in tumors:
+      system.add_flow(analyte, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+      system.add_flow(analyte, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+    
+    # drug organ flow
+    for organ in organs:
+      system.add_flow(analyte, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
+      system.add_flow(analyte, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+      system.add_flow(analyte, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+  
+  # exchange ligands between tumors if tumors are connected
+  if len(tumors) > 1 and connect_tumors:
+    system.add_process(equilibrium([tumor["name"] for tumor in tumors], analytes_ligands))
+  
+  # mask cleavage
+  system.add_process(process_transform(cells, ligands))
+  
+  # binding reactions
+  for compartment in compartments:
+    for cell in cells:
+      for ligand in ligands:
+        for reactants, products, aff, off in ligand.get_reactions(cell):
+          system.add_simple(compartment, reactants, products, off/aff, off)
+  
+  # add cells
+  for central in centrals:
+    add_cell(system, Treg, central["name"], central["num_4"] * TREG_RATIO / central["volume"] / units.avagadro)
+    add_cell(system, Th, central["name"], central["num_4"] * (1-TREG_RATIO) / central["volume"] / units.avagadro)
+    add_cell(system, Teff, central["name"], central["num_8"] / central["volume"] / units.avagadro)
+    add_cell(system, NK, central["name"], central["num_nk"] / central["volume"] / units.avagadro)
+  
+  for organ in organs:
+    add_cell(system, Treg, organ["name"], organ["num_4"] * TREG_RATIO / central["volume"] / units.avagadro)
+    add_cell(system, Th, organ["name"], organ["num_4"] * (1-TREG_RATIO) / central["volume"] / units.avagadro)
+    add_cell(system, Teff, organ["name"], organ["num_8"] / central["volume"] / units.avagadro)
+    add_cell(system, NK, organ["name"], organ["num_nk"] / central["volume"] / units.avagadro)
+  
+  for tumor in tumors:
+    add_cell(system, Treg, tumor["name"], tumor["density_4"] * TREG_RATIO / units.avagadro)
+    add_cell(system, Th, tumor["name"], tumor["density_4"] * (1-TREG_RATIO) / units.avagadro)
+    add_cell(system, Teff, tumor["name"], tumor["density_8"] / units.avagadro)
+    add_cell(system, NK, tumor["name"], tumor["density_nk"] / units.avagadro)
+  
+  # process of cell dynamics
+  system.add_process(process_compute_cellular_signals(cells, ligands))
+  system.add_process(process_cell_dynamics(cells, ligands))
 
-
-# add cells
-for central in centrals:
-  add_cell(system, Treg, central["name"], central["num_4"] * TREG_RATIO / central["volume"] / units.avagadro)
-  add_cell(system, Th, central["name"], central["num_4"] * (1-TREG_RATIO) / central["volume"] / units.avagadro)
-  add_cell(system, Teff, central["name"], central["num_8"] / central["volume"] / units.avagadro)
-  add_cell(system, NK, central["name"], central["num_nk"] / central["volume"] / units.avagadro)
-
-for organ in organs:
-  add_cell(system, Treg, organ["name"], organ["num_4"] * TREG_RATIO / central["volume"] / units.avagadro)
-  add_cell(system, Th, organ["name"], organ["num_4"] * (1-TREG_RATIO) / central["volume"] / units.avagadro)
-  add_cell(system, Teff, organ["name"], organ["num_8"] / central["volume"] / units.avagadro)
-  add_cell(system, NK, organ["name"], organ["num_nk"] / central["volume"] / units.avagadro)
-
-for tumor in tumors:
-  add_cell(system, Treg, tumor["name"], tumor["density_4"] * TREG_RATIO / units.avagadro)
-  add_cell(system, Th, tumor["name"], tumor["density_4"] * (1-TREG_RATIO) / units.avagadro)
-  add_cell(system, Teff, tumor["name"], tumor["density_8"] / units.avagadro)
-  add_cell(system, NK, tumor["name"], tumor["density_nk"] / units.avagadro)
-
-# process of cell dynamics
-system.add_process(process_compute_cellular_signals(cells, ligands))
-system.add_process(process_cell_dynamics(cells, ligands))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-############ tumors ############
-
-UT44 = {"name": "tumor"}
-UT44.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
-UT44.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
-UT44.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
-UT44.update({"diffusion": 10 * units.micrometer**2 / units.s})
-UT44.update({"density_cell": 3e8 * 0.44 / units.ml, "density_8": 3e8 * 0.05 / units.ml, "density_4": 3e8 * 0.1 / units.ml, "density_nk": 3e8 * 0.02 / units.ml})
-UT44.update({"num_A": 7e5, "num_B": 1.45e6})
-UT44.update({"enzyme": 15})
-
-FTC238 = {"name": "tumor"}
-FTC238.update({"volume": 170 * units.microliter, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
-FTC238.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
-FTC238.update({"capillary_radius": 10 * units.micrometer, "capillary_permeability": 3e-7 * units.cm/units.s})
-FTC238.update({"diffusion": 10 * units.micrometer**2 / units.s})
-FTC238.update({"density_cell": 3e8 * 0.44 / units.ml, "density_8": 3e8 * 0.05 / units.ml, "density_4": 3e8 * 0.1 / units.ml, "density_nk": 3e8 * 0.02 / units.ml})
-FTC238.update({"num_A": 1e5, "num_B": 1e5})
-FTC238.update({"enzyme": 15})
-
-############ organs ############
-
-plasma = {"name": "plasma"}
-plasma.update({"volume": 3126 * units.ml})
-plasma.update({"num_8": 7.9E+09 * 0.33, "num_4": 7.9E+09 * 0.67, "num_nk": 1.6E+09})
-plasma.update({"conc_A": 5 * units.ug/units.ml / (170 * units.kDa), "conc_B": 0 * units.nM})
-plasma.update({"enzyme": 1})
-
-lymph = {"name": "lymph"}
-lymph.update({"volume": 274 * units.ml})
-lymph.update({"num_8": 3.6E+11 * 0.33, "num_4": 3.6E+11 * 0.67, "num_nk": 6.7E+08})
-lymph.update({"conc_A": 0 * units.nM, "conc_B": 0 * units.nM})
-lymph.update({"enzyme": 1})
-
-bone = {"name": "bone"}
-bone.update({"volume_plasma": 224 * units.ml, "volume_interstitial": 1891 * units.ml})
-bone.update({"plasma_flow": 2591 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-bone.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-bone.update({"num_cell": 4.77E+09 * 0.5, "num_8": 2.1E+10 * 0.33, "num_4": 2.1E+10 * 0.67, "num_nk": 3.3E+09})
-bone.update({"num_A": 0, "num_B": 0})
-bone.update({"enzyme": 1})
-
-lung = {"name": "lung"}
-lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.ml})
-lung.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-lung.update({"num_cell": 2.36E+11 * 0.5, "num_8": 1.3E+10 * 0.33, "num_4": 1.3E+10 * 0.67, "num_nk": 7.2E+08})
-lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
-lung.update({"enzyme": 1})
-
-SI = {"name": "SI"}
-SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units.ml})
-SI.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-SI.update({"num_cell": 7.2e11 * 0.5, "num_8": 1.8E+10 * 0.33, "num_4": 1.8E+10 * 0.67, "num_nk": 8.1E+08})
-SI.update({"num_A": 57075, "num_B": 39649})
-SI.update({"enzyme": 1})
-
-other = {"name": "other"}
-other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 5000 * units.ml})
-other.update({"plasma_flow": 100000 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
-other.update({"vascular_reflection": 0.842, "lymphatic_reflection": 0.2})
-other.update({"num_cell": 1e13 * 0.5, "num_8": 1.1E+10 * 0.33, "num_4": 1.1E+10 * 0.67, "num_nk": 3.1E+09})
-other.update({"num_A": 10000, "num_B": 0})
-other.update({"enzyme": 10})
+  return system
