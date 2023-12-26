@@ -193,7 +193,6 @@ class System:
     variables = [] if variables is None else variables
     cells = [] if cells is None else cells
     
-    analytes = analytes + [cell["name"] + f":{binding}-{ligand}" for cell in cells for ligand in cell["ligands"] for binding in cell["bindings"]]
     self.analytes = analytes
     self.n_analytes = len(analytes)
     
@@ -217,17 +216,8 @@ class System:
     self.z = np.zeros(self.n_variables, dtype = float) # any object
     self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # in units.nM
     
-    self.signal_definitions = {}
-    self.signal_values = {}
-    for cell in self.cells:
-      self.signal_definitions[cell["name"]] = {}
-      self.signal_values[cell["name"]] = {}
-      for signal_name, signal_definition in cell["signals"].items():
-        definition = {cell["name"] + f":{key}-{ligand}":value for ligand in cell["ligands"] for key, value in signal_definition.items()}
-        self.signal_definitions[cell["name"]][signal_name] = dict2array(definition, self.analytes, dtype = float)
-        self.signal_values[cell["name"]][signal_name] = np.zeros(self.n_compartments, dtype = float)
-    
     self.history = []
+    self.history_cells = []
   
   def get_volume(self, analyte, compartment):
     analyte = self.analytes.index(analyte)
@@ -381,6 +371,7 @@ class System:
         D += tt()
       
       if math.floor(self.t / t_record) > math.floor(t_ / t_record):
+        self.history_cells.append((self.t, self.c.copy()))
         self.history.append((self.t, self.x.copy()))
       pbar.update(self.t - t_)
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
