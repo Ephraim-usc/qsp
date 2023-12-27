@@ -288,7 +288,7 @@ class Ligand:
     bindings = ["".join(complex) for complex in itertools.product(*site_bindings)][1:] # remove the all non-binding mode
     return bindings
   
-  def get_reactions(self, cell):
+  def get_binding_reactions(self, cell):
     site_bindings = [["_"] + [target for target in targets if target in cell.markers] for targets in self.targets]
     
     reactions = []
@@ -340,16 +340,24 @@ IL2 = Ligand(name = "IL2",
 
 
 class Cell:
-  def __init__(self, name, markers, initials, birth = None, death = None, prolif = None, diff = None, diff_copy = 1, diff_cell = None):
+  def __init__(self, name, markers, initials, ints, int_mode = "geomean", birth = None, death = None, prolif = None, diff = None, diff_copy = 1, diff_cell = None):
     self.name = name
     self.markers = markers
     self.initials = initials
+    self.ints = [internalization.number(1/units.h) for internalization in ints]
+    self.int_mode = int_mode
+    
     self.birth = birth.number(units.nM/units.h) if birth is not None else 0.0
     self.death = death.number(1/units.h) if death is not None else 0.0
     self.prolif = prolif.number(1/units.h) if prolif is not None else 0.0
     self.diff = diff.number(1/units.h) if diff is not None else 0.0
     self.diff_copy = diff_copy
     self.diff_cell = diff_cell
+  
+  def get_bindings(self, ligand): # find all binding modes formed when a ligand binds to a cell
+    site_bindings = [["_"] + [target for target in targets if target in self.markers] for targets in ligand.targets]
+    bindings = ["".join(complex) for complex in itertools.product(*site_bindings)][1:] # remove the all non-binding mode
+    return bindings
   
   def get_all_analytes(self, ligands):
     buffer = [f"{self.name}:{marker}" for marker in self.markers]
@@ -369,27 +377,32 @@ class Cell:
       bindings_with_repeats = [binding for binding, count in zip(bindings, counts) for i in range(count)]
       buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in bindings_with_repeats for state in ligand.states]
     return buffer
+  
+  def get_internalization_reactions(self, ligands):
+    site_bindings = [["_"] + [target for target in targets if target in cell.markers] for targets in ligand.targets]
+    bindings = ["".join(complex) for complex in itertools.product(*site_bindings)][1:]
+    
 
 tumor_cell_total_density = 3e8 / units.ml / units.avagadro
 TREG_RATIO = 0.1
-Treg = Cell("Treg", ["P", "α"], [30000, 300],
+Treg = Cell("Treg", ["P", "α"], [30000, 300], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * TREG_RATIO,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d)
-Th = Cell("Th", ["P", "R"], [30000, 300], 
+Th = Cell("Th", ["P", "R"], [30000, 300], [0.05/units.h, 2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * (1-TREG_RATIO),
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
           diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * hill(SIGNALS_CEL["R"], EC50 = 100, coef = 1.0),
           diff_cell = Treg)
-Tm = Cell("Tm", ["P", "R"], [30000, 1500])
-Tex = Cell("Tex", ["P", "α"], [30000, 1500],
+Tm = Cell("Tm", ["P", "R"], [30000, 1500], [0.05/units.h, 2.0/units.h])
+Tex = Cell("Tex", ["P", "α"], [30000, 1500], [0.05/units.h, 2.0/units.h],
            death = 0.1 / units.d)
-Teff = Cell("Teff", ["P", "α"], [30000, 1500],
+Teff = Cell("Teff", ["P", "α"], [30000, 1500], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
             prolif = SIGNALS_ENV["tumor"] * 1.386 / units.d * (hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
-            diff = SIGNALS_ENV["tumor"] * 1.0 / units.d * (hill(SIGNALS_ENV["Treg_per_Teff"], 1, EMAX = 0.2) - hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
+            diff = SIGNALS_ENV["tumor"] * 1.0 / units.d * sympy.Max(0.0, hill(SIGNALS_ENV["Treg_per_Teff"], 1, EMAX = 0.2) - hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
             diff_cell = Tex)
-NK = Cell("NK", ["α"], [3000],
+NK = Cell("NK", ["α"], [3000], [2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.02,
           prolif = SIGNALS_ENV["tumor"] * 1.512 / units.d * hill(SIGNALS_CEL["α"], 100, coef = 1.3),
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d)
@@ -473,7 +486,7 @@ def PDSystem(organs, tumors, cells, ligands):
   for compartment in compartments:
     for cell in cells:
       for ligand in ligands:
-        for reactants, products, aff, off in ligand.get_reactions(cell):
+        for reactants, products, aff, off in ligand.get_binding_reactions(cell):
           system.add_simple(compartment, reactants, products, off/aff, off)
   
   # add cells
