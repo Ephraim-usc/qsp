@@ -376,15 +376,15 @@ class Cell:
   def get_internalization_reactions(self, ligand):
     ints = {marker:internalization for marker, internalization in zip(self.markers, self.ints)}
     bindings = self.get_bindings(ligand)
-    markerses = [[marker for marker in binding if marker != "_"] for binding in bindings]
+    productses = [[f"{self.name}:{marker}" for marker in binding if marker != "_"] for binding in bindings]
     rateses = [[ints[marker] for marker in binding if marker != "_"] for binding in bindings]
     if self.int_mode == "geomean":
       rates = [np.array(tmp).prod()**(1.0/len(tmp)) for tmp in rateses]
     
     reactions = []
-    for binding, markers, rate in zip(bindings, markerses, rates):
+    for binding, products, rate in zip(bindings, productses, rates):
       for state in ligand.states:
-        reactions.append(([f"{self.name}:{binding}-{ligand.name}:{state}"], markers, rate))
+        reactions.append(([f"{self.name}:{binding}-{ligand.name}:{state}"], products, rate))
     return reactions
     
     
@@ -494,6 +494,13 @@ def PDSystem(organs, tumors, cells, ligands):
       for ligand in ligands:
         for reactants, products, aff, off in ligand.get_binding_reactions(cell):
           system.add_simple(compartment, reactants, products, off/aff, off)
+  
+  # internalization
+  for compartment in compartments:
+    for cell in cells:
+      for ligand in ligands:
+        for reactants, products, rate in cell.get_internalization_reactions(ligand):
+          system.add_simple(compartment, reactants, products, rate)
   
   # add cells
   for central in centrals:
