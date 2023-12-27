@@ -361,26 +361,32 @@ class Cell:
   
   def get_all_analytes(self, ligands):
     buffer = [f"{self.name}:{marker}" for marker in self.markers]
-    buffer += self.get_all_dimers(ligands)
-    return buffer
-  
-  def get_all_dimers(self, ligands):
-    buffer = []
     for ligand in ligands:
-      buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in ligand.get_bindings(self) for state in ligand.states]
+      buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in self.get_bindings(ligand) for state in ligand.states]
     return buffer
   
   def get_cellular_signal_dimers(self, marker, ligands): # dimers with multiple markers bound are repeated
     buffer = []
     for ligand in ligands:
-      bindings = ligand.get_bindings(self); counts = [binding.count(marker) for binding in bindings]
+      bindings = self.get_bindings(ligand); counts = [binding.count(marker) for binding in bindings]
       bindings_with_repeats = [binding for binding, count in zip(bindings, counts) for i in range(count)]
       buffer += [f"{self.name}:{binding}-{ligand.name}:{state}" for binding in bindings_with_repeats for state in ligand.states]
     return buffer
   
-  def get_internalization_reactions(self, ligands):
-    site_bindings = [["_"] + [target for target in targets if target in cell.markers] for targets in ligand.targets]
-    bindings = ["".join(complex) for complex in itertools.product(*site_bindings)][1:]
+  def get_internalization_reactions(self, ligand):
+    ints = {marker:internalization for marker, internalization in zip(self.markers, self.ints)}
+    bindings = self.get_bindings(ligand)
+    markerses = [[marker for marker in binding if marker != "_"] for binding in bindings]
+    rateses = [[ints[marker] for marker in binding if marker != "_"] for binding in bindings]
+    if self.int_mode == "geomean":
+      rates = [np.array(tmp).prod()**(1.0/len(tmp)) for tmp in rateses]
+    
+    reactions = []
+    for binding, markers, rate in zip(bindings, markerses, rates):
+      for state in ligand.states:
+        reactions.append(([f"{self.name}:{binding}-{ligand.name}:{state}"], markers, rate))
+    return reactions
+    
     
 
 tumor_cell_total_density = 3e8 / units.ml / units.avagadro
