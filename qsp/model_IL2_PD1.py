@@ -384,7 +384,7 @@ class Cell:
     reactions = []
     for binding, products, rate in zip(bindings, productses, rates):
       for state in ligand.states:
-        reactions.append(([f"{self.name}:{binding}-{ligand.name}:{state}"], products, rate))
+        reactions.append(([f"{self.name}:{binding}-{ligand.name}:{state}"], products, rate/units.h))
     return reactions
     
     
