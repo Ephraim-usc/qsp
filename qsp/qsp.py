@@ -147,29 +147,25 @@ class RS: # reaction system
     self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
   
   def refresh(self):
-    self.linear_o, self.linear_i = np.where(self.Q != 0)
+    self.linear_i, self.linear_o = np.where(self.Q != 0)
     self.linear_k = self.Q[self.Q != 0]
-    self.quadratic_o, self.quadratic_i, self.quadratic_j = np.where(self.QQ != 0)
+    self.quadratic_i, self.quadratic_j, self.quadratic_o = np.where(self.QQ != 0)
     self.quadratic_k = self.QQ[self.QQ != 0]
+  
+  def add_simple_forward(self, reactants, products, forward): # reactants can be of length 1 or 2, products can be of any length
+    self.active = True
+    if len(reactants) == 1:
+      self.Q[reactants, reactants] -= forward
+      self.Q[reactants, products] += forward
+    else:
+      self.QQ[reactants[0], reactants[1], reactants] -= forward
+      self.QQ[reactants[0], reactants[1], products] += forward
   
   def add_simple(self, reactants, products, forward, backward):
     self.active = True
-    
-    if len(reactants) == 1:
-      self.Q[reactants, reactants] -= forward
-      self.Q[products, reactants] += forward
-    else:
-      self.QQ[reactants, reactants[0], reactants[1]] -= forward
-      self.QQ[products, reactants[0], reactants[1]] += forward
-    
-    if len(products) == 1:
-      self.Q[products, products] -= backward
-      self.Q[reactants, products] += backward
-    else:
-      self.QQ[products, products[0], products[1]] -= backward
-      self.QQ[reactants, products[0], products[1]] += backward
-    
-    self.refresh()
+    self.add_simple_forward(reactants, products, forward)
+    if backward > 0:
+      self.add_simple_forward(products, reactants, backward)
   
   def rate(self, _, x):
     buffer = np.zeros(self.n)
@@ -346,6 +342,9 @@ class System:
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
+    reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
+    for compartment in reacting_compartments:
+      self.RS[compartment].refresh()
     
     pbar = tqdm(total = t_end, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
     pbar.update(self.t); A, B, C, D = 0.0, 0.0, 0.0, 0.0
@@ -360,10 +359,9 @@ class System:
         B -= tt()
         reaction(self.t - t_)
         B += tt()
-      for compartment in range(self.n_compartments):
+      for compartment in reacting_compartments:
         C -= tt()
-        if self.RS[compartment].active:
-          self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], self.t - t_)
+        self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], self.t - t_)
         C += tt()
       for process in self.processes:
         D -= tt()
