@@ -400,9 +400,9 @@ Th = Cell("Th", ["P", "R"], [30000, 300], [0.05/units.h, 2.0/units.h],
           diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * hill(SIGNALS_CEL["R"], EC50 = 100, coef = 1.0),
           diff_cell = Treg)
 Tm = Cell("Tm", ["P", "R"], [30000, 1500], [0.05/units.h, 2.0/units.h])
-Tex = Cell("Tex", ["P", "α"], [30000, 1500], [0.05/units.h, 2.0/units.h],
+Tex = Cell("Tex", ["P", "α"], [60000, 1500], [0.05/units.h, 2.0/units.h],
            death = 0.1 / units.d)
-Teff = Cell("Teff", ["P", "α"], [30000, 1500], [0.05/units.h, 2.0/units.h],
+Teff = Cell("Teff", ["P", "α"], [60000, 1500], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
             prolif = SIGNALS_ENV["tumor"] * 1.386 / units.d * (hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
