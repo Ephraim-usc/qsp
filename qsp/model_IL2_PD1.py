@@ -326,8 +326,8 @@ X = Ligand(name = "X",
                       {"α": (0.01 * units.nM, 2e-4 / units.s), "R": (1 * units.nM, 1e-4 / units.s)}],
            masks = [None, 20, 20],
            clearance = math.log(2)/(70 * units.h))
-X.add_cleavage(1, SIGNALS_ENV["enzyme"] * 0.01/units.h)
-X.add_cleavage(2, SIGNALS_ENV["enzyme"] * 0.01/units.h)
+X.add_cleavage(1, SIGNALS_ENV["enzyme"] * 0.01/units.d)
+X.add_cleavage(2, SIGNALS_ENV["enzyme"] * 0.01/units.d)
 X.set_avidity(0, 1, 20)
 X.set_avidity(0, 2, 20)
 X.set_avidity(1, 2, 20)
