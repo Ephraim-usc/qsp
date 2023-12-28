@@ -393,10 +393,12 @@ tumor_cell_total_density = 3e8 / units.ml / units.avagadro
 TREG_RATIO = 0.1
 Treg = Cell("Treg", ["P", "α"], [30000, 300], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * TREG_RATIO,
-            death = SIGNALS_ENV["tumor"] * 0.01 / units.d)
+            death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
+            prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 1)))
 Th = Cell("Th", ["P", "R"], [30000, 300], [0.05/units.h, 2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * (1-TREG_RATIO),
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
+          prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["R"], 100, coef = 1)),
           diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * hill(SIGNALS_CEL["R"], EC50 = 100, coef = 1.0),
           diff_cell = Treg)
 Tm = Cell("Tm", ["P", "R"], [30000, 1500], [0.05/units.h, 2.0/units.h])
