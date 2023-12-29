@@ -388,13 +388,16 @@ class Cell:
     return reactions
     
     
-
+# currently assuming T cells not proliferating in lymph, and equivalently shrink the dosage by ~10 times.
+# PD1/PDL1的T细胞失活效果的EC50是每细胞1000个，Hill coefficient是2
+# PD1/PDL1的抑制T细胞杀伤效果的EC50是每细胞250个，Hill coefficient是2
+# PD1/PDL1的亲和力是7.2uM=7200nM，而肿瘤细胞表达160万PDL1（对应900nM），因此因此PD1占据率大约为10%
 tumor_cell_total_density = 3e8 / units.ml / units.avagadro
 TREG_RATIO = 0.1
 Treg = Cell("Treg", ["P", "α"], [30000, 300], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * TREG_RATIO,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
-            prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (hill(SIGNALS_CEL["P"], 10000, EMAX = 0.5) + hill(SIGNALS_CEL["α"], 100, coef = 1)))
+            prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (0.1 * (30000 - hill(SIGNALS_CEL["P"]), 1000, coef = 2.0) + hill(SIGNALS_CEL["α"], 100, coef = 1)))
 Th = Cell("Th", ["P", "R"], [30000, 300], [0.05/units.h, 2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * (1-TREG_RATIO),
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
