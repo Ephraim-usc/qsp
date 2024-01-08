@@ -3,10 +3,10 @@ import re
 
 ### this model is mostly from ...
 
-effectors = ["C", "R", "CR", "Rnk"]; targets = ["A", "B", "AB"]
+effectors = ["R"]; targets = ["A", "B", "AB"]
 
-antigens_effector = ["C", "R", "Rnk"]; antigens_target = ["A", "B"]
-drugs = [f"{c}{r}{a}" for c in ["m", "n"] for r in ["m", "n"] for a in ["m", "n"]]
+antigens_effector = ["R"]; antigens_target = ["A", "B"]
+drugs = [f"{r}{a}" for r in ["m", "n"] for a in ["m", "n"]]
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
@@ -67,22 +67,10 @@ class transform:
       self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"R-{drug}") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"R-{drug}-A") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"R-{drug}-B") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"R-{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"CR-{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"Rnk-{drug}-AB") for drug in drugs])
     
     for compartment in self.compartments_:
       for analytes_ in self.analyteses_:
@@ -282,21 +270,15 @@ def model(TCE, tumors, organs, connect_tumors = True):
   
   # target binding
   for drug in drugs:
-    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_R = TCE["off_R"]; on_R = {"n":TCE["off_R"] / TCE["affn_R"], "m":TCE["off_R"] / TCE["affm_R"]}[drug[1]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[2]]
     off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["aff_B"]
-    avidity_effector = TCE["avidity_effector"]
     avidity_target = TCE["avidity_target"]
     
     system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
     
     for organ in centrals + tumors + organs:
-      system.add_simple(organ["name"], ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
       system.add_simple(organ["name"], ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
-      system.add_simple(organ["name"], ["C", f"R-{drug}"], [f"CR-{drug}"], on_C * avidity_effector, off_C)
-      system.add_simple(organ["name"], ["R", f"C-{drug}"], [f"CR-{drug}"], on_R * avidity_effector, off_R)
-      system.add_simple(organ["name"], ["Rnk", f"{drug}"], [f"Rnk-{drug}"], on_R, off_R)
       
       system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
       system.add_simple(organ["name"], [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
@@ -304,11 +286,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
       system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
       
       for target in targets:
-        system.add_simple(organ["name"], ["C", f"{drug}-{target}"], [f"C-{drug}-{target}"], on_C, off_C)
         system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"R-{drug}-{target}"], on_R, off_R)
-        system.add_simple(organ["name"], ["C", f"R-{drug}-{target}"], [f"CR-{drug}-{target}"], on_C * avidity_effector, off_C)
-        system.add_simple(organ["name"], ["R", f"C-{drug}-{target}"], [f"CR-{drug}-{target}"], on_R * avidity_effector, off_R)
-        system.add_simple(organ["name"], ["Rnk", f"{drug}-{target}"], [f"Rnk-{drug}-{target}"], on_R, off_R)
       
       for effector in effectors:
         system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-A"], on_A, off_A)
