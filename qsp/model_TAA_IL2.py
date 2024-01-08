@@ -258,7 +258,7 @@ def model(TCE, tumors, organs, connect_tumors = True):
     off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["aff_B"]
     avidity_target = TCE["avidity_target"]
     
-    system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
+    system.add_simple("plasma", ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
     
     for organ in centrals + tumors + organs:
       system.add_simple(organ["name"], ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
