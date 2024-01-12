@@ -3,10 +3,10 @@ import re
 
 ### this model is mostly from ...
 
-effectors = ["R"]; targets = ["A", "B", "AB"]
+effectors = ["R", "S", "RS"]; targets = ["A", "B", "AB"]
 
-antigens_effector = ["R"]; antigens_target = ["A", "B"]
-drugs = [f"{r}{a}" for r in ["m", "n"] for a in ["m", "n"]]
+antigens_effector = ["R", "S"]; antigens_target = ["A", "B"]
+drugs = [f"{r}{s}{a}{b}" for r in ["m", "n"] for s in ["m", "n"] for a in ["m", "n"] for b in ["m", "n"]]
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
 trimers = [f"{effector}-{drug}-{target}" for effector in effectors for drug in drugs for target in targets]
@@ -130,9 +130,8 @@ class internalization:
 
 
 VIBX = {}
-VIBX.update({"off_R": 10**-4 / units.s, "affn_R": 3 * units.nM, "affm_R": 60 * units.nM})
-VIBX.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
-VIBX.update({"off_B": 10**-4 / units.s, "aff_B": 10 * units.nM})
+VIBX.update({"off_R": 10**-4 / units.s, "affn_R": 30 * units.nM, "affm_R": 600 * units.nM})
+VIBX.update({"off_A": 10**-4 / units.s, "affn_A": 3 * units.nM, "affm_A": 60 * units.nM})
 VIBX.update({"avidity_target": 19})
 VIBX.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = []
 VIBX["cleavage_plasma"] = transform(compartments = lambda system: [central["name"] for central in system.centrals] + [organ["name"] for organ in system.organs], 
@@ -265,8 +264,6 @@ def model(TCE, tumors, organs, connect_tumors = True):
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = TCE["off_B"] / TCE["aff_B"]
     avidity_target = TCE["avidity_target"]
-    
-    system.add_simple("plasma", ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
     
     for organ in centrals + tumors + organs:
       system.add_simple(organ["name"], ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
