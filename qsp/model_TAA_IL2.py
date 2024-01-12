@@ -71,6 +71,14 @@ class transform:
       self.analyteses_.append([system.analytes.index(f"R-{drug}-A") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"R-{drug}-B") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"R-{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"S-{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"S-{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"S-{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"S-{drug}-AB") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"RS-{drug}") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"RS-{drug}-A") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"RS-{drug}-B") for drug in drugs])
+      self.analyteses_.append([system.analytes.index(f"RS-{drug}-AB") for drug in drugs])
     
     for compartment in self.compartments_:
       for analytes_ in self.analyteses_:
