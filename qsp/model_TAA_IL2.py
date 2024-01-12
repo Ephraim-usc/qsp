@@ -147,8 +147,8 @@ VIBX["cleavage_plasma"] = transform(compartments = lambda system: [central["name
 VIBX["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
                                    rates = [("m...", "n...", 0.15 / units.d), (".m..", ".n..", 0.15 / units.d),("..m.", "..n.", 0.15 / units.d), ("...m", "...n", 0.15 / units.d)])
 VIBX["internalization"] = internalization(compartments = lambda system: system.compartments,
-                                          rates_effector = [("R", ["R"], 0.3 / units.h), ("S", ["S"], 0.3 / units.h), ("RS", ["R", "S"], 0.3 / units.h)],
-                                          rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
+                                          rates_effector = [("R", ["R"], 0.3 / units.h), ("S", ["R"], 0.3 / units.h), ("RS", ["R", "R"], 0.3 / units.h)],
+                                          rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["A"], 0.02 / units.h), ("AB", ["A", "A"], 0.02 / units.h)])
 
 
 ############ tumors ############
