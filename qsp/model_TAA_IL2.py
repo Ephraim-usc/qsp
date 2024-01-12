@@ -176,7 +176,7 @@ FTC238.update({"num_A": 1e5, "num_B": 0})
 plasma = {"name": "plasma"}
 plasma.update({"volume": 3126 * units.ml})
 plasma.update({"num_T": 7.9E+09, "num_NK": 1.6E+09})
-plasma.update({"conc_A": 17 * units.ug/units.ml / (45 * units.kDa), "conc_B": 0 * units.nM}) # molecular weight of mesothelin is 40-45kDa
+plasma.update({"conc_A": 17 * units.ug/units.l / (45 * units.kDa), "conc_B": 0 * units.nM}) # molecular weight of mesothelin is 40-45kDa
 
 lymph = {"name": "lymph"}
 lymph.update({"volume": 274 * units.ml})
