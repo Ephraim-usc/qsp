@@ -184,7 +184,7 @@ FTC238.update({"num_A": 1e5, "num_B": 1e5})
 plasma = {"name": "plasma"}
 plasma.update({"volume": 3126 * units.ml})
 plasma.update({"num_T": 7.9E+09, "num_NK": 1.6E+09})
-plasma.update({"conc_A": 5 * units.ug/units.ml / (170 * units.kDa), "conc_B": 0 * units.nM})
+plasma.update({"conc_A": 5 * units.ug/units.l / (170 * units.kDa), "conc_B": 0 * units.nM})
 
 lymph = {"name": "lymph"}
 lymph.update({"volume": 274 * units.ml})
