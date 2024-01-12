@@ -5,7 +5,7 @@ import re
 
 effectors = ["R", "S", "RS"]; targets = ["A", "B", "AB"]
 
-antigens_effector = ["R", "S"]; antigens_target = ["A", "B"]
+antigens_effector = ["R"]; antigens_target = ["A"]
 drugs = [f"{r}{s}{a}{b}" for r in ["m", "n"] for s in ["m", "n"] for a in ["m", "n"] for b in ["m", "n"]]
 dimers_effector = [f"{effector}-{drug}" for effector in effectors for drug in drugs]
 dimers_target = [f"{drug}-{target}" for drug in drugs for target in targets]
@@ -168,7 +168,7 @@ FTC238.update({"num_A": 1e5, "num_B": 0})
 plasma = {"name": "plasma"}
 plasma.update({"volume": 3126 * units.ml})
 plasma.update({"num_T": 7.9E+09, "num_NK": 1.6E+09})
-plasma.update({"conc_A": 17 * units.ug/units.ml / (170 * units.kDa), "conc_B": 0 * units.nM})
+plasma.update({"conc_A": 17 * units.ug/units.ml / (45 * units.kDa), "conc_B": 0 * units.nM}) # molecular weight of mesothelin is 40-45kDa
 
 lymph = {"name": "lymph"}
 lymph.update({"volume": 274 * units.ml})
@@ -267,25 +267,25 @@ def model(TCE, tumors, organs, connect_tumors = True):
     
     for organ in centrals + tumors + organs:
       system.add_simple(organ["name"], ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
-      system.add_simple(organ["name"], ["S", f"{drug}"], [f"S-{drug}"], on_R, off_R)
-      system.add_simple(organ["name"], ["S", f"R-{drug}"], [f"RS-{drug}"], on_R * avidity_effector, off_R)
+      system.add_simple(organ["name"], ["R", f"{drug}"], [f"S-{drug}"], on_R, off_R)
+      system.add_simple(organ["name"], ["R", f"R-{drug}"], [f"RS-{drug}"], on_R * avidity_effector, off_R)
       system.add_simple(organ["name"], ["R", f"S-{drug}"], [f"RS-{drug}"], on_R * avidity_effector, off_R)
       
       system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
-      system.add_simple(organ["name"], [f"{drug}", "B"], [f"{drug}-B"], on_A, off_A)
-      system.add_simple(organ["name"], [f"{drug}-A", "B"], [f"{drug}-AB"], on_A * avidity_target, off_A)
+      system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-B"], on_A, off_A)
+      system.add_simple(organ["name"], [f"{drug}-A", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
       system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
       
       for target in targets:
         system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"R-{drug}-{target}"], on_R, off_R)
-        system.add_simple(organ["name"], ["S", f"{drug}-{target}"], [f"S-{drug}-{target}"], on_R, off_R)
-        system.add_simple(organ["name"], ["S", f"R-{drug}-{target}"], [f"RS-{drug}-{target}"], on_R * avidity_effector, off_R)
+        system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"S-{drug}-{target}"], on_R, off_R)
+        system.add_simple(organ["name"], ["R", f"R-{drug}-{target}"], [f"RS-{drug}-{target}"], on_R * avidity_effector, off_R)
         system.add_simple(organ["name"], ["R", f"S-{drug}-{target}"], [f"RS-{drug}-{target}"], on_R * avidity_effector, off_R)
       
       for effector in effectors:
         system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-A"], on_A, off_A)
-        system.add_simple(organ["name"], [f"{effector}-{drug}", "B"], [f"{effector}-{drug}-B"], on_A, off_A)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "B"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
+        system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-B"], on_A, off_A)
+        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
         system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
   
   # internalization
