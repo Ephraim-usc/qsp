@@ -268,32 +268,36 @@ def model(TCE, tumors, organs, connect_tumors = True):
   
   # target binding
   for drug in drugs:
-    off_R = TCE["off_R"]; on_R = {"n":TCE["off_R"] / TCE["affn_R"], "m":TCE["off_R"] / TCE["affm_R"]}[drug[0]]
-    off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
+    off_R = TCE["off_R"]
+    on_R = {"n":TCE["off_R"] / TCE["affn_R"], "m":TCE["off_R"] / TCE["affm_R"]}[drug[0]]
+    on_S = {"n":TCE["off_R"] / TCE["affn_R"], "m":TCE["off_R"] / TCE["affm_R"]}[drug[1]]
+    off_A = TCE["off_A"]
+    on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[2]]
+    on_B = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[3]]
     avidity_effector = TCE["avidity_effector"]
     avidity_target = TCE["avidity_target"]
     
     for organ in centrals + tumors + organs:
       system.add_simple(organ["name"], ["R", f"{drug}"], [f"R-{drug}"], on_R, off_R)
-      system.add_simple(organ["name"], ["R", f"{drug}"], [f"S-{drug}"], on_R, off_R)
-      system.add_simple(organ["name"], ["R", f"R-{drug}"], [f"RS-{drug}"], on_R * avidity_effector, off_R)
+      system.add_simple(organ["name"], ["R", f"{drug}"], [f"S-{drug}"], on_S, off_R)
+      system.add_simple(organ["name"], ["R", f"R-{drug}"], [f"RS-{drug}"], on_S * avidity_effector, off_R)
       system.add_simple(organ["name"], ["R", f"S-{drug}"], [f"RS-{drug}"], on_R * avidity_effector, off_R)
       
       system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
-      system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-B"], on_A, off_A)
-      system.add_simple(organ["name"], [f"{drug}-A", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
+      system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-B"], on_B, off_A)
+      system.add_simple(organ["name"], [f"{drug}-A", "A"], [f"{drug}-AB"], on_B * avidity_target, off_A)
       system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
       
       for target in targets:
         system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"R-{drug}-{target}"], on_R, off_R)
-        system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"S-{drug}-{target}"], on_R, off_R)
-        system.add_simple(organ["name"], ["R", f"R-{drug}-{target}"], [f"RS-{drug}-{target}"], on_R * avidity_effector, off_R)
+        system.add_simple(organ["name"], ["R", f"{drug}-{target}"], [f"S-{drug}-{target}"], on_S, off_R)
+        system.add_simple(organ["name"], ["R", f"R-{drug}-{target}"], [f"RS-{drug}-{target}"], on_S * avidity_effector, off_R)
         system.add_simple(organ["name"], ["R", f"S-{drug}-{target}"], [f"RS-{drug}-{target}"], on_R * avidity_effector, off_R)
       
       for effector in effectors:
         system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-A"], on_A, off_A)
-        system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-B"], on_A, off_A)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
+        system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-B"], on_B, off_A)
+        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "A"], [f"{effector}-{drug}-AB"], on_B * avidity_target, off_A)
         system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
   
   # internalization
