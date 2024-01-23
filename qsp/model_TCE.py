@@ -1,6 +1,6 @@
 from .qsp import *
 import re
-1
+
 ### this model is mostly from ...
 
 effectors = ["C"]; targets = ["A", "B", "AB"]
