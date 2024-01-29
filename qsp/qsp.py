@@ -337,6 +337,18 @@ class System:
     self.t = 0
     self.history = []
   
+  def run_reactions(self, t):
+    t = t.number(units.h)
+    reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
+    for compartment in reacting_compartments:
+      self.RS[compartment].refresh()
+    for compartment in reacting_compartments:
+      self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t)
+    
+    self.t = self.t + t
+    self.history_cells.append((self.t, self.c.copy()))
+    self.history.append((self.t, self.x.copy()))
+  
   def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t_end = t_end.number(units.h)
     t_step = t_step.number(units.h)
