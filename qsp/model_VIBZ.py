@@ -135,7 +135,7 @@ VIBX.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 *
 VIBX.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 200 * units.nM})
 VIBX.update({"avidity_effector": 19, "avidity_target": 19})
 VIBX.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = []
-VIBX["cleavage_plasma"] = transform(compartments = ["SI", "liver"], 
+VIBX["cleavage_plasma"] = transform(compartments = ["liver", "gallbladder"], 
                                     rates = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)])
 VIBX["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
                                    rates = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)])
@@ -203,7 +203,7 @@ lung.update({"volume_plasma": 55 * units.ml, "volume_interstitial": 300 * units.
 lung.update({"vascular_reflection": 0.95, "lymphatic_reflection": 0.2})
 lung.update({"plasma_flow": 181913 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 lung.update({"num_cell": 2.36E+11 * 0.5, "num_T": 1.3E+10, "num_NK": 7.2E+08})
-lung.update({"num_A": 133439, "num_B": 0}) # num_B = 1019 from Liyuan
+lung.update({"num_A": 1000, "num_B": 0}) # num_B = 1019 from Liyuan
 
 liver = {"name": "liver"}
 liver.update({"volume_plasma": 183 * units.ml, "volume_interstitial": 429 * units.ml})
@@ -217,7 +217,7 @@ SI.update({"volume_plasma": 6.15 * units.ml, "volume_interstitial": 67.1 * units
 SI.update({"vascular_reflection": 0.9, "lymphatic_reflection": 0.2})
 SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 SI.update({"num_cell": 7.2e11 * 0.5, "num_T": 1.8E+10, "num_NK": 8.1E+08})
-SI.update({"num_A": 57075, "num_B": 39649})
+SI.update({"num_A": 1000, "num_B": 10000})
 
 kidney = {"name": "kidney"}
 kidney.update({"volume_plasma": 18.2 * units.ml, "volume_interstitial": 49.8 * units.ml})
@@ -225,6 +225,13 @@ kidney.update({"vascular_reflection": 0.9, "lymphatic_reflection": 0.2})
 kidney.update({"plasma_flow": 36402 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 kidney.update({"num_cell": 1.06E+11 * 0.5, "num_T": 496504047, "num_NK": 1023295100}) # T anc NK numbers are calculated as density * volume
 kidney.update({"num_A": 10000, "num_B": 0})
+
+gallbladder = {"name": "gallbladder"}
+gallbladder.update({"volume_plasma": 18.2/4 * units.ml, "volume_interstitial": 49.8/4 * units.ml})
+gallbladder.update({"vascular_reflection": 0.9, "lymphatic_reflection": 0.2})
+gallbladder.update({"plasma_flow": 36402/4 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+gallbladder.update({"num_cell": 1.06E+11 * 0.5/4, "num_T": 496504047/4, "num_NK": 1023295100/4}) # T anc NK numbers are calculated as density * volume
+gallbladder.update({"num_A": 10000, "num_B": 100000})
 
 other = {"name": "other"}
 other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 5000 * units.ml})
