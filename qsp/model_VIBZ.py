@@ -238,7 +238,7 @@ other.update({"volume_plasma": 1000 * units.ml, "volume_interstitial": 5000 * un
 other.update({"plasma_flow": 100000 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 other.update({"vascular_reflection": 0.95, "lymphatic_reflection": 0.2})
 other.update({"num_cell": 1e13 * 0.5, "num_T": 1.1E+10, "num_NK": 3.1E+09})
-other.update({"num_A": 1000, "num_B": 0})
+other.update({"num_A": 10000, "num_B": 0})
 
 
 ############ model ############
