@@ -271,7 +271,7 @@ class System:
     pbar.update(0.0); A, B, C, D = 0.0, 0.0, 0.0, 0.0
     while True:
       t_prev = self.t
-      self.t = min(self.t + t_step, t)
+      self.t = min(self.t + t_step, t_begin + t)
       t_delta = self.t - t_prev
       for analyte in flowing_analytes:
         A -= tt()
