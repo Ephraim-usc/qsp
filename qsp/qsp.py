@@ -258,8 +258,9 @@ class System:
     self.history.append((self.t, self.x.copy()))
   
   def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
-    t_begin = self.t
     t = t.number(units.h)
+    t_start = self.t
+    t_end = t_start + t
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
@@ -271,7 +272,7 @@ class System:
     pbar.update(0.0); A, B, C, D = 0.0, 0.0, 0.0, 0.0
     while True:
       t_prev = self.t
-      self.t = min(self.t + t_step, t_begin + t)
+      self.t = min(self.t + t_step, t_end)
       t_delta = self.t - t_prev
       for analyte in flowing_analytes:
         A -= tt()
@@ -294,7 +295,7 @@ class System:
         self.history_cells.append((self.t, self.c.copy()))
         self.history.append((self.t, self.x.copy()))
       pbar.update(t_delta)
-      if math.isclose(self.t, t_begin + t, rel_tol = 0, abs_tol = 1e-9):
+      if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
     pbar.close()
     print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\ntime in computing processes: {D:.8f}s\n", flush = True)
