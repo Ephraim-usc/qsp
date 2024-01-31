@@ -18,17 +18,13 @@ import matplotlib.colors as mcolors
 import unum
 import unum.units as units
 
-units.micrometer = unum.new_unit('micrometer', 1e-6 * units.m)
-
-units.microgram = unum.new_unit('microgram', 1e-6 * units.g)
-
 units.l = unum.new_unit('l', 1e-3 * units.m ** 3)
 units.ml = unum.new_unit('ml', 1e-3 * units.l)
-units.microliter = unum.new_unit('microliter', 1e-6 * units.l)
+units.ul = unum.new_unit('ul', 1e-6 * units.l)
 units.pl = unum.new_unit('pl', 1e-12 * units.l)
 
-units.molar = unum.new_unit('molar', 1 * units.mol / units.l)
-units.micromolar = unum.new_unit('micromolar', 1e-6 * units.mol / units.l)
+units.M = unum.new_unit('M', 1 * units.mol / units.l)
+units.uM = unum.new_unit('uM', 1e-6 * units.mol / units.l)
 units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
 
 units.kDa = unum.new_unit('kDa', units.kg / units.mol)
@@ -51,56 +47,6 @@ def array2dict(x, names, trim = False):
   else:
     buffer = {name:x_ for name, x_ in zip(names, x)}
   return buffer
-
-"""
-def reaction_general_(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
-  x = system.x[:, compartment]
-  difference = products - reactants
-  if backward is None:
-    rate = lambda delta: np.power(x + difference * delta, reactants).prod() * forward
-  else:
-    rate = lambda delta: np.power(x + difference * delta, reactants).prod() * forward - np.power(x + difference * delta, products).prod() * backward
-  
-  delta_lin = rate(0) * t
-  delta_eq = fsolve(rate, 0.0, xtol=1e-06)[0]
-  if abs(delta_lin) < abs(delta_eq):
-    delta = delta_lin
-  else:
-    delta = delta_eq
-  
-  system.x[:, compartment] += difference * delta
-  if side_compartment is not None:
-    volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
-    system.x[:, side_compartment] += side_products * volumes_ratio * delta
-"""
-
-def reaction_general(system, compartment, reactants, products, forward, backward, side_compartment, side_products, t):
-  x = system.x[:, compartment]
-  formula = products - reactants
-  
-  with np.errstate(divide='ignore', invalid='ignore'):
-    if backward is None:
-      delta_lin = np.power(x, reactants).prod() * forward * t
-    else:
-      delta_lin = (np.power(x, reactants).prod() * forward - np.power(x, products).prod() * backward) * t
-    
-    if delta_lin == 0:
-      return
-    
-    if backward is None:
-      delta_eq = (x[reactants>0] / reactants[reactants>0]).min()
-    else:
-      a = -(x[products>0] / products[products>0]).min()
-      b = (x[reactants>0] / reactants[reactants>0]).min()
-      delta_eq = brentq(lambda delta: np.power(x + formula * delta, formula).prod() * backward/forward - 1, a, b)
-    
-    delta = delta_eq if abs(delta_lin) > abs(delta_eq) else delta_lin
-  
-  system.x[:, compartment] += formula * delta
-  if side_compartment is not None:
-    volumes_ratio = system.V[:, compartment] / system.V[:, side_compartment]
-    system.x[:, side_compartment] += side_products * volumes_ratio * delta
-
 
 class RS: # reaction system
   def __init__(self, n_analytes):
@@ -263,8 +209,6 @@ class System:
   def add_z(self, variable, value):
     variable = self.variables.index(variable)
     self.z[variable] += value
-
-  
   
   def print(self):
     V = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
