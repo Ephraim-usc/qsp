@@ -48,6 +48,7 @@ def array2dict(x, names, trim = False):
     buffer = {name:x_ for name, x_ in zip(names, x)}
   return buffer
 
+
 class RS: # reaction system
   def __init__(self, n_analytes):
     self.active = False
@@ -256,8 +257,9 @@ class System:
     self.history_cells.append((self.t, self.c.copy()))
     self.history.append((self.t, self.x.copy()))
   
-  def run(self, t_end, t_step = 1/60 * units.h, t_record = 1 * units.h):
-    t_end = t_end.number(units.h)
+  def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
+    t_begin = self.t
+    t = t.number(units.h)
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
@@ -265,33 +267,34 @@ class System:
     for compartment in reacting_compartments:
       self.RS[compartment].refresh()
     
-    pbar = tqdm(total = t_end, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
-    pbar.update(self.t); A, B, C, D = 0.0, 0.0, 0.0, 0.0
+    pbar = tqdm(total = t, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
+    pbar.update(0.0); A, B, C, D = 0.0, 0.0, 0.0, 0.0
     while True:
-      t_ = self.t
-      self.t = min(self.t + t_step, t_end)
+      t_prev = self.t
+      self.t = min(self.t + t_step, t)
+      t_delta = self.t - t_prev
       for analyte in flowing_analytes:
         A -= tt()
-        self.x[analyte] = np.dot(self.x[analyte], expm((self.t - t_) * self.Q[analyte]))
+        self.x[analyte] = np.dot(self.x[analyte], expm(t_delta * self.Q[analyte]))
         A += tt()
       for reaction in self.reactions:
         B -= tt()
-        reaction(self.t - t_)
+        reaction(t_delta)
         B += tt()
       for compartment in reacting_compartments:
         C -= tt()
-        self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], self.t - t_)
+        self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
         C += tt()
       for process in self.processes:
         D -= tt()
-        process(self, (self.t - t_) * units.h)
+        process(self, t_delta * units.h)
         D += tt()
       
-      if math.floor(self.t / t_record) > math.floor(t_ / t_record):
+      if math.floor(self.t / t_record) > math.floor(t_prev / t_record):
         self.history_cells.append((self.t, self.c.copy()))
         self.history.append((self.t, self.x.copy()))
-      pbar.update(self.t - t_)
-      if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
+      pbar.update(t_delta)
+      if math.isclose(self.t, t_begin + t, rel_tol = 0, abs_tol = 1e-9):
         break
     pbar.close()
     print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\ntime in computing processes: {D:.8f}s\n", flush = True)
