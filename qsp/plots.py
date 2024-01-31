@@ -27,7 +27,7 @@ def heatmap(df, xcol, ycol, xlabel, ylabel, zcols, zlabels, norm = norm, cmap = 
     ax.set_yticks(np.arange(data.shape[0]), labels = data.index, fontsize = 6); ax.set_ylabel(ylabel)
     ax.set_title(zlabel)
   
-  fig.tight_layout()
+  #fig.tight_layout()
   plt.gcf().set_size_inches(7 * len(zcols), 7)
   if output is None:
     fig.savefig(f"tmp.png", dpi = 300)
