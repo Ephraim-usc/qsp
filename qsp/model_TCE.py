@@ -131,7 +131,7 @@ VIB6.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 *
 VIB6.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIB6.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 200 * units.nM})
 VIB6.update({"avidity_effector": 19, "avidity_target": 19})
-VIB6.update({"clearance": math.log(2)/(70 * units.h)}); VIBX["smalls"] = []
+VIB6.update({"clearance": math.log(2)/(70 * units.h)}); VIB6["smalls"] = []
 VIB6["cleavage_plasma"] = transform(compartments = ["liver", "gallbladder"],
                                     rates = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)])
 VIB6["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
