@@ -1,3 +1,5 @@
+from .qsp import *
+
 UT44 = {"name": "tumor"}
 UT44.update({"volume": 170 * units.ul, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
 UT44.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
