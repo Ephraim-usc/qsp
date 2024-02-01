@@ -143,7 +143,7 @@ VIB6["internalization"] = internalization(compartments = lambda system: system.c
 
 ############ model ############
 
-def model(TCE, tumors, organs, connect_tumors = True):
+def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
   system = System(analytes, compartments)
