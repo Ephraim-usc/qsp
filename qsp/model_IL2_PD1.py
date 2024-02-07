@@ -166,7 +166,7 @@ class process_cell_dynamics:
       prolifs = evalf_array(cell.prolif, signals, system.n_compartments).astype(float) if isinstance(cell.prolif, sympy.Expr) else cell.prolif
       births = evalf_array(cell.birth, signals, system.n_compartments).astype(float) if isinstance(cell.birth, sympy.Expr) else cell.birth
       minus = 1 - np.exp(- (deaths + diffs) * t)
-      plus = births * t + system.c[idx_cell, :] * (np.exp(prolifs * t) - 1)
+      plus = births * t + system.c[idx_cell, :] * max(0.0, np.exp(prolifs * t) - 1)
       
       system.x[idx_all_analytes, :] -= system.x[idx_all_analytes, :] * minus
       system.x[idx_marker_analytes, :] += np.outer(cell.initials, plus)
@@ -397,11 +397,11 @@ TREG_RATIO = 0.1
 Treg = Cell("Treg", ["P", "α"], [30000, 300], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * TREG_RATIO,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
-            prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (0.1 * (30000 - hill(SIGNALS_CEL["P"]), 1000, coef = 2.0) + hill(SIGNALS_CEL["α"], 100, coef = 1)))
+            prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (0.1 - hill(30000 - SIGNALS_CEL["P"], 1000, EMAX = 0.5) + hill(SIGNALS_CEL["α"], 100, coef = 1)))
 Th = Cell("Th", ["P", "R"], [30000, 300], [0.05/units.h, 2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * (1-TREG_RATIO),
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
-          prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (hill(SIGNALS_CEL["P"], 10000, EMAX = 0.5) + hill(SIGNALS_CEL["R"], 100, coef = 1)),
+          prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (0.1 - hill(30000 - SIGNALS_CEL["P"], 1000, EMAX = 0.5) + hill(SIGNALS_CEL["R"], 100, coef = 1)),
           diff = SIGNALS_ENV["tumor"] * 0.1 / units.d * hill(SIGNALS_CEL["R"], EC50 = 100, coef = 1.0),
           diff_cell = Treg)
 Tm = Cell("Tm", ["P", "R"], [30000, 1500], [0.05/units.h, 2.0/units.h])
@@ -410,8 +410,8 @@ Tex = Cell("Tex", ["P", "α"], [60000, 1500], [0.05/units.h, 2.0/units.h],
 Teff = Cell("Teff", ["P", "α"], [60000, 1500], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
-            prolif = SIGNALS_ENV["tumor"] * 1.386 / units.d * (hill(SIGNALS_CEL["P"], 10000, EMAX = 0.5) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
-            diff = SIGNALS_ENV["tumor"] * 1.0 / units.d * sympy.Max(0.0, hill(SIGNALS_ENV["Treg_per_Teff"], 1, EMAX = 1.0) - hill(SIGNALS_CEL["P"], 10000) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
+            prolif = SIGNALS_ENV["tumor"] * 1.386 / units.d * (0.1 - hill(30000 - SIGNALS_CEL["P"], 1000, EMAX = 0.5) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
+            diff = SIGNALS_ENV["tumor"] * 1.0 / units.d * sympy.Max(0.0, hill(SIGNALS_ENV["Treg_per_Teff"], 1, EMAX = 1.0) + hill(30000 - SIGNALS_CEL["P"], 1000, EMAX = 0.5) + hill(SIGNALS_CEL["α"], 100, coef = 3.1)),
             diff_cell = Tex)
 NK = Cell("NK", ["α"], [3000], [2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.02,
