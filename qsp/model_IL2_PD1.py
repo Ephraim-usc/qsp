@@ -417,7 +417,7 @@ Teff = Cell("Teff", ["P", "α"], [60000, 1500], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.05,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
             prolif = SIGNALS_ENV["tumor"] * 1.386 / units.d * (0.05 - hill(60000 - SIGNALS_CEL["P"], 10000, EMAX = 0.1) + hill(SIGNALS_CEL["α"], 100, coef = 3.1, EMAX = 0.5)),
-            diff = SIGNALS_ENV["tumor"] * 0.5 / units.d * (hill(SIGNALS_ENV["Treg_per_Teff"], 1, EMAX = 0.1) + hill(60000 - SIGNALS_CEL["P"], 10000, EMAX = 0.1) + hill(SIGNALS_CEL["α"], 100, coef = 3.1, EMAX = 0.5)),
+            diff = SIGNALS_ENV["tumor"] * 0.5 / units.d * (hill(SIGNALS_ENV["Treg_per_Teff"], 1, EMAX = 0.05) + hill(60000 - SIGNALS_CEL["P"], 10000, EMAX = 0.1) + hill(SIGNALS_CEL["α"], 100, coef = 3.1, EMAX = 0.5)),
             diff_cell = Tex)
 NK = Cell("NK", ["α"], [3000], [2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.02,
