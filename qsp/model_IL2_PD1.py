@@ -403,7 +403,7 @@ TREG_RATIO = 0.1
 Treg = Cell("Treg", ["P", "α"], [30000, 300], [0.05/units.h, 2.0/units.h],
             birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * TREG_RATIO,
             death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
-            prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (0.05 - hill(30000 - SIGNALS_CEL["P"], 10000, EMAX = 0.1) + hill(SIGNALS_CEL["α"], 100, coef = 1, EMAX = 0.2)))
+            prolif = SIGNALS_ENV["tumor"] * 0.5 / units.d * (0.05 - hill(30000 - SIGNALS_CEL["P"], 10000, EMAX = 0.1) + hill(SIGNALS_CEL["α"], 100, coef = 1, EMAX = 0.3)))
 Th = Cell("Th", ["P", "R"], [30000, 300], [0.05/units.h, 2.0/units.h],
           birth = SIGNALS_ENV["tumor"] * 0.01 / units.d * tumor_cell_total_density * 0.1 * (1-TREG_RATIO),
           death = SIGNALS_ENV["tumor"] * 0.01 / units.d,
