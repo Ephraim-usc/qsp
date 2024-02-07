@@ -388,7 +388,7 @@ class System:
     buffer = pd.DataFrame({"average":avgs, "maximum":maxs, "halfwidth":hfws}, index = self.compartments)
     return buffer
   
-  def summary_cells(self, cell):
+  def summary_cells(self, cells):
     cells = [self.cells.index(cell) for cell in cells]
     avgs = []; maxs = []; hfws = []
     for compartment in range(self.n_compartments):
