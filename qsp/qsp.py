@@ -244,6 +244,16 @@ class System:
   def clear_t(self):
     self.t = 0
     self.history = []
+
+  def run_flows(self, t):
+    t = t.number(units.h)
+    flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
+    for analyte in flowing_analytes:
+      self.x[analyte] = np.dot(self.x[analyte], expm(t * self.Q[analyte]))
+    
+    self.t = self.t + t
+    self.history_cells.append((self.t, self.c.copy()))
+    self.history.append((self.t, self.x.copy()))
   
   def run_reactions(self, t):
     t = t.number(units.h)
@@ -252,6 +262,15 @@ class System:
       self.RS[compartment].refresh()
     for compartment in reacting_compartments:
       self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t)
+    
+    self.t = self.t + t
+    self.history_cells.append((self.t, self.c.copy()))
+    self.history.append((self.t, self.x.copy()))
+  
+  def run_processes(self, t):
+    t = t.number(units.h)
+    for process in self.processes:
+      process(self, t * units.h)
     
     self.t = self.t + t
     self.history_cells.append((self.t, self.c.copy()))
