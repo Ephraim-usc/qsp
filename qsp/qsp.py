@@ -387,4 +387,23 @@ class System:
     
     buffer = pd.DataFrame({"average":avgs, "maximum":maxs, "halfwidth":hfws}, index = self.compartments)
     return buffer
-
+  
+  def summary_cells(self, cell):
+    cells = [self.cells.index(cell) for cell in cells]
+    avgs = []; maxs = []; hfws = []
+    for compartment in range(self.n_compartments):
+      X = np.array([t for t, x in self.history_cells])
+      Y = np.array([x[cells, compartment].sum(axis = 0) for t, x in self.history_cells])
+      steps = X[1:] - X[:-1]
+      widths = (np.append(0, steps) + np.append(steps, 0))/2
+      idx = np.argsort(Y)[::-1]
+      cumsums = np.cumsum((Y * widths)[idx])
+      tmp = np.where(cumsums >= cumsums[-1]/2)[0].min() # minimum number of intervals needed to have 50% of the AUC
+      halfwidth = widths[idx[:tmp]].sum()
+      
+      avgs.append((widths*Y).sum() / (X[-1] - X[0]))
+      maxs.append(Y.max())
+      hfws.append(halfwidth)
+    
+    buffer = pd.DataFrame({"average":avgs, "maximum":maxs, "halfwidth":hfws}, index = self.compartments)
+    return buffer
