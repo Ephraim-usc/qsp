@@ -34,7 +34,7 @@ def heatmap(df, xcol, ycol, xlabel, ylabel, zcols, zlabels, norm = norm, cmap = 
   else:
     fig.savefig(output, dpi = 300)
 
-def compare(systems, labels, analytes, compartments = None, colors = None, linthresh = 1e-3, output = None):
+def compare_systems(systems, labels, analytes, compartments = None, colors = None, linthresh = 1e-3, output = None):
   indices = [systems[0].analytes.index(analyte) for analyte in analytes]
   
   if compartments is None:
@@ -47,8 +47,8 @@ def compare(systems, labels, analytes, compartments = None, colors = None, linth
   if colors is None:
     colors = list(mcolors.TABLEAU_COLORS.values())
   
-  Xmax = max([t for t, x in system.history])
-  Ymax = max([x[indices, compartment].sum() for t, x in system.history for system in systems])
+  Xmax = max([t for t, x in systems[0].history])
+  Ymax = max([x[indices, compartment].sum() for system in systems for t, x in system.history for compartment in compartments])
   Ymax = 10**np.ceil(np.log10(Ymax))
   
   fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), figsize = (4*len(compartments), 3), squeeze = False)
@@ -69,7 +69,7 @@ def compare(systems, labels, analytes, compartments = None, colors = None, linth
     ax.set_yticks([y for y in [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0, 1, 10, 100, 1000, 10000, 1e5, 1e6] if y >= linthresh])
     ax.set_ylim(0, Ymax)
     ax.grid(axis = "y", color = "grey", linewidth = 1)
-    ax.set_title(system.compartments[compartment])
+    ax.set_title(systems[0].compartments[compartment])
     ax.legend(loc = "upper right", prop={'size': 6})
     
     if output is None:
