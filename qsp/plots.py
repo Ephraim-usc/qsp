@@ -6,8 +6,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import pandas as pd
 
-norm = clr.FuncNorm((lambda x: x/(x+10), lambda y: 10*y/(1-y)), vmin=0, vmax=400)
-cmap = clr.LinearSegmentedColormap.from_list('custom',
+norm = mcolors.FuncNorm((lambda x: x/(x+10), lambda y: 10*y/(1-y)), vmin=0, vmax=400)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom',
                                              [(0,      'black'),
                                               (0.25,   'tab:blue'),
                                               (0.5,    'tab:green'),
