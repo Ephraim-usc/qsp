@@ -38,6 +38,13 @@ SI.update({"plasma_flow": 12368 * units.ml/units.h, "lymphatic_flow_ratio": 0.00
 SI.update({"num_cell": 7.2e11 * 0.5, "num_T": 1.8E+10, "num_NK": 8.1E+08})
 SI.update({"num_A": 1000, "num_B": 10000})
 
+skin = {"name": "skin"}
+skin.update({"volume_plasma": 127 * units.ml, "volume_interstitial": 1125 * units.ml})
+skin.update({"vascular_reflection": 0.95, "lymphatic_reflection": 0.2})
+skin.update({"plasma_flow": 11626 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+skin.update({"num_cell": 6.12E+11 * 0.5, "num_T": 2.7E+10, "num_NK": 1.9E+09})
+skin.update({"num_A": 1000, "num_B": 10000})
+
 kidney = {"name": "kidney"}
 kidney.update({"volume_plasma": 18.2 * units.ml, "volume_interstitial": 49.8 * units.ml})
 kidney.update({"vascular_reflection": 0.9, "lymphatic_reflection": 0.2})
