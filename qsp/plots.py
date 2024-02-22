@@ -51,7 +51,7 @@ def compare_systems(systems, labels, analytes, compartments = None, colors = Non
   Ymax = max([x[indices, compartment].sum() for system in systems for t, x in system.history for compartment in compartments])
   Ymax = 10**np.ceil(np.log10(Ymax))
   
-  fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), figsize = (4*len(compartments), 3), squeeze = False)
+  fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), figsize = (4*len(compartments), 4), squeeze = False)
   axs = axs.ravel().tolist()
   for ax, compartment in zip(axs, compartments):
     for system, label, color in zip(systems, labels, colors):
@@ -65,6 +65,7 @@ def compare_systems(systems, labels, analytes, compartments = None, colors = Non
         ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
     
     ax.set_xlim(0, Xmax)
+    ax.set_xlabel("time (h)")
     ax.set_yscale('symlog', linthresh = linthresh)
     ax.set_yticks([y for y in [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0, 1, 10, 100, 1000, 10000, 1e5, 1e6] if y >= linthresh])
     ax.set_ylim(0, Ymax)
