@@ -35,27 +35,33 @@ class equilibrium:
       system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
 
 
+def add_two_dicts(a, b):
+  return dict(list(a.items()) + list(b.items()) + [(k, a[k] + b[k]) for k in set(b) & set(a)])
+
 class transform:
-  def __init__(self, compartments, rates):
+  def __init__(self, reactants, products, rates):
     self.system = None
-    self.compartments = compartments
+    reactants_ = [i for reactant in reactants for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)] 
+    products_ = [i for product in products for i, drug in enumerate(drugs) if re.match(product + "$", drug)] 
     
-    Q = np.zeros([len(drugs), len(drugs)])
-    for reactant, product, rate in rates:
-      reactants = [i for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)]
-      products = [i for i, drug in enumerate(drugs) if re.match(product + "$", drug)]
-      Q[reactants, reactants] -= rate.number(1/units.h)
-      Q[reactants, products] += rate.number(1/units.h)
-    self.Q = Q
+    Qs = dict()
+    for compartment, rate in rates:
+      Q = np.zeros([len(drugs), len(drugs)])
+      Q[reactants_, reactants_] -= rate.number(1/units.h)
+      Q[reactants_, products_] += rate.number(1/units.h)
+      Qs[compartment] = Q
+    self.Qs = Qs
+  
+  def __add__(self, transform2): 
+    buffer = transform([], [], [])
+    buffer.Qs =  add_two_dicts(self.Qs, transform2.Qs)
+    return buffer
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
       
-      if callable(self.compartments):
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments(system) if compartment in system.compartments]
-      else:
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
+      self.Qs_ = {system.compartments.index(compartment):Q for compartment, Q in self.Qs.items()}
       
       self.analyteses_ = []
       self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
@@ -67,13 +73,14 @@ class transform:
       self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
       self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
     
-    for compartment in self.compartments_:
+    t = t.number(units.h)
+    for compartment_, Q in self.Qs_.items():
       for analytes_ in self.analyteses_:
-        system.x[analytes_, compartment] = system.x[analytes_, compartment] @ expm(self.Q * t.number(units.h))
+        system.x[analytes_, compartment_] = system.x[analytes_, compartment_] @ expm(self.Q * t)
 
 
 class internalization:
-  def __init__(self, compartments, rates_effector, rates_target):
+  def __init__(self, rates_effector, rates_target, compartments = None):
     self.system = None
     self.compartments = compartments
     
@@ -104,7 +111,9 @@ class internalization:
     if self.system is not system:
       self.system = system
       
-      if callable(self.compartments):
+      if compartments is None:
+        self.compartments_ = [system.compartments.index(compartment) for compartment in system.compartments]
+      elif callable(self.compartments):
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments(system) if compartment in system.compartments]
       else:
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
@@ -132,12 +141,9 @@ VIB6.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 *
 VIB6.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 200 * units.nM})
 VIB6.update({"avidity_effector": 19, "avidity_target": 19})
 VIB6.update({"clearance": math.log(2)/(70 * units.h)}); VIB6["smalls"] = []
-VIB6["cleavage_plasma"] = transform(compartments = ["liver", "gallbladder"],
-                                    rates = [("m..", "n..", 0.05 / units.d), (".m.", ".n.", 0.05 / units.d), ("..m", "..n", 0.05 / units.d)])
-VIB6["cleavage_tumor"] = transform(compartments = lambda system: [tumor["name"] for tumor in system.tumors], 
-                                   rates = [("m..", "n..", 0.15 / units.d), (".m.", ".n.", 0.15 / units.d), ("..m", "..n", 0.15 / units.d)])
-VIB6["internalization"] = internalization(compartments = lambda system: system.compartments,
-                                          rates_effector = [("C", ["C"], 0.1 / units.h)],
+VIB6["cleavage"] = transform(reactants = ["m.."] + [".m."] + ["..m"], products = ["n.."] + [".n."] + ["..n"],
+                             rates = [("tumor_AB", 0.15 / units.d), ("tumor_A", 0.15 / units.d), ("tumor_B", 0.15 / units.d), ("liver", 0.05 / units.d), ("gallbladder", 0.10 / units.d)])
+VIB6["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
 
@@ -185,8 +191,7 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
     system.add_process(equilibrium([tumor["name"] for tumor in tumors], drugs))
   
   # mask cleavage
-  system.add_process(TCE["cleavage_plasma"])
-  system.add_process(TCE["cleavage_tumor"])
+  system.add_process(TCE["cleavage"])
   
   # target binding
   for drug in drugs:
