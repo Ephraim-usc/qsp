@@ -76,7 +76,7 @@ class transform:
     t = t.number(units.h)
     for compartment_, Q in self.Qs_.items():
       for analytes_ in self.analyteses_:
-        system.x[analytes_, compartment_] = system.x[analytes_, compartment_] @ expm(self.Q * t)
+        system.x[analytes_, compartment_] = system.x[analytes_, compartment_] @ expm(Q * t)
 
 
 class internalization:
