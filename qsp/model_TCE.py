@@ -111,7 +111,7 @@ class internalization:
     if self.system is not system:
       self.system = system
       
-      if compartments is None:
+      if self.compartments is None:
         self.compartments_ = [system.compartments.index(compartment) for compartment in system.compartments]
       elif callable(self.compartments):
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments(system) if compartment in system.compartments]
