@@ -142,7 +142,14 @@ VIB6.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 200 *
 VIB6.update({"avidity_effector": 19, "avidity_target": 19})
 VIB6.update({"clearance": math.log(2)/(70 * units.h)}); VIB6["smalls"] = []
 VIB6["cleavage"] = transform(reactants = ["m.."] + [".m."] + ["..m"], products = ["n.."] + [".n."] + ["..n"],
-                             rates = [("tumor_AB", 0.15 / units.d), ("tumor_A", 0.15 / units.d), ("tumor_B", 0.15 / units.d), ("liver", 0.05 / units.d), ("gallbladder", 0.10 / units.d)])
+                             rates = [("tumor_AB", 0.15 / units.d), 
+                                      ("tumor_A", 0.15 / units.d), 
+                                      ("tumor_B", 0.15 / units.d), 
+                                      ("plasma", 0.01 / units.d), 
+                                      ("liver", 0.03 / units.d), 
+                                      ("lung", 0.01 / units.d), 
+                                      ("SI", 0.05 / units.d), 
+                                      ("gallbladder", 0.03 / units.d)])
 VIB6["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
