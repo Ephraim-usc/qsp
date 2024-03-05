@@ -154,6 +154,25 @@ VIB6["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / u
                                           rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
 
+JANX008 = {}
+JANX008.update({"off_C": 10**-4 / units.s, "affn_C": 0.2 * units.nM, "affm_C": 100 * units.nM})
+JANX008.update({"off_A": 10**-4 / units.s, "affn_A": 0.5 * units.nM, "affm_A": 30 * units.nM})
+JANX008.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM})
+JANX008.update({"avidity_effector": 19, "avidity_target": 19})
+JANX008.update({"clearance": math.log(2)/(50 * units.h)}); JANX008["smalls"] = ["nmm", "nmn", "nnm", "nnn"]
+JANX008["cleavage"] = transform(reactants = ["m.."] + [".m."] + ["..m"], products = ["n.."] + [".n."] + ["..n"],
+                             rates = [("tumor_AB", 0.15 / units.d), 
+                                      ("tumor_A", 0.15 / units.d), 
+                                      ("tumor_B", 0.15 / units.d), 
+                                      ("plasma", 0.07 / units.d), 
+                                      ("liver", 0.07 / units.d), 
+                                      ("lung", 0.07 / units.d), 
+                                      ("SI", 0.07 / units.d), 
+                                      ("gallbladder", 0.07 / units.d)])
+JANX008["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
+                                             rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
+
+
 ############ model ############
 
 def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
