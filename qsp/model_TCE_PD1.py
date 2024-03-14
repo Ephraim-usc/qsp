@@ -1,9 +1,10 @@
 from .qsp import *
 import re
+import itertools
 
 ### this model is mostly from ...
 
-drugs = ["p"] + [{c}{a}{b} for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
+drugs = ["p"] + [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
 targets = ["C", "P", "CP", "A", "B", "AB"]
 antigens = ["C", "P", "A", "B"]
 dimers = [f"{drug}-{target}" for drug in drugs for target in targets]
@@ -36,22 +37,24 @@ def add_two_dicts(a, b):
   return dict(list(a.items()) + list(b.items()) + [(k, a[k] + b[k]) for k in set(b) & set(a)])
 
 class transform:
-  def __init__(self, reactants, products, rates):
+  def __init__(self):
     self.system = None
-    reactants_ = [i for reactant in reactants for i, drug in enumerate(drugs) if re.match(reactant + "$", drug)] 
-    products_ = [i for product in products for i, drug in enumerate(drugs) if re.match(product + "$", drug)] 
+    self.Qs = dict()
+  
+  def add(self, linker, reactant, products):
+    self.system = None
+    reactant_ = drugs.index(reactant)
+    products_ = [drugs.index(product) for product in products] 
     
-    Qs = dict()
-    for compartment, rate in rates:
-      Q = np.zeros([len(drugs), len(drugs)])
-      Q[reactants_, reactants_] -= rate.number(1/units.h)
-      Q[reactants_, products_] += rate.number(1/units.h)
-      Qs[compartment] = Q
-    self.Qs = Qs
+    for compartment, rate in linker:
+      if compartment not in self.Qs:
+        self.Qs[compartment] = np.zeros([len(drugs), len(drugs)])
+      self.Qs[compartment][reactant_, reactant_] -= rate.number(1/units.h)
+      self.Qs[compartment][reactant_, products_] += rate.number(1/units.h)
   
   def __add__(self, transform2): 
-    buffer = transform([], [], [])
-    buffer.Qs =  add_two_dicts(self.Qs, transform2.Qs)
+    buffer = transform()
+    buffer.Qs = add_two_dicts(self.Qs, transform2.Qs)
     return buffer
   
   def __call__(self, system, t):
@@ -62,13 +65,8 @@ class transform:
       
       self.analyteses_ = []
       self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"{drug}-AB") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-A") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-B") for drug in drugs])
-      self.analyteses_.append([system.analytes.index(f"C-{drug}-AB") for drug in drugs])
+      for target in targets:
+        self.analyteses_.append([system.analytes.index(f"{drug}-{target}") for drug in drugs])
     
     t = t.number(units.h)
     for compartment_, Q in self.Qs_.items():
@@ -170,23 +168,35 @@ JANX008["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 
                                              rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
 
-JANX008 = {}
-JANX008.update({"off_C": 10**-4 / units.s, "affn_C": 0.2 * units.nM, "affm_C": 100 * units.nM})
-JANX008.update({"off_A": 10**-4 / units.s, "affn_A": 0.5 * units.nM, "affm_A": 30 * units.nM})
-JANX008.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM})
-JANX008.update({"avidity_effector": 19, "avidity_target": 19})
-JANX008.update({"clearance": math.log(2)/(50 * units.h)}); JANX008["smalls"] = ["nmm", "nmn", "nnm", "nnn"]
-JANX008["cleavage"] = transform(reactants = ["m.."] + [".m."] + ["..m"], products = ["n.."] + [".n."] + ["..n"],
-                             rates = [("tumor_AB", 0.15 / units.d), 
-                                      ("tumor_A", 0.15 / units.d), 
-                                      ("tumor_B", 0.15 / units.d), 
-                                      ("plasma", 0.07 / units.d), 
-                                      ("liver", 0.07 / units.d), 
-                                      ("lung", 0.07 / units.d), 
-                                      ("SI", 0.07 / units.d), 
-                                      ("gallbladder", 0.07 / units.d)])
-JANX008["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
+VIB7P = {}
+VIB7P.update({"off_P": 10**-4 / units.s, "aff_P": 1 * units.nM})
+VIB7P.update({"off_C": 10**-4 / units.s, "affn_C": 0.2 * units.nM, "affm_C": 100 * units.nM})
+VIB7P.update({"off_A": 10**-4 / units.s, "affn_A": 0.5 * units.nM, "affm_A": 30 * units.nM})
+VIB7P.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM})
+VIB7P.update({"avidity_effector": 19, "avidity_target": 19})
+VIB7P.update({"clearance": math.log(2)/(50 * units.h)}); VIB7P["smalls"] = []
+
+VIB7P["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
                                              rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
+
+linker = [("tumor_AB", 0.15 / units.d), 
+          ("tumor_A", 0.15 / units.d), 
+          ("tumor_B", 0.15 / units.d), 
+          ("plasma", 0.07 / units.d), 
+          ("liver", 0.07 / units.d), 
+          ("lung", 0.07 / units.d), 
+          ("SI", 0.07 / units.d), 
+          ("gallbladder", 0.07 / units.d)])
+cleavage = transform()
+for a, b in itertools.product(("m", "n"), ("m", "n")]:
+    cleavage.add_forms(linker = linker, from = f"m{a}{b}", to = ["p", "n{a}{b}"])
+for c, b in itertools.product(("m", "n"), ("m", "n")]:
+    cleavage.add_forms(linker = linker, from = f"{c}m{b}", to = ["{c}n{b}"])
+for c, a in itertools.product(("m", "n"), ("m", "n")]:
+    cleavage.add_forms(linker = linker, from = f"{c}{a}m", to = ["{c}{a}n"])
+VIB7P["cleavage"] = cleavage
+
+
 
 
 ############ model ############
