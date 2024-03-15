@@ -129,11 +129,11 @@ linker = [("tumor_AB", 0.15 / units.d),
           ("SI", 0.07 / units.d), 
           ("gallbladder", 0.07 / units.d)]
 cleavage = transform()
-for a, b in itertools.product(("m", "n"), ("m", "n")]:
+for a, b in itertools.product(("m", "n"), ("m", "n")):
     cleavage.add_forms(linker = linker, from = f"m{a}{b}", to = ["p", "n{a}{b}"])
-for c, b in itertools.product(("m", "n"), ("m", "n")]:
+for c, b in itertools.product(("m", "n"), ("m", "n")):
     cleavage.add_forms(linker = linker, from = f"{c}m{b}", to = ["{c}n{b}"])
-for c, a in itertools.product(("m", "n"), ("m", "n")]:
+for c, a in itertools.product(("m", "n"), ("m", "n")):
     cleavage.add_forms(linker = linker, from = f"{c}{a}m", to = ["{c}{a}n"])
 VIB7P["cleavage"] = cleavage
 
