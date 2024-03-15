@@ -106,9 +106,9 @@ class internalization:
 
 VIB7P = {}
 VIB7P.update({"off_P": 10**-4 / units.s, "aff_P": 1 * units.nM})
-VIB7P.update({"off_C": 10**-4 / units.s, "affn_C": 0.2 * units.nM, "affm_C": 100 * units.nM})
-VIB7P.update({"off_A": 10**-4 / units.s, "affn_A": 0.5 * units.nM, "affm_A": 30 * units.nM})
-VIB7P.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM})
+VIB7P.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
+VIB7P.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
+VIB7P.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 200 * units.nM})
 VIB7P.update({"avidity_effector": 19, "avidity_target": 19})
 VIB7P.update({"clearance": math.log(2)/(50 * units.h)}); VIB7P["smalls"] = []
 
@@ -241,19 +241,20 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
 ############# plot #############
 
 def plot(system, name):
-  #pickle.dump(system, open(f"{name}.pickle", "wb"))
+  main_drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
   
   groups = [["P"],
             ["C"],
             ["A", "B"],
-            [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")],
-            ["p"]
-            [f"p-P"]
-            [f"{drug}-{target}" for drug in drugs for target in ["P", "C", "PC"]],
-            [f"{drug}-{target}" for drug in drugs for target in ["A", "B", "AB"]]]
-  labels = ["PD1", "CD3", "target", "drug (mainbody)", "aPD1", "aPD1-PD1", "drug-effector", "drug-target"]
-  colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
-  linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
+            main_drugs,
+            ["p"],
+            [f"p-P"],
+            [f"{drug}-{target}" for drug in main_drugs for target in ["P", "PC"]],
+            [f"{drug}-{target}" for drug in main_drugs for target in ["C", "PC"]],
+            [f"{drug}-{target}" for drug in main_drugs for target in ["A", "B", "AB"]]]
+  labels = ["PD1", "CD3", "target", "drug (mainbody)", "aPD1", "aPD1-PD1", "drug-PD1", "drug-CD3", "drug-target"]
+  colors = ["tab:red", "tab:orange", "tab:blue", "black", "black", "black", "wheat", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "solid", "solid", "dashed", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
