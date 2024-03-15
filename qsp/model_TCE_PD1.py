@@ -98,8 +98,8 @@ class internalization:
     t = t.number(units.h)
     for compartment_ in self.compartments_:
       delta_dimers = system.x[self.idx_dimers, compartment_] * (1 - np.exp(self.q * t))
-      system.x[self.idx_dimers, compartment] -= delta_dimers
-      system.x[:, compartment] += delta_dimers @ self.Q
+      system.x[self.idx_dimers, compartment_] -= delta_dimers
+      system.x[:, compartment_] += delta_dimers @ self.Q
 
 
 ############ drugs ############
