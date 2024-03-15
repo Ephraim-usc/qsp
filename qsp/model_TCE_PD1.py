@@ -253,52 +253,8 @@ def plot(system, name):
             [f"{drug}-{target}" for drug in main_drugs for target in ["C", "PC"]],
             [f"{drug}-{target}" for drug in main_drugs for target in ["A", "B", "AB"]]]
   labels = ["PD1", "CD3", "target", "drug (mainbody)", "aPD1", "aPD1-PD1", "drug-PD1", "drug-CD3", "drug-target"]
-  colors = ["tab:red", "tab:orange", "tab:blue", "black", "black", "black", "wheat", "skyblue", "tab:purple"]
-  linestyles = ["solid", "solid", "solid", "solid", "dashed", "solid", "solid", "solid", "solid"]
+  colors = ["tab:red", "tab:orange", "tab:blue", "black", "black", "pink", "pink", "wheat", "skyblue"]
+  linestyles = ["solid", "solid", "solid", "solid", "dashed", "dashed", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
-
-
-
-def plot(system, name):
-  #pickle.dump(system, open(f"{name}.pickle", "wb"))
-  
-  groups = [antigens_effector,
-            antigens_target,
-            drugs,
-            dimers_effector,
-            dimers_target,
-            trimers]
-  labels = ["effector", "target", "drug", "effector-drug", "drug-target", "effector-drug-target"]
-  colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
-  linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
-              output = f"{name}_summary.png")
-  
-  groups = [[analyte for analyte in analytes if re.search("[mn][mn][mn]", analyte)],
-            [analyte for analyte in analytes if re.search("[n][mn][mn]", analyte)],
-            [analyte for analyte in analytes if re.search("[mn][n][mn]", analyte)],
-            [analyte for analyte in analytes if re.search("[mn][mn][n]", analyte)]]
-  labels = ["(effector)-xxx-(target)", "(effector)-nxx-(target)", "(effector)-xnx-(target)", "(effector)-xxn-(target)"]
-  colors = ["black", "tab:orange", "tab:blue", "tab:red"]
-  linestyles = ["solid", "dashed", "dashed", "dashed"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
-              output = f"{name}_drugs.png")
-  
-  groups = [["A"], ["B"],
-            [analyte for analyte in analytes if re.match("[mn][mn][mn]-A$", analyte)],
-            [analyte for analyte in analytes if re.match("[mn][mn][mn]-B$", analyte)],
-            [analyte for analyte in analytes if re.match("[mn][mn][mn]-AB$", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-A", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-B", analyte)],
-            [analyte for analyte in analytes if re.search("-[mn][mn][mn]-AB", analyte)]]
-  labels = ["A", "B", "xxx-A", "xxx-B", "xxx-AB", "effector-xxx-A", "effector-xxx-B", "effector-xxx-AB"]
-  colors = ["tab:blue", "tab:red", 
-            "skyblue", "pink", "tab:purple", "skyblue", "pink", "tab:purple"]
-  linestyles = ["solid", "solid", "dashed", "dashed", "dashed", "solid", "solid", "solid"]
-  system.plot(compartments = system.compartments, 
-              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
-              output = f"{name}_targets.png")
