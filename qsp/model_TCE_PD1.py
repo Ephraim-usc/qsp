@@ -184,9 +184,16 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
   
   # mask cleavage
   system.add_process(TCE["cleavage"])
+
+  # target binding for anti-PD1
+  for drug in ["p"]:
+    off_P = TCE["off_P"]; on_P = TCE["off_P"] / TCE["aff_P"]
+    
+    for organ in centrals + tumors + organs:
+      system.add_simple(organ["name"], ["P", f"{drug}"], [f"{drug}-P"], on_P, off_P)
   
-  # target binding
-  for drug in drugs:
+  # target binding for other forms
+  for drug in [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]:
     off_P = TCE["off_P"]; on_P = TCE["off_P"] / TCE["aff_P"]
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
