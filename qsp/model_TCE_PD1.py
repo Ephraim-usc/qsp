@@ -5,7 +5,7 @@ import itertools
 ### this model is mostly from ...
 
 drugs = ["p"] + [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
-targets = ["C", "P", "CP", "A", "B", "AB"]
+targets = ["C", "P", "PC", "A", "B", "AB"]
 antigens = ["C", "P", "A", "B"]
 dimers = [f"{drug}-{target}" for drug in drugs for target in targets]
 analytes = drugs + antigens + dimers
@@ -40,6 +40,11 @@ class transform:
   def __init__(self):
     self.system = None
     self.Qs = dict()
+    
+    self.analyteses_ = []
+    self.analyteses_.append([analytes.index(f"{drug}") for drug in drugs])
+    for target in targets:
+      self.analyteses_.append([analytes.index(f"{drug}-{target}") for drug in drugs])
   
   def add(self, linker, reactant, products):
     self.system = None
@@ -60,13 +65,7 @@ class transform:
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      
       self.Qs_ = {system.compartments.index(compartment):Q for compartment, Q in self.Qs.items()}
-      
-      self.analyteses_ = []
-      self.analyteses_.append([system.analytes.index(f"{drug}") for drug in drugs])
-      for target in targets:
-        self.analyteses_.append([system.analytes.index(f"{drug}-{target}") for drug in drugs])
     
     t = t.number(units.h)
     for compartment_, Q in self.Qs_.items():
@@ -75,12 +74,12 @@ class transform:
 
 
 class internalization:
-  def __init__(self, rates, compartments = None):
+  def __init__(self, rates):
     self.system = None
     self.compartments = compartments
     
     q = np.zeros(len(dimers))
-    Q = np.zeros([len(dimers), len(antigens)])
+    Q = np.zeros([len(dimers), len(analytes)])
     for target, products, rate in rates:
       idx_dimers = [dimers.index(f"{drug}-{target}") for drug in drugs if f"{drug}-{target}" in dimers]
       idx_products = [analytes.index(product) for product in products]
@@ -90,25 +89,18 @@ class internalization:
     
     self.q = q
     self.Q = Q
+    self.idx_dimers = [analytes.index(dimer) for dimer in dimers]
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      
-      if self.compartments is None:
-        self.compartments_ = [system.compartments.index(compartment) for compartment in system.compartments]
-      elif callable(self.compartments):
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments(system) if compartment in system.compartments]
-      else:
-        self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
-      
-      self.idx_dimers_target = [system.analytes.index(analyte) for analyte in dimers_target]
-      self.idx_antigens_target = [system.analytes.index(analyte) for analyte in antigens_target]
+      self.compartments_ = [system.compartments.index(compartment) for compartment in system.compartments]
     
-    for compartment in self.compartments_:
-      delta_dimers = system.x[self.idx_dimers, compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
-      system.x[self.idx_dimers_target, compartment] -= delta_dimers
-      system.x[self.idx_antigens_target, compartment] += delta_dimers @ self.Q_target
+    t = t.number(units.h)
+    for compartment_ in self.compartments_:
+      delta_dimers = system.x[self.idx_dimers, compartment_] * (1 - np.exp(self.q * t))
+      system.x[self.idx_dimers, compartment] -= delta_dimers
+      system.x[:, compartment] += delta_dimers @ self.Q
 
 
 ############ drugs ############
