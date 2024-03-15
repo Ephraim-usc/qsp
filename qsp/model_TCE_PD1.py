@@ -243,6 +243,26 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
 def plot(system, name):
   #pickle.dump(system, open(f"{name}.pickle", "wb"))
   
+  groups = [["P"],
+            ["C"],
+            ["A", "B"],
+            [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")],
+            ["p"]
+            [f"p-P"]
+            [f"{drug}-{target}" for drug in drugs for target in ["P", "C", "PC"]],
+            [f"{drug}-{target}" for drug in drugs for target in ["A", "B", "AB"]]]
+  labels = ["PD1", "CD3", "target", "drug (mainbody)", "aPD1", "aPD1-PD1", "drug-effector", "drug-target"]
+  colors = ["tab:orange", "tab:blue", "black", "wheat", "skyblue", "tab:purple"]
+  linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
+  system.plot(compartments = system.compartments, 
+              groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"{name}_summary.png")
+
+
+
+def plot(system, name):
+  #pickle.dump(system, open(f"{name}.pickle", "wb"))
+  
   groups = [antigens_effector,
             antigens_target,
             drugs,
