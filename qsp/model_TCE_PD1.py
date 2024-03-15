@@ -188,45 +188,42 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
   
   # target binding
   for drug in drugs:
+    off_P = TCE["off_P"]; on_P = TCE["off_P"] / TCE["aff_P"]
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = {"n":TCE["off_B"] / TCE["affn_B"], "m":TCE["off_B"] / TCE["affm_B"]}[drug[2]]
+    avidity_effector = TCE["avidity_effector"]
     avidity_target = TCE["avidity_target"]
     
-    system.add_simple("plasma", ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
-    
     for organ in centrals + tumors + organs:
-      system.add_simple(organ["name"], ["C", f"{drug}"], [f"C-{drug}"], on_C, off_C)
+      system.add_simple(organ["name"], ["P", f"{drug}"], [f"{drug}-P"], on_P, off_P)
+      system.add_simple(organ["name"], ["C", f"{drug}"], [f"{drug}-C"], on_C, off_C)
+      system.add_simple(organ["name"], [f"{drug}-P", "C"], [f"{drug}-PC"], on_C * avidity_effector, off_C)
+      system.add_simple(organ["name"], [f"{drug}-C", "P"], [f"{drug}-PC"], on_P * avidity_effector, off_P)
       
       system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
       system.add_simple(organ["name"], [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
       system.add_simple(organ["name"], [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity_target, off_B)
       system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
-      
-      for target in targets:
-        system.add_simple(organ["name"], ["C", f"{drug}-{target}"], [f"C-{drug}-{target}"], on_C, off_C)
-      
-      for effector in effectors:
-        system.add_simple(organ["name"], [f"{effector}-{drug}", "A"], [f"{effector}-{drug}-A"], on_A, off_A)
-        system.add_simple(organ["name"], [f"{effector}-{drug}", "B"], [f"{effector}-{drug}-B"], on_B, off_B)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-A", "B"], [f"{effector}-{drug}-AB"], on_B * avidity_target, off_B)
-        system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
   
   # internalization
   system.add_process(TCE["internalization"])
   
   # initial concentrations
   for central in centrals:
+    system.add_x("P", central["name"], 10000 * central["num_T"] / central["volume"] / units.avagadro)
     system.add_x("C", central["name"], 124000 * central["num_T"] / central["volume"] / units.avagadro)
     system.add_x("A", central["name"], central["conc_A"])
     system.add_x("B", central["name"], central["conc_B"])
   
   for tumor in tumors:
+    system.add_x("P", central["name"], 30000 * central["num_T"] / central["volume"] / units.avagadro)
     system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("A", tumor["name"], tumor["num_A"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
+    system.add_x("P", central["name"], 10000 * central["num_T"] / central["volume"] / units.avagadro)
     system.add_x("C", organ["name"], 124000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
