@@ -81,12 +81,12 @@ class internalization:
     
     q = np.zeros(len(dimers))
     Q = np.zeros([len(dimers), len(antigens)])
-    for target, antigens, rate in rates:
-      idx_target = [dimers.index(f"{drug}-{target}") for drug in drugs]
-      idx_antigens = [antigens.index(antigen) for antigen in antigens]
-      q[idx_target] -= rate.number(1/units.h)
-      for i in idx_target:
-        np.add.at(Q, (i, idx_antigens), 1) # there may be repeated antigens
+    for target, products, rate in rates:
+      idx_dimers = [dimers.index(f"{drug}-{target}") for drug in drugs if f"{drug}-{target}" in dimers]
+      idx_products = [analytes.index(product) for product in products]
+      q[idx_dimers] -= rate.number(1/units.h)
+      for i in idx_dimers:
+        np.add.at(Q, (i, idx_products), 1) # there may be repeated antigens
     
     self.q = q
     self.Q = Q
@@ -102,15 +102,13 @@ class internalization:
       else:
         self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
       
-      self.idx_dimers_effector = [system.analytes.index(analyte) for analyte in dimers_effector]
       self.idx_dimers_target = [system.analytes.index(analyte) for analyte in dimers_target]
-      self.idx_antigens_effector = [system.analytes.index(analyte) for analyte in antigens_effector]
       self.idx_antigens_target = [system.analytes.index(analyte) for analyte in antigens_target]
     
     for compartment in self.compartments_:
-      delta_target = system.x[self.idx_dimers_target, compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
-      system.x[self.idx_dimers_target, compartment] -= delta_target
-      system.x[self.idx_antigens_target, compartment] += delta_target @ self.Q_target
+      delta_dimers = system.x[self.idx_dimers, compartment] * (1 - np.exp(self.q_target * t.number(units.h)))
+      system.x[self.idx_dimers_target, compartment] -= delta_dimers
+      system.x[self.idx_antigens_target, compartment] += delta_dimers @ self.Q_target
 
 
 ############ drugs ############
