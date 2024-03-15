@@ -76,7 +76,6 @@ class transform:
 class internalization:
   def __init__(self, rates):
     self.system = None
-    self.compartments = compartments
     
     q = np.zeros(len(dimers))
     Q = np.zeros([len(dimers), len(analytes)])
