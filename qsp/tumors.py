@@ -15,3 +15,14 @@ FTC238.update({"capillary_radius": 10 * units.um, "capillary_permeability": 3e-7
 FTC238.update({"diffusion": 10 * units.um**2 / units.s})
 FTC238.update({"density_cell": 3e8 * 0.44 / units.ml, "density_T": 3e8 * 0.15 / units.ml, "density_NK": 3e8 * 0.02 / units.ml})
 FTC238.update({"num_A": 1e5, "num_B": 1e5})
+
+tumor_AB = FTC238.copy()
+tumor_AB["name"] = "tumor_AB"
+
+tumor_A = FTC238.copy()
+tumor_A["num_B"] = 0
+tumor_A["name"] = "tumor_A"
+
+tumor_B = FTC238.copy()
+tumor_B["num_A"] = 0
+tumor_B["name"] = "tumor_B"
