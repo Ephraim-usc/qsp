@@ -223,13 +223,13 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
     system.add_x("B", central["name"], central["conc_B"])
   
   for tumor in tumors:
-    system.add_x("P", tumor["name"], 30000 * central["num_T"] / central["volume"] / units.avagadro)
+    system.add_x("P", tumor["name"], 30000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("A", tumor["name"], tumor["num_A"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
     system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
-    system.add_x("P", organ["name"], 10000 * central["num_T"] / central["volume"] / units.avagadro)
+    system.add_x("P", organ["name"], 10000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("C", organ["name"], 124000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
     system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
