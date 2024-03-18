@@ -194,7 +194,7 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
   
   # target binding for other forms
   for drug in [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]:
-    off_P = TCE["off_P"]; on_P = TCE["off_P"] / TCE["aff_P"]
+    off_P = TCE["off_P"]; on_P = {"n":math.inf * units.nM, "m":TCE["off_P"] / TCE["aff_P"]}[drug[0]]
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = {"n":TCE["off_B"] / TCE["affn_B"], "m":TCE["off_B"] / TCE["affm_B"]}[drug[2]]
