@@ -106,9 +106,9 @@ class internalization:
 
 VIB7P = {}
 VIB7P.update({"off_P": 10**-4 / units.s, "aff_P": 1 * units.nM})
-VIB7P.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
-VIB7P.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
-VIB7P.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 200 * units.nM})
+VIB7P.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM})
+VIB7P.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM})
+VIB7P.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 1000 * units.nM})
 VIB7P.update({"avidity_effector": 19, "avidity_target": 19})
 VIB7P.update({"clearance": math.log(2)/(50 * units.h)}); VIB7P["smalls"] = []
 
