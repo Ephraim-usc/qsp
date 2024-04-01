@@ -213,20 +213,14 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
 ############# plot #############
 
 def plot(system, name):
-  main_drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
-  
-  groups = [["P"],
-            ["C"],
+  groups = [["C"],
             ["A", "B"],
-            main_drugs,
-            ["p"],
-            [f"p-P"],
-            [f"{drug}-{target}" for drug in main_drugs for target in ["P", "PC"]],
-            [f"{drug}-{target}" for drug in main_drugs for target in ["C", "PC"]],
-            [f"{drug}-{target}" for drug in main_drugs for target in ["A", "B", "AB"]]]
-  labels = ["PD1", "CD3", "target", "drug (mainbody)", "aPD1", "aPD1-PD1", "drug-PD1", "drug-CD3", "drug-target"]
-  colors = ["tab:red", "tab:orange", "tab:blue", "black", "black", "pink", "pink", "wheat", "skyblue"]
-  linestyles = ["solid", "solid", "solid", "solid", "dashed", "dashed", "solid", "solid", "solid"]
+            drugs,
+            [f"{drug}-{target}" for drug in drugs for target in ["C"]],
+            [f"{drug}-{target}" for drug in drugs for target in ["A", "B", "AB"]]]
+  labels = ["CD3", "target", "drug", "drug-CD3", "drug-target"]
+  colors = [ "tab:orange", "tab:blue", "black", "wheat", "skyblue"]
+  linestyles = ["solid", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
