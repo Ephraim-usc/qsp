@@ -112,8 +112,10 @@ GBR1302.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_
 GBR1302.update({"avidity_effector": 1, "avidity_target": 1})
 GBR1302.update({"clearance": math.log(2)/(70 * units.h)}); GBR1302["smalls"] = []
 GBR1302["cleavage"] = None
-GBR1302["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
-                                             rates_target = [("A", ["A"], 0.1 / units.h)])
+GBR1302["internalization"] = internalization(rates = [("C", ["C"], 0.1 / units.h),
+                                                      ("A", ["A"], 0.1 / units.h),
+                                                      ("B", ["B"], 0.1 / units.h),
+                                                      ("AB", ["A", "B"], 0.02 / units.h)])
 
 
 ############ model ############
