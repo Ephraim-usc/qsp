@@ -156,6 +156,7 @@ VIB6["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / u
 
 
 JANX008 = {}
+JANX008.update({"A": "EGFR", "B": "CAIX"})
 JANX008.update({"off_C": 10**-4 / units.s, "affn_C": 0.2 * units.nM, "affm_C": 100 * units.nM})
 JANX008.update({"off_A": 10**-4 / units.s, "affn_A": 0.5 * units.nM, "affm_A": 30 * units.nM})
 JANX008.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM})
