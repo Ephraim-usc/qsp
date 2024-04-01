@@ -136,6 +136,7 @@ class internalization:
 ############ drugs ############
 
 VIB6 = {}
+VIB6.update({"A": "EGFR", "B": "CAIX"})
 VIB6.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 200 * units.nM})
 VIB6.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 200 * units.nM})
 VIB6.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 200 * units.nM})
@@ -172,6 +173,17 @@ JANX008["cleavage"] = transform(reactants = ["m.."] + [".m."] + ["..m"], product
 JANX008["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
                                              rates_target = [("A", ["A"], 0.02 / units.h), ("B", ["B"], 0.02 / units.h), ("AB", ["A", "B"], 0.02 / units.h)])
 
+
+GBR1302 = {}
+GBR1302.update({"A": "HER2", "B": None})
+GBR1302.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM})
+GBR1302.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM})
+GBR1302.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM})
+GBR1302.update({"avidity_effector": 1, "avidity_target": 1})
+GBR1302.update({"clearance": math.log(2)/(70 * units.h)}); GBR1302["smalls"] = []
+GBR1302["cleavage"] = None
+GBR1302["internalization"] = internalization(rates_effector = [("C", ["C"], 0.1 / units.h)],
+                                             rates_target = [("A", ["A"], 0.1 / units.h)])
 
 ############ model ############
 
@@ -217,7 +229,8 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
     system.add_process(equilibrium([tumor["name"] for tumor in tumors], drugs))
   
   # mask cleavage
-  system.add_process(TCE["cleavage"])
+  if TCE["cleavage"] is not None:
+    system.add_process(TCE["cleavage"])
   
   # target binding
   for drug in drugs:
@@ -246,23 +259,30 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
         system.add_simple(organ["name"], [f"{effector}-{drug}-B", "A"], [f"{effector}-{drug}-AB"], on_A * avidity_target, off_A)
   
   # internalization
-  system.add_process(TCE["internalization"])
+  if TCE["internalization"] is not None:
+    system.add_process(TCE["internalization"])
   
   # initial concentrations
   for central in centrals:
     system.add_x("C", central["name"], 124000 * central["num_T"] / central["volume"] / units.avagadro)
-    system.add_x("A", central["name"], central["conc_A"])
-    system.add_x("B", central["name"], central["conc_B"])
+    if TCE['A'] is not None:
+      system.add_x("A", central["name"], central[f"conc_{TCE['A']}"])
+    if TCE['B'] is not None:
+      system.add_x("B", central["name"], central[f"conc_{TCE['B']}"])
   
   for tumor in tumors:
     system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("A", tumor["name"], tumor["num_A"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
-    system.add_x("B", tumor["name"], tumor["num_B"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    if TCE['A'] is not None:
+      system.add_x("A", tumor["name"], tumor[f"num_{TCE['A']}"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
+    if TCE['B'] is not None:
+      system.add_x("B", tumor["name"], tumor[f"num_{TCE['B']}"] * tumor["density_cell"] / tumor["volume_interstitial_proportion"] / units.avagadro)
   
   for organ in organs:
     system.add_x("C", organ["name"], 124000 * organ["num_T"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("A", organ["name"], organ["num_A"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
-    system.add_x("B", organ["name"], organ["num_B"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
+    if TCE['A'] is not None:
+      system.add_x("A", organ["name"], organ[f"num_{TCE['A']}"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
+    if TCE['B'] is not None:
+      system.add_x("B", organ["name"], organ[f"num_{TCE['B']}"] * organ["num_cell"] / organ["volume_interstitial"] / units.avagadro)
   
   return system
 
