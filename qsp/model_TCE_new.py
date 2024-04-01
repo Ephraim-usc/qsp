@@ -159,9 +159,6 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
   if connect_tumors:
     system.add_process(equilibrium([tumor["name"] for tumor in tumors], drugs))
   
-  # mask cleavage
-  system.add_process(TCE["cleavage"])
-  
   # target binding
   for drug in [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]:
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
@@ -177,8 +174,13 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
       system.add_simple(organ["name"], [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity_target, off_B)
       system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
   
+  # mask cleavage
+  if TCE["cleavage"] is not None:
+    system.add_process(TCE["cleavage"])
+  
   # internalization
-  system.add_process(TCE["internalization"])
+  if TCE["internalization"] is not None:
+    system.add_process(TCE["internalization"])
   
   # initial concentrations
   for central in centrals:
