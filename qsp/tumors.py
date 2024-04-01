@@ -26,3 +26,12 @@ tumor_A["name"] = "tumor_A"
 tumor_B = FTC238.copy()
 tumor_B["num_A"] = 0
 tumor_B["name"] = "tumor_B"
+
+
+PRAD = {"name": "tumor"}
+PRAD.update({"volume": 170 * units.ul, "volume_plasma_proportion": 0.07, "volume_interstitial_proportion": 0.55})
+PRAD.update({"plasma_flow_density": 12.7 / units.h, "lymphatic_flow_ratio": 0.002})
+PRAD.update({"capillary_radius": 10 * units.um, "capillary_permeability": 3e-7 * units.cm/units.s})
+PRAD.update({"diffusion": 10 * units.um**2 / units.s})
+PRAD.update({"density_cell": 3e8 * 0.44 / units.ml, "density_T": 3e8 * 0.15 / units.ml, "density_NK": 3e8 * 0.02 / units.ml})
+PRAD.update({"num_HER2": 5e5})
