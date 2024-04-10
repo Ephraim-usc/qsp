@@ -91,6 +91,13 @@ class System:
     self.cells = cells
     self.n_cells = len(cells)
     
+    # list of lists of analyte indices for each cell index
+    self.ligands = [[] for _ in self.cells]
+    for i, cell in enumerate(self.cells):
+      for j, analyte in enumerate(self.analytes):
+        if f"{cell}-" in analyte:
+          self.ligands[i].append(j)
+    
     self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # volume of each compartment, in units.ml
     self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # flow matrix of analytes, in 1/units.h
     self.M = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float) # migration matrix of cells, in 1/units.h
@@ -161,7 +168,8 @@ class System:
     cell = self.cells.index(cell)
     compartment = self.compartments.index(compartment)
     return self.c[cell, compartment] * 1/units.ml
-  
+
+  # adding a type of cell with certain ligands
   def add_c(self, compartment, cell, value, ligands, copys):
     for ligand, copy in zip(ligands, copy):
       analyte = f"{cell}-{ligand}"
@@ -171,6 +179,15 @@ class System:
     cell = self.cells.index(cell)
     compartment = self.compartments.index(compartment)
     self.c[cell, compartment] += value
+  
+  def decay_c(self, compartment, cell, value):
+    ligands = self.ligands[cell]
+    self.x[ligands, compartment] *= 1 - value
+    
+    value = value.number(1/units.ml)
+    cell = self.cells.index(cell)
+    compartment = self.compartments.index(compartment)
+    self.c[cell, compartment] *= 1 - value
   
   
   def run_flows(self, t):
