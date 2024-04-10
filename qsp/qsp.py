@@ -125,10 +125,10 @@ class System:
     rate = rate.number(units.ml/units.h)
     analyte = self.analytes.index(analyte)
     compartment_source = self.compartments.index(compartment_source)
-    self.Q[analyte, compartment_source, compartment_source] -= rate / self.V[analyte, compartment_source]
+    self.Q[analyte, compartment_source, compartment_source] -= rate / self.V[compartment_source]
     if compartment_dest is not None:
       compartment_dest = self.compartments.index(compartment_dest)
-      self.Q[analyte, compartment_source, compartment_dest] += rate / self.V[analyte, compartment_dest]
+      self.Q[analyte, compartment_source, compartment_dest] += rate / self.V[compartment_dest]
   
   def add_simple(self, compartment, reactants, products, forward, backward = None):
     compartment = self.compartments.index(compartment)
