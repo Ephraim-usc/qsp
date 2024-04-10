@@ -95,7 +95,7 @@ class System:
     self.ligands = [[] for _ in self.cells]
     for i, cell in enumerate(self.cells):
       for j, analyte in enumerate(self.analytes):
-        if f"{cell}-" in analyte:
+        if analyte.startswith(f"[{cell}]"):
           self.ligands[i].append(j)
     
     self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # volume of each compartment, in units.ml
