@@ -4,11 +4,13 @@ import itertools
 
 ### this model is mostly from ...
 
+cells = ["T", "C"]
+
 drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
-antigens = ["[T]CD3", "[C]A", "[C]B"]
-targets = ["[T]CD3", "[C]A", "[C]B", "[C]AB"]
-dimers = [f"{target}-{drug}" for drug in drugs for target in targets]
-analytes = drugs + antigens + dimers
+solubles = ["A", "B"]
+ligands = ["[T]CD3", "[C]A", "[C]B"]
+dimers = [f"{binding}-{drug}" for binding in ["A", "B", "AB", "[T]CD3", "[C]A", "[C]B", "[C]AB"] for drug in drugs]
+analytes = solubles + ligands + drugs + dimers
 
 
 
@@ -106,9 +108,9 @@ class internalization:
 
 GBR1302 = {}
 GBR1302.update({"A": "HER2", "B": None})
-GBR1302.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM})
-GBR1302.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM})
-GBR1302.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM})
+GBR1302.update({"off_C": 10**-4 / units.s, "affn_CD3": 10 * units.nM, "affm_CD3": 1000 * units.nM, "aff2d_CD3": None})
+GBR1302.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM, "aff2d_A": None})
+GBR1302.update({"off_B": 10**-4 / units.s, "affn_B": math.inf * units.nM, "affm_B": math.inf * units.nM, "aff2d_B": None})
 GBR1302.update({"avidity_effector": 1, "avidity_target": 1})
 GBR1302.update({"clearance": math.log(2)/(70 * units.h)}); GBR1302["smalls"] = []
 GBR1302["cleavage"] = None
@@ -123,18 +125,17 @@ GBR1302["internalization"] = internalization(rates = [("C", ["C"], 0.1 / units.h
 def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
-  system = System(analytes, compartments)
+  system = System(compartments, analytes, cells)
   system.centrals = [plasma, lymph]
   system.tumors = tumors
   system.organs = organs
   
-  for analyte in analytes:
-    for central in centrals:
-      system.set_volume(analyte, central["name"], central["volume"])
-    for tumor in tumors:
-      system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
-    for organ in organs:
-      system.set_volume(analyte, organ["name"], organ["volume_interstitial"])
+  for central in centrals:
+    system.set_volume(central["name"], central["volume"])
+  for tumor in tumors:
+    system.set_volume(tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
+  for organ in organs:
+    system.set_volume(organ["name"], organ["volume_interstitial"])
   
   # whole-body clearance
   for compartment in compartments:
@@ -162,19 +163,20 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
     system.add_process(equilibrium([tumor["name"] for tumor in tumors], drugs))
   
   # target binding
-  for drug in [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]:
-    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
+  for drug in drugs:
+    off_CD3 = TCE["off_C"]; on_CD3 = {"n":TCE["off_CD3"] / TCE["affn_CD3"], "m":TCE["off_CD3"] / TCE["affm_CD3"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = {"n":TCE["off_B"] / TCE["affn_B"], "m":TCE["off_B"] / TCE["affm_B"]}[drug[2]]
+    avidity_effector = TCE["avidity_effector"]
     avidity_target = TCE["avidity_target"]
     
     for organ in centrals + tumors + organs:
-      system.add_simple(organ["name"], ["C", f"{drug}"], [f"{drug}-C"], on_C, off_C)
+      system.add_simple(organ["name"], ["[T]CD3", f"{drug}"], [f"[T]CD3-{drug}"], on_C, off_C)
       
-      system.add_simple(organ["name"], [f"{drug}", "A"], [f"{drug}-A"], on_A, off_A)
-      system.add_simple(organ["name"], [f"{drug}", "B"], [f"{drug}-B"], on_B, off_B)
-      system.add_simple(organ["name"], [f"{drug}-A", "B"], [f"{drug}-AB"], on_B * avidity_target, off_B)
-      system.add_simple(organ["name"], [f"{drug}-B", "A"], [f"{drug}-AB"], on_A * avidity_target, off_A)
+      system.add_simple(organ["name"], ["[C]A", f"{drug}"], [f"[C]A-{drug}"], on_A, off_A)
+      system.add_simple(organ["name"], ["[C]B", f"{drug}", "B"], [f"[C]B-{drug}"], on_B, off_B)
+      system.add_simple(organ["name"], ["[C]B", f"{drug}-A", "B"], [f"[C]AB-{drug}"], on_B * avidity_target, off_B)
+      system.add_simple(organ["name"], ["[C]A", f"{drug}-B", "A"], [f"[C]AB-{drug}"], on_A * avidity_target, off_A)
   
   # mask cleavage
   if TCE["cleavage"] is not None:
@@ -185,12 +187,15 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
     system.add_process(TCE["internalization"])
   
   # initial concentrations
+  name_A = TCE['A']
+  name_B = TCE['B']
+  
   for central in centrals:
-    system.add_x("C", central["name"], 124000 * central["num_T"] / central["volume"] / units.avagadro)
-    if TCE['A'] is not None:
-      system.add_x("A", central["name"], central[f"conc_{TCE['A']}"])
-    if TCE['B'] is not None:
-      system.add_x("B", central["name"], central[f"conc_{TCE['B']}"])
+    system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["CD3"], [124000])
+    if name_A is not None:
+      system.add_x("A", central["name"], central[f"conc_{name_A}"])
+    if name_B is not None:
+      system.add_x("B", central["name"], central[f"conc_{name_B}"])
   
   for tumor in tumors:
     system.add_x("C", tumor["name"], 124000 * tumor["density_T"] / tumor["volume_interstitial_proportion"] / units.avagadro)
