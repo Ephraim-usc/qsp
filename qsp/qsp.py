@@ -140,33 +140,37 @@ class System:
     self.processes.append(process)
   
   
-  def get_x(self, analyte, compartment):
+  def get_x(self, compartment, analyte):
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
     return self.x[analyte, compartment] * units.nM
   
-  def set_x(self, analyte, compartment, value):
+  def set_x(self, compartment, analyte, value):
     value = value.number(units.nM)
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
     self.x[analyte, compartment] = value
   
-  def add_x(self, analyte, compartment, value):
+  def add_x(self, compartment, analyte, value):
     value = value.number(units.nM)
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
     self.x[analyte, compartment] += value
   
-  def get_c(self, cell, compartment):
+  def get_c(self, compartment, cell):
     cell = self.cells.index(cell)
     compartment = self.compartments.index(compartment)
     return self.c[cell, compartment] * 1/units.ml
   
-  def add_c(self, cell, analytes, compartment, value):
-    value = value.number(units.nM)
+  def add_c(self, compartment, cell, value, ligands, copys):
+    for ligand, copy in zip(ligands, copy):
+      analyte = f"{cell}-{ligand}"
+      self.add_x(analyte, compartment, value * copy / units.avagadro)
+    
+    value = value.number(1/units.ml)
     cell = self.cells.index(cell)
     compartment = self.compartments.index(compartment)
-    self.x[analyte, compartment] += value
+    self.c[cell, compartment] += value
   
   
   def run_flows(self, t):
