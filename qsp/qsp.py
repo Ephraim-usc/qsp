@@ -81,7 +81,7 @@ class System:
   def __init__(self, compartments, analytes, cells = None):
     variables = [] if variables is None else variables
     cells = [] if cells is None else cells
-
+    
     self.compartments = compartments
     self.n_compartments = len(compartments)
     
@@ -98,8 +98,8 @@ class System:
     self.processes = []
     
     self.t = 0
-    self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
-    self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # in units.nM
+    self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # concentration of analytes, in units.nM
+    self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # concentration of cells, in 1/units.ml
     
     self.history = []
     self.history_cells = []
@@ -157,20 +157,16 @@ class System:
     compartment = self.compartments.index(compartment)
     self.x[analyte, compartment] += value
   
-  def clear_x(self):
-    self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float)
+  def get_c(self, cell, compartment):
+    cell = self.cells.index(cell)
+    compartment = self.compartments.index(compartment)
+    return self.c[cell, compartment] * 1/units.ml
   
-  def get_z(self, variable):
-    variable = self.variables.index(variable)
-    return self.z[variable]
-  
-  def set_z(self, variable, value):
-    variable = self.variables.index(variable)
-    self.z[variable] = value
-  
-  def add_z(self, variable, value):
-    variable = self.variables.index(variable)
-    self.z[variable] += value
+  def add_c(self, cell, analytes, compartment, value):
+    value = value.number(units.nM)
+    cell = self.cells.index(cell)
+    compartment = self.compartments.index(compartment)
+    self.x[analyte, compartment] += value
   
   
   def run_flows(self, t):
