@@ -124,24 +124,6 @@ class System:
     if compartment_dest is not None:
       compartment_dest = self.compartments.index(compartment_dest)
       self.Q[analyte, compartment_source, compartment_dest] += rate / self.V[analyte, compartment_dest]
-
-  # this function is for backward compatibility only
-  def add_reaction(self, compartment, reactants, products, forward, backward = None, side_compartment = None, side_products = None):
-    compartment = self.compartments.index(compartment)
-    reactants = dict2array(reactants, self.analytes, dtype = int)
-    products = dict2array(products, self.analytes, dtype = int)
-    forward = forward.number(units.nM / units.h / units.nM**(reactants.sum()))
-    if backward is not None:
-      backward = backward.number(units.nM / units.h / units.nM**(products.sum()))
-    if side_compartment is not None:
-      assert side_products is not None, "side compartment is given, but products not provided!"
-      side_compartment = self.compartments.index(side_compartment)
-    if side_products is not None:
-      assert side_compartment is not None, "side products are given, but compartment not specified!"
-      side_products = dict2array(side_products, self.analytes, dtype = int)
-    
-    reaction = functools.partial(reaction_general, self, compartment, reactants, products, forward, backward, side_compartment, side_products)
-    self.reactions.append(reaction)
   
   def add_simple(self, compartment, reactants, products, forward, backward = None):
     compartment = self.compartments.index(compartment)
