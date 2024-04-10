@@ -146,7 +146,6 @@ class System:
   def add_process(self, process):
     self.processes.append(process)
   
-  
   def get_x(self, compartment, analyte):
     analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
@@ -189,12 +188,17 @@ class System:
     compartment = self.compartments.index(compartment)
     self.c[cell, compartment] *= 1 - value
   
-  
+  ### system running functions
   def run_flows(self, t):
     t = t.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
     for analyte in flowing_analytes:
       self.x[analyte] = np.dot(self.x[analyte], expm(t * self.Q[analyte]))
+    migrating_cells = [cell for cell in range(self.n_cells) if self.M[cell].any()]
+    for cell in migrating_cells:
+      ligands = self.ligands[cell]
+      self.x[ligands] = np.dot(self.x[ligands],  expm(t * self.M[cell]))
+      self.c[cell] = np.dot(self.c[cell], expm(t * self.M[cell]))
     
     self.t = self.t + t
     self.history_cells.append((self.t, self.c.copy()))
@@ -228,6 +232,7 @@ class System:
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
+    migrating_cells = [cell for cell in range(self.n_cells) if self.M[cell].any()]
     reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
     for compartment in reacting_compartments:
       self.RS[compartment].refresh()
@@ -241,6 +246,12 @@ class System:
       for analyte in flowing_analytes:
         A -= tt()
         self.x[analyte] = np.dot(self.x[analyte], expm(t_delta * self.Q[analyte]))
+        A += tt()
+      for cell in migrating_cells:
+        A -= tt()
+        ligands = self.ligands[cell]
+        self.x[ligands] = np.dot(self.x[ligands], expm(t_delta * self.M[cell]))
+        self.c[cell] = np.dot(self.c[cell], expm(t_delta * self.M[cell]))
         A += tt()
       for reaction in self.reactions:
         B -= tt()
