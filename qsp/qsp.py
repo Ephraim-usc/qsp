@@ -98,7 +98,7 @@ class System:
         if analyte.startswith(f"[{cell}]"):
           self.ligands[i].append(j)
     
-    self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # volume of each compartment, in units.ml
+    self.V = np.zeros(self.n_compartments, dtype = float) # volume of each compartment, in units.ml
     self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # flow matrix of analytes, in 1/units.h
     self.M = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float) # migration matrix of cells, in 1/units.h
     self.RS = [RS(self.n_analytes) for compartment in self.compartments]
@@ -111,16 +111,14 @@ class System:
     self.history = []
     self.history_cells = []
   
-  def get_volume(self, analyte, compartment):
-    analyte = self.analytes.index(analyte)
+  def get_volume(self, compartment):
     compartment = self.compartments.index(compartment)
-    return self.V[analyte, compartment] * units.ml
+    return self.V[compartment] * units.ml
   
-  def set_volume(self, analyte, compartment, value):
+  def set_volume(self, compartment, value):
     value = value.number(units.ml)
-    analyte = self.analytes.index(analyte)
     compartment = self.compartments.index(compartment)
-    self.V[analyte, compartment] = value
+    self.V[compartment] = value
   
   # set compartment_dest as None if it is a clearance
   def add_flow(self, analyte, compartment_source, compartment_dest, rate):
