@@ -5,9 +5,9 @@ import itertools
 ### this model is mostly from ...
 
 drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
-targets = ["C", "A", "B", "AB"]
-antigens = ["C", "A", "B"]
-dimers = [f"{drug}-{target}" for drug in drugs for target in targets]
+antigens = ["[T]CD3", "[C]A", "[C]B"]
+targets = ["[T]CD3", "[C]A", "[C]B", "[C]AB"]
+dimers = [f"{target}-{drug}" for drug in drugs for target in targets]
 analytes = drugs + antigens + dimers
 
 
