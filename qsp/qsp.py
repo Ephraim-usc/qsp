@@ -4,8 +4,6 @@ import pandas as pd
 import functools
 
 from scipy.linalg import expm
-from scipy.optimize import brentq
-from scipy.optimize import fsolve
 from scipy.integrate import solve_ivp
 
 from tqdm import tqdm
@@ -32,30 +30,15 @@ units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
 
 np.set_printoptions(suppress=True)
 
-def dict2array(x, names, dtype = None):
-  if dtype is None:
-    buffer = np.zeros(len(names), dtype = object)
-  else:
-    buffer = np.zeros(len(names), dtype = dtype)
-  for key, value in x.items():
-    buffer[names.index(key)] += value
-  return buffer
-
-def array2dict(x, names, trim = False):
-  if trim:
-    buffer = {name:x_ for name, x_ in zip(names, x) if x_ != 0}
-  else:
-    buffer = {name:x_ for name, x_ in zip(names, x)}
-  return buffer
 
 
-class RS: # reaction system
+class RS: # linear and quadratic reaction system
   def __init__(self, n_analytes):
     self.active = False
     self.n = n_analytes
     self.Q = np.zeros([n_analytes, n_analytes]) # linear term coefficients
     self.QQ = np.zeros([n_analytes, n_analytes, n_analytes]) # quadratic term coefficients
-  
+
   def refresh(self):
     self.linear_i, self.linear_o = np.where(self.Q != 0)
     self.linear_k = self.Q[self.Q != 0]
@@ -95,31 +78,27 @@ class RS: # reaction system
 
 
 class System:
-  def __init__(self, analytes, compartments, variables = None, cells = None):
+  def __init__(self, compartments, analytes, cells = None):
     variables = [] if variables is None else variables
     cells = [] if cells is None else cells
+
+    self.compartments = compartments
+    self.n_compartments = len(compartments)
     
     self.analytes = analytes
     self.n_analytes = len(analytes)
     
-    self.compartments = compartments
-    self.n_compartments = len(compartments)
-    
-    self.variables = variables
-    self.n_variables = len(variables)
-    
     self.cells = cells
     self.n_cells = len(cells)
     
-    self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.ml
-    self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # in 1/units.h
-    self.reactions = []
+    self.V = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # volume of each compartment, in units.ml
+    self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # flow matrix of analytes, in 1/units.h
+    self.M = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float) # migration matrix of cells, in 1/units.h
     self.RS = [RS(self.n_analytes) for compartment in self.compartments]
     self.processes = []
     
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # in units.nM
-    self.z = np.zeros(self.n_variables, dtype = float) # any object
     self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # in units.nM
     
     self.history = []
@@ -211,40 +190,7 @@ class System:
     variable = self.variables.index(variable)
     self.z[variable] += value
   
-  def print(self):
-    V = pd.DataFrame(self.V, index = self.analytes, columns = self.compartments)
-    print("<volumes>", flush = True)
-    print(V, flush = True)
-    print(" ", flush = True)
-    
-    for i, analyte in enumerate(self.analytes):
-      Q = self.Q[i,:,:]
-      if not Q.any():
-        continue
-      Q = pd.DataFrame(Q, index = self.compartments, columns = self.compartments)
-      print(f"<Q matrix for {analyte}>", flush = True)
-      print(Q, flush = True)
-      print(" ", flush = True)
-      #for j, compartment in enumerate(self.compartments):
-      #  Q = array2dict(np.round(flows[j,:], 6), self.compartments, trim = True)
-      #  print(f"{compartment} {flow}", flush = True)
-      #print(" ", flush = True)
-    
-    print(f"<{len(self.reactions)} reactions>", flush = True)
-    print(f"<{len([compartment for compartment in range(self.n_compartments) if self.RS[compartment].active])} reactive compartments>", flush = True)
-    print(f"<{len(self.processes)} processes>", flush = True)
-    print(" ", flush = True)
-    
-    x = pd.DataFrame(self.x, index = self.analytes, columns = self.compartments)
-    print("<x>", flush = True)
-    print(x, flush = True)
-    print(" ", flush = True)
   
-  
-  def clear_t(self):
-    self.t = 0
-    self.history = []
-
   def run_flows(self, t):
     t = t.number(units.h)
     flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
