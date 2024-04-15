@@ -6,9 +6,9 @@ import itertools
 
 cells = ["T", "C"]
 
-drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
 solubles = ["A", "B"]
 ligands = ["[T]CD3", "[C]A", "[C]B"]
+drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
 dimers = [f"{binding}-{drug}" for binding in ["A", "B", "AB", "[T]CD3", "[C]A", "[C]B", "[C]AB"] for drug in drugs]
 analytes = solubles + ligands + drugs + dimers
 
@@ -118,6 +118,35 @@ GBR1302["internalization"] = internalization(rates = [("C", ["C"], 0.1 / units.h
                                                       ("A", ["A"], 0.1 / units.h),
                                                       ("B", ["B"], 0.1 / units.h),
                                                       ("AB", ["A", "B"], 0.02 / units.h)])
+
+
+linker = 
+
+BD = {}
+BD.update({"A": "CD19", "B": "BAFFR"})
+BD.update({"off_C": 10**-4 / units.s, "affn_CD3": 10 * units.nM, "affm_CD3": 1000 * units.nM, "aff2d_CD3": None})
+BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM, "aff2d_A": None})
+BD.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 1000 * units.nM, "aff2d_B": None})
+BD.update({"avidity": 20})
+BD.update({"clearance": math.log(2)/(70 * units.h)})
+BD["smalls"] = []
+BD["internalization"] = internalization(rates = [("C", ["C"], 0.1 / units.h),
+                                                 ("A", ["A"], 0.1 / units.h),
+                                                 ("B", ["B"], 0.1 / units.h),
+                                                 ("AB", ["A", "B"], 0.02 / units.h)])
+
+linker = [("plasma", 0.07 / units.d), 
+          ("liver", 0.07 / units.d), 
+          ("lung", 0.07 / units.d), 
+          ("SI", 0.07 / units.d), 
+          ("gallbladder", 0.07 / units.d)]
+BD["cleavage"] = transform()
+for a, b in itertools.product(("m", "n"), ("m", "n")):
+    BD["cleavage"].add(linker = linker, reactant = f"m{a}{b}", products = ["p", f"n{a}{b}"])
+for c, b in itertools.product(("m", "n"), ("m", "n")):
+    BD["cleavage"].add(linker = linker, reactant = f"{c}m{b}", products = [f"{c}n{b}"])
+for c, a in itertools.product(("m", "n"), ("m", "n")):
+    BD["cleavage"].add(linker = linker, reactant = f"{c}{a}m", products = [f"{c}{a}n"])
 
 
 ############ model ############
