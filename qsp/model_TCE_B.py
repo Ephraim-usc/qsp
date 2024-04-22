@@ -120,7 +120,13 @@ GBR1302["internalization"] = internalization(rates = [("C", ["C"], 0.1 / units.h
                                                       ("AB", ["A", "B"], 0.02 / units.h)])
 
 
-linker = 
+linker = [("plasma", 0.07 / units.d), 
+          ("lymph", 0.07 / units.d), 
+          ("bone", 0.07 / units.d), 
+          ("liver", 0.07 / units.d), 
+          ("lung", 0.07 / units.d), 
+          ("SI", 0.07 / units.d), 
+          ("gallbladder", 0.07 / units.d)]
 
 BD = {}
 BD.update({"A": "CD19", "B": "BAFFR"})
@@ -134,12 +140,6 @@ BD["internalization"] = internalization(rates = [("C", ["C"], 0.1 / units.h),
                                                  ("A", ["A"], 0.1 / units.h),
                                                  ("B", ["B"], 0.1 / units.h),
                                                  ("AB", ["A", "B"], 0.02 / units.h)])
-
-linker = [("plasma", 0.07 / units.d), 
-          ("liver", 0.07 / units.d), 
-          ("lung", 0.07 / units.d), 
-          ("SI", 0.07 / units.d), 
-          ("gallbladder", 0.07 / units.d)]
 BD["cleavage"] = transform()
 for a, b in itertools.product(("m", "n"), ("m", "n")):
     BD["cleavage"].add(linker = linker, reactant = f"m{a}{b}", products = ["p", f"n{a}{b}"])
@@ -258,3 +258,7 @@ def plot(system, name):
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
+
+
+############# demo ###############
+
