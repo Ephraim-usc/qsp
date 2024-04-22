@@ -137,18 +137,15 @@ for c, a in itertools.product(("m", "n"), ("m", "n")):
 
 ############ model ############
 
-def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
+def model(TCE, plasma, lymph, organs):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + tumors + organs]
   system = System(compartments, analytes, cells)
   system.centrals = [plasma, lymph]
-  system.tumors = tumors
   system.organs = organs
   
   for central in centrals:
     system.set_volume(central["name"], central["volume"])
-  for tumor in tumors:
-    system.set_volume(tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
   for organ in organs:
     system.set_volume(organ["name"], organ["volume_interstitial"])
   
@@ -162,20 +159,10 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
     system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
   
   for drug in drugs:
-    # drug tumor flow
-    for tumor in tumors:
-      system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-      system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-    
-    # drug organ flow
     for organ in organs:
       system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
       system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
       system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
-  
-  # exchange drugs between tumors if tumors are connected
-  if connect_tumors:
-    system.add_process(equilibrium([tumor["name"] for tumor in tumors], drugs))
   
   # target binding
   for drug in drugs:
@@ -185,7 +172,7 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
     avidity_effector = TCE["avidity_effector"]
     avidity_target = TCE["avidity_target"]
     
-    for organ in centrals + tumors + organs:
+    for organ in centrals + organs:
       system.add_simple(organ["name"], ["[T]CD3", f"{drug}"], [f"[T]CD3-{drug}"], on_C, off_C)
       
       system.add_simple(organ["name"], ["[C]A", f"{drug}"], [f"[C]A-{drug}"], on_A, off_A)
@@ -205,10 +192,6 @@ def model(TCE, plasma, lymph, tumors, organs, connect_tumors = True):
   for central in centrals:
     system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["CD3"], [124000])
     system.add_c(central["name"], "B", central["num_B"] / central["volume"], ["A", "B"], [20000, 10000])
-  
-  for tumor in tumors:
-    system.add_c(tumor["name"], "T", tumor["density_T"] / tumor["volume_interstitial_proportion"], ["CD3"], [124000])
-    system.add_c(tumor["name"], "B", tumor["density_B"] / tumor["volume_interstitial_proportion"], ["A", "B"], [20000, 10000])
   
   for organ in organs:
     system.add_c(central["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["CD3"], [124000])
