@@ -79,15 +79,13 @@ class RS: # linear and quadratic reaction system
 
 class System:
   def __init__(self, compartments, analytes, cells = None):
-    variables = [] if variables is None else variables
-    cells = [] if cells is None else cells
-    
     self.compartments = compartments
     self.n_compartments = len(compartments)
     
     self.analytes = analytes
     self.n_analytes = len(analytes)
     
+    cells = [] if cells is None else cells
     self.cells = cells
     self.n_cells = len(cells)
     
