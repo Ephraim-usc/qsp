@@ -129,7 +129,7 @@ BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.
                                                  ("[B]AB", ["[B]A", "[B]B"], 0.02 / units.h)])
 BD["cleavage"] = transform()
 for a, b in itertools.product(("m", "n"), ("m", "n")):
-    BD["cleavage"].add(linker = linker, reactant = f"m{a}{b}", products = ["p", f"n{a}{b}"])
+    BD["cleavage"].add(linker = linker, reactant = f"m{a}{b}", products = [f"n{a}{b}"])
 for c, b in itertools.product(("m", "n"), ("m", "n")):
     BD["cleavage"].add(linker = linker, reactant = f"{c}m{b}", products = [f"{c}n{b}"])
 for c, a in itertools.product(("m", "n"), ("m", "n")):
