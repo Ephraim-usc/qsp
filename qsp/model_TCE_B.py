@@ -140,7 +140,7 @@ for c, a in itertools.product(("m", "n"), ("m", "n")):
 
 def model(TCE, plasma, lymph, organs):
   centrals = [plasma, lymph]
-  compartments = [organ["name"] for organ in centrals + tumors + organs]
+  compartments = [organ["name"] for organ in centrals + organs]
   system = System(compartments, analytes, cells)
   system.centrals = [plasma, lymph]
   system.organs = organs
@@ -224,7 +224,7 @@ from qsp import *
 from qsp.human import *
 from qsp.model_TCE_B import *
 
-system = model(BD, plasma, lymph, organs)
+system = model(BD, plasma, lymph, [bone, lung, liver])
 system.add_x("mmm", "plasma", 10 * units.nM)
 system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 '''
