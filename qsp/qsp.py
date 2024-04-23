@@ -168,7 +168,7 @@ class System:
   def add_c(self, compartment, cell, value, ligands, copys):
     for ligand, copy in zip(ligands, copys):
       analyte = f"{cell}-{ligand}"
-      self.add_x(analyte, compartment, value * copy / units.avagadro)
+      self.add_x(compartment, analyte, value * copy / units.avagadro)
     
     value = value.number(1/units.ml)
     cell = self.cells.index(cell)
