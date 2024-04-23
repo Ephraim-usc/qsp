@@ -8,8 +8,9 @@ cells = ["T", "B"]
 
 solubles = ["A", "B"]
 ligands = ["[T]C", "[B]A", "[B]B"]
+bindings = ["A", "B", "AB", "[T]C", "[B]A", "[B]B", "[B]AB"]
 drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
-dimers = [f"{binding}-{drug}" for binding in ["A", "B", "AB", "[T]C", "[B]A", "[B]B", "[B]AB"] for drug in drugs]
+dimers = [f"{binding}-{drug}" for binding in bindings for drug in drugs]
 analytes = solubles + ligands + drugs + dimers
 
 
@@ -45,8 +46,8 @@ class transform:
     
     self.analyteses_ = []
     self.analyteses_.append([analytes.index(f"{drug}") for drug in drugs])
-    for target in targets:
-      self.analyteses_.append([analytes.index(f"{drug}-{target}") for drug in drugs])
+    for binding in bindings:
+      self.analyteses_.append([analytes.index(f"{binding}-{drug}") for drug in drugs])
   
   def add(self, linker, reactant, products):
     self.system = None
