@@ -4,12 +4,12 @@ import itertools
 
 ### this model is mostly from ...
 
-cells = ["T", "C"]
+cells = ["T", "B"]
 
 solubles = ["A", "B"]
-ligands = ["[T]C", "[C]A", "[C]B"]
+ligands = ["[T]C", "[B]A", "[B]B"]
 drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
-dimers = [f"{binding}-{drug}" for binding in ["A", "B", "AB", "[T]C", "[C]A", "[C]B", "[C]AB"] for drug in drugs]
+dimers = [f"{binding}-{drug}" for binding in ["A", "B", "AB", "[T]C", "[B]A", "[B]B", "[B]AB"] for drug in drugs]
 analytes = solubles + ligands + drugs + dimers
 
 
@@ -82,7 +82,7 @@ class internalization:
     q = np.zeros(len(dimers))
     Q = np.zeros([len(dimers), len(analytes)])
     for target, products, rate in rates:
-      idx_dimers = [dimers.index(f"{drug}-{target}") for drug in drugs if f"{drug}-{target}" in dimers]
+      idx_dimers = [dimers.index(f"{target}-{drug}") for drug in drugs if f"{target}-{drug}" in dimers]
       idx_products = [analytes.index(product) for product in products]
       q[idx_dimers] -= rate.number(1/units.h)
       for i in idx_dimers:
@@ -122,10 +122,10 @@ BD.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 1000 * 
 BD.update({"avidity": 20})
 BD.update({"clearance": math.log(2)/(70 * units.h)})
 BD["smalls"] = []
-BD["internalization"] = internalization(rates = [("C", ["C"], 0.1 / units.h),
-                                                 ("A", ["A"], 0.1 / units.h),
-                                                 ("B", ["B"], 0.1 / units.h),
-                                                 ("AB", ["A", "B"], 0.02 / units.h)])
+BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
+                                                 ("[B]A", ["[B]A"], 0.1 / units.h),
+                                                 ("[B]B", ["[B]B"], 0.1 / units.h),
+                                                 ("[B]AB", ["[B]A", "[B]B"], 0.02 / units.h)])
 BD["cleavage"] = transform()
 for a, b in itertools.product(("m", "n"), ("m", "n")):
     BD["cleavage"].add(linker = linker, reactant = f"m{a}{b}", products = ["p", f"n{a}{b}"])
@@ -175,10 +175,10 @@ def model(TCE, plasma, lymph, organs):
     for organ in centrals + organs:
       system.add_simple(organ["name"], ["[T]C", f"{drug}"], [f"[T]C-{drug}"], on_C, off_C)
       
-      system.add_simple(organ["name"], ["[C]A", f"{drug}"], [f"[C]A-{drug}"], on_A, off_A)
-      system.add_simple(organ["name"], ["[C]B", f"{drug}", "B"], [f"[C]B-{drug}"], on_B, off_B)
-      system.add_simple(organ["name"], ["[C]B", f"{drug}-A", "B"], [f"[C]AB-{drug}"], on_B * avidity_target, off_B)
-      system.add_simple(organ["name"], ["[C]A", f"{drug}-B", "A"], [f"[C]AB-{drug}"], on_A * avidity_target, off_A)
+      system.add_simple(organ["name"], ["[B]A", f"{drug}"], [f"[B]A-{drug}"], on_A, off_A)
+      system.add_simple(organ["name"], ["[B]B", f"{drug}", "B"], [f"[B]B-{drug}"], on_B, off_B)
+      system.add_simple(organ["name"], ["[B]B", f"{drug}-A", "B"], [f"[B]AB-{drug}"], on_B * avidity_target, off_B)
+      system.add_simple(organ["name"], ["[B]A", f"{drug}-B", "A"], [f"[B]AB-{drug}"], on_A * avidity_target, off_A)
   
   # mask cleavage
   if TCE["cleavage"] is not None:
