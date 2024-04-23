@@ -280,16 +280,16 @@ class System:
     if linestyles is None:
       linestyles = ["solid"] * 10
     
-    Xmax = max([t for t, x in self.history])
-    Ymax = max([x[group, compartment].sum() for t, x in self.history for group in groups for compartment in compartments])
+    Xmax = max([t for t, x, c in self.history])
+    Ymax = max([x[group, compartment].sum() for t, x, c in self.history for group in groups for compartment in compartments])
     Ymax = 10**np.ceil(np.log10(Ymax))
     
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), figsize = (4*len(compartments), 3), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
       for group, label, color, linestyle in zip(groups, labels, colors, linestyles):
-        X = [t for t, x in self.history]
-        Y = [x[group, compartment].sum() for t, x in self.history]
+        X = [t for t, x, c in self.history]
+        Y = [x[group, compartment].sum() for t, x, c in self.history]
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG > 0:
           ax.plot(X, Y, label = f"{label}, avg={AVG:.3}nM", color = color, linestyle = linestyle)
