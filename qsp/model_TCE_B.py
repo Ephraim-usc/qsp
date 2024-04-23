@@ -205,12 +205,12 @@ def model(TCE, plasma, lymph, organs):
 ############# plot #############
 
 def plot(system, name):
-  groups = [["C"],
-            ["A", "B"],
+  groups = [["[T]C"],
+            ["[B]A", "[B]B"],
             drugs,
-            [f"{drug}-{target}" for drug in drugs for target in ["C"]],
-            [f"{drug}-{target}" for drug in drugs for target in ["A", "B", "AB"]]]
-  labels = ["C", "target", "drug", "drug-C", "drug-target"]
+            [f"{binding}-{drug}" for binding in ["[T]C"] for drug in drugs],
+            [f"{binding}-{drug}" for binding in ["[B]A", "[B]B", "[B]AB"] for drug in drugs]]
+  labels = ["C", "target", "drug", "C-drug", "target-drug"]
   colors = [ "tab:orange", "tab:blue", "black", "wheat", "skyblue"]
   linestyles = ["solid", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
