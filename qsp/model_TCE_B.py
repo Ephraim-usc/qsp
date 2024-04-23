@@ -68,7 +68,7 @@ class transform:
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      self.Qs_ = {system.compartments.index(compartment):Q for compartment, Q in self.Qs.items()}
+      self.Qs_ = {system.compartments.index(compartment):Q for compartment, Q in self.Qs.items() if compartment in system.compartments}
     
     t = t.number(units.h)
     for compartment_, Q in self.Qs_.items():
@@ -225,6 +225,6 @@ from qsp.human import *
 from qsp.model_TCE_B import *
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
-system.add_x("mmm", "plasma", 10 * units.nM)
+system.add_x("plasma", "mmm", 10 * units.nM)
 system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 '''
