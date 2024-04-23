@@ -167,7 +167,7 @@ class System:
   # adding a type of cell with certain ligands
   def add_c(self, compartment, cell, value, ligands, copys):
     for ligand, copy in zip(ligands, copys):
-      analyte = f"{cell}-{ligand}"
+      analyte = f"[{cell}]-{ligand}"
       self.add_x(compartment, analyte, value * copy / units.avagadro)
     
     value = value.number(1/units.ml)
