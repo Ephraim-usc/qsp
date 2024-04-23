@@ -246,10 +246,6 @@ class System:
         self.x[ligands] = np.dot(self.x[ligands], expm(t_delta * self.M[cell]))
         self.c[cell] = np.dot(self.c[cell], expm(t_delta * self.M[cell]))
         A += tt()
-      for reaction in self.reactions:
-        B -= tt()
-        reaction(t_delta)
-        B += tt()
       for compartment in reacting_compartments:
         C -= tt()
         self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
