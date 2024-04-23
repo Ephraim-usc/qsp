@@ -153,11 +153,11 @@ def model(TCE, plasma, lymph, organs):
   # whole-body clearance
   for compartment in compartments:
     for drug in drugs:
-        system.add_flow(drug, compartment, None, system.get_volume(drug, compartment) * TCE["clearance"])
+      system.add_flow(drug, compartment, None, system.get_volume(compartment) * TCE["clearance"])
   
   # small forms plasma clearance
   for small in TCE["smalls"]:
-    system.add_flow(small, "plasma", None, system.get_volume(drug, "plasma") * math.log(2)/(45 * units.MIN))
+    system.add_flow(small, "plasma", None, system.get_volume("plasma") * math.log(2)/(45 * units.MIN))
   
   for drug in drugs:
     for organ in organs:
@@ -170,16 +170,16 @@ def model(TCE, plasma, lymph, organs):
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = {"n":TCE["off_B"] / TCE["affn_B"], "m":TCE["off_B"] / TCE["affm_B"]}[drug[2]]
-    avidity_effector = TCE["avidity_effector"]
-    avidity_target = TCE["avidity_target"]
+    avidity_effector = TCE["avidity"]
+    avidity_target = TCE["avidity"]
     
     for organ in centrals + organs:
       system.add_simple(organ["name"], ["[T]C", f"{drug}"], [f"[T]C-{drug}"], on_C, off_C)
       
       system.add_simple(organ["name"], ["[B]A", f"{drug}"], [f"[B]A-{drug}"], on_A, off_A)
-      system.add_simple(organ["name"], ["[B]B", f"{drug}", "B"], [f"[B]B-{drug}"], on_B, off_B)
-      system.add_simple(organ["name"], ["[B]B", f"{drug}-A", "B"], [f"[B]AB-{drug}"], on_B * avidity_target, off_B)
-      system.add_simple(organ["name"], ["[B]A", f"{drug}-B", "A"], [f"[B]AB-{drug}"], on_A * avidity_target, off_A)
+      system.add_simple(organ["name"], ["[B]B", f"{drug}"], [f"[B]B-{drug}"], on_B, off_B)
+      system.add_simple(organ["name"], ["[B]B", f"[B]A-{drug}"], [f"[B]AB-{drug}"], on_B * avidity_target, off_B)
+      system.add_simple(organ["name"], ["[B]A", f"[B]B-{drug}"], [f"[B]AB-{drug}"], on_A * avidity_target, off_A)
   
   # mask cleavage
   if TCE["cleavage"] is not None:
