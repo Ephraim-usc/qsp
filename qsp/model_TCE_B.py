@@ -195,8 +195,8 @@ def model(TCE, plasma, lymph, organs):
     system.add_c(central["name"], "B", central["num_B"] / central["volume"], ["A", "B"], [20000, 10000])
   
   for organ in organs:
-    system.add_c(central["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["C"], [124000])
-    system.add_c(central["name"], "B", organ["num_B"] / organ["volume_interstitial"], ["A", "B"], [20000, 10000])
+    system.add_c(organ["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["C"], [124000])
+    system.add_c(organ["name"], "B", organ["num_B"] / organ["volume_interstitial"], ["A", "B"], [20000, 10000])
   
   return system
 
@@ -208,11 +208,12 @@ def plot(system, name):
   groups = [["[T]C"],
             ["[B]A", "[B]B"],
             drugs,
+            [f"{binding}-{drug}" for binding in ["A", "B"] for drug in drugs],
             [f"{binding}-{drug}" for binding in ["[T]C"] for drug in drugs],
             [f"{binding}-{drug}" for binding in ["[B]A", "[B]B", "[B]AB"] for drug in drugs]]
-  labels = ["C", "target", "drug", "C-drug", "target-drug"]
-  colors = [ "tab:orange", "tab:blue", "black", "wheat", "skyblue"]
-  linestyles = ["solid", "solid", "solid", "solid", "solid"]
+  labels = ["CD3", "target", "drug", "target-drug (soluble)", "CD3-drug", "target-drug"]
+  colors = [ "tab:orange", "tab:blue", "black", "skyblue", "wheat", "skyblue"]
+  linestyles = ["solid", "solid", "solid", "dashed", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
