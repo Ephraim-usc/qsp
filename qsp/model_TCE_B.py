@@ -7,9 +7,9 @@ import itertools
 cells = ["T", "C"]
 
 solubles = ["A", "B"]
-ligands = ["[T]CD3", "[C]A", "[C]B"]
+ligands = ["[T]C", "[C]A", "[C]B"]
 drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
-dimers = [f"{binding}-{drug}" for binding in ["A", "B", "AB", "[T]CD3", "[C]A", "[C]B", "[C]AB"] for drug in drugs]
+dimers = [f"{binding}-{drug}" for binding in ["A", "B", "AB", "[T]C", "[C]A", "[C]B", "[C]AB"] for drug in drugs]
 analytes = solubles + ligands + drugs + dimers
 
 
@@ -116,7 +116,7 @@ linker = [("plasma", 0.07 / units.d),
 
 BD = {}
 BD.update({"A": "CD19", "B": "BAFFR"})
-BD.update({"off_C": 10**-4 / units.s, "affn_CD3": 10 * units.nM, "affm_CD3": 1000 * units.nM, "aff2d_CD3": None})
+BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM, "aff2d_C": None})
 BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM, "aff2d_A": None})
 BD.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 1000 * units.nM, "aff2d_B": None})
 BD.update({"avidity": 20})
@@ -166,14 +166,14 @@ def model(TCE, plasma, lymph, organs):
   
   # target binding
   for drug in drugs:
-    off_CD3 = TCE["off_C"]; on_CD3 = {"n":TCE["off_CD3"] / TCE["affn_CD3"], "m":TCE["off_CD3"] / TCE["affm_CD3"]}[drug[0]]
+    off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
     off_B = TCE["off_B"]; on_B = {"n":TCE["off_B"] / TCE["affn_B"], "m":TCE["off_B"] / TCE["affm_B"]}[drug[2]]
     avidity_effector = TCE["avidity_effector"]
     avidity_target = TCE["avidity_target"]
     
     for organ in centrals + organs:
-      system.add_simple(organ["name"], ["[T]CD3", f"{drug}"], [f"[T]CD3-{drug}"], on_C, off_C)
+      system.add_simple(organ["name"], ["[T]C", f"{drug}"], [f"[T]C-{drug}"], on_C, off_C)
       
       system.add_simple(organ["name"], ["[C]A", f"{drug}"], [f"[C]A-{drug}"], on_A, off_A)
       system.add_simple(organ["name"], ["[C]B", f"{drug}", "B"], [f"[C]B-{drug}"], on_B, off_B)
@@ -190,11 +190,11 @@ def model(TCE, plasma, lymph, organs):
   
   # initial concentrations
   for central in centrals:
-    system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["CD3"], [124000])
+    system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["C"], [124000])
     system.add_c(central["name"], "B", central["num_B"] / central["volume"], ["A", "B"], [20000, 10000])
   
   for organ in organs:
-    system.add_c(central["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["CD3"], [124000])
+    system.add_c(central["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["C"], [124000])
     system.add_c(central["name"], "B", organ["num_B"] / organ["volume_interstitial"], ["A", "B"], [20000, 10000])
   
   return system
@@ -209,7 +209,7 @@ def plot(system, name):
             drugs,
             [f"{drug}-{target}" for drug in drugs for target in ["C"]],
             [f"{drug}-{target}" for drug in drugs for target in ["A", "B", "AB"]]]
-  labels = ["CD3", "target", "drug", "drug-CD3", "drug-target"]
+  labels = ["C", "target", "drug", "drug-C", "drug-target"]
   colors = [ "tab:orange", "tab:blue", "black", "wheat", "skyblue"]
   linestyles = ["solid", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
@@ -218,4 +218,12 @@ def plot(system, name):
 
 
 ############# demo ###############
+'''
+from qsp import *
+from qsp.human import *
+from qsp.model_TCE_B import *
 
+system = model(BD, plasma, lymph, organs)
+system.add_x("mmm", "plasma", 10 * units.nM)
+system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+'''
