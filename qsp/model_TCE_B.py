@@ -121,7 +121,7 @@ BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * 
 BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM, "aff2d_A": None})
 BD.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 1000 * units.nM, "aff2d_B": None})
 BD.update({"avidity": 20})
-BD.update({"clearance": math.log(2)/(70 * units.h)})
+BD.update({"clearance": math.log(2)/(120 * units.h)})
 BD["smalls"] = []
 BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
                                                  ("[B]A", ["[B]A"], 0.1 / units.h),
