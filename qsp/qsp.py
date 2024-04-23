@@ -107,7 +107,6 @@ class System:
     self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # concentration of cells, in 1/units.ml
     
     self.history = []
-    self.history_cells = []
   
   def get_volume(self, compartment):
     compartment = self.compartments.index(compartment)
@@ -197,7 +196,7 @@ class System:
       self.c[cell] = np.dot(self.c[cell], expm(t * self.M[cell]))
     
     self.t = self.t + t
-    self.history_cells.append((self.t, self.x.copy(), self.c.copy()))
+    self.history.append((self.t, self.x.copy(), self.c.copy()))
   
   def run_reactions(self, t):
     t = t.number(units.h)
@@ -208,7 +207,7 @@ class System:
       self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t)
     
     self.t = self.t + t
-    self.history_cells.append((self.t, self.x.copy(), self.c.copy()))
+    self.history.append((self.t, self.x.copy(), self.c.copy()))
   
   def run_processes(self, t):
     t = t.number(units.h)
@@ -216,7 +215,7 @@ class System:
       process(self, t * units.h)
     
     self.t = self.t + t
-    self.history_cells.append((self.t, self.x.copy(), self.c.copy()))
+    self.history.append((self.t, self.x.copy(), self.c.copy()))
   
   def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t = t.number(units.h)
@@ -256,7 +255,7 @@ class System:
         D += tt()
       
       if math.floor(self.t / t_record) > math.floor(t_prev / t_record):
-        self.history_cells.append((self.t, self.x.copy(), self.c.copy()))
+        self.history.append((self.t, self.x.copy(), self.c.copy()))
       pbar.update(t_delta)
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
