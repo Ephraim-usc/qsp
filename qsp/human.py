@@ -16,7 +16,7 @@ bone = {"name": "bone"}
 bone.update({"volume_plasma": 224 * units.ml, "volume_interstitial": 1891 * units.ml})
 bone.update({"plasma_flow": 2591 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 bone.update({"vascular_reflection": 0.85, "lymphatic_reflection": 0.2})
-bone.update({"num_cell": 4.77E+09 * 0.5, "num_T": 2.1E+10, "num_B": 1.4E+10, "num_NK": 3.3E+09})
+bone.update({"num_cell": 1.92E+12 * 0.5, "num_T": 2.1E+10, "num_B": 1.4E+10, "num_NK": 3.3E+09})
 #bone.update({"num_A": 0, "num_B": 0})
 bone.update({"num_HER2": 0})
 
