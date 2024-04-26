@@ -105,6 +105,24 @@ class internalization:
       system.x[:, compartment_] += delta_dimers @ self.Q
 
 
+class PD:
+  def __init__(self, compartment, kill_freq, kill_damage, regen):
+    self.system = None
+
+    self.compartment = compartment
+    self.kill_freq = kill_freq
+    self.kill_damage = kill_damage
+    self.regen = regen
+  
+  def __call__(self, system, t):
+    if self.system is not system:
+      self.system = system
+      self.compartment_ = system.compartments.index(compartment)
+      self.hp = np.ones(1e5)
+    
+    system.x # compute average number of trimers during each contact
+
+
 ############ drugs ############
 
 linker = [("plasma", 0.07 / units.d), 
