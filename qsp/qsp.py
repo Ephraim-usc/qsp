@@ -178,14 +178,10 @@ class System:
     compartment = self.compartments.index(compartment)
     self.c[cell, compartment] += value
   
-  def decay_c(self, compartment, cell, value):
-    ligands = self.ligands[cell]
-    self.x[ligands, compartment] *= 1 - value
-    
-    value = value.number(1/units.ml)
-    cell = self.cells.index(cell)
-    compartment = self.compartments.index(compartment)
-    self.c[cell, compartment] *= 1 - value
+  def decay_cell_(self, cell_, compartments_, values):
+    ligands_ = self.ligands[cell_]
+    self.x[ligands, compartments_] *= 1 - value
+    self.c[cell_, compartments_] *= 1 - value
   
   ### 2-dimensional operations
   def update_y(self):
