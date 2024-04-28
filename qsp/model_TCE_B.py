@@ -230,6 +230,9 @@ def model(TCE, plasma, lymph, organs):
       system.add_simple(organ["name"], ["[T]C", f"{drug}"], [f"[T]C-{drug}"], on_C, off_C)
       system.add_simple(organ["name"], ["[B]A", f"{drug}"], [f"[B]A-{drug}"], on_A, off_A)
       system.add_simple(organ["name"], ["H", f"{drug}"], [f"H-{drug}"], on_H, off_H)
+      
+      system.add_simple(organ["name"], ["[T]C", f"H-{drug}"], [f"[T]C-{drug}", "H"], on_C, off_C)
+      system.add_simple(organ["name"], ["[B]A", f"H-{drug}"], [f"[B]A-{drug}", "H"], on_A, off_A)
   
   ligands_effector = np.array(system.analytes)[np.array(system.ligands[0])]
   ligands_target = np.array(system.analytes)[np.array(system.ligands[1])]
@@ -297,7 +300,7 @@ system.plot_cell(output = "unmasked.png")
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
 for _ in range(3):
-  system.add_x("plasma", "mmn", 10 * units.nM)
+  system.add_x("plasma", "mmn", 100 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 system.plot_cell(output = "masked.png")
 
