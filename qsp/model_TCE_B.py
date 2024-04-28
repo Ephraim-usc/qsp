@@ -118,6 +118,8 @@ class kill:
     self.target = target
     self.contact_freq = contact_freq.number(units.ml / units.h)
     self.contact_area_time = contact_area_time.number(units.um**2 * units.s)
+    self.synapse_efficiency = synapse_efficiency
+    self.damage = damage
     self.regen = regen.number(1/units.h)
   
   def renormalize(self):
@@ -145,10 +147,10 @@ class kill:
     contacts_expected = self.contact_freq * system.c[self.effector_, self.compartments_] * t # average number of contacts with effector cells, for each target cell
     
     trimers = self.contact_area_time * np.array([system.y[self.ligands_effector_, compartment_] @ self.on2ds_ @ system.y[self.ligands_target_, compartment_] for compartment_ in self.compartments_])
-    probs = 1 - (1 - synapse_efficiency)**trimers # probability that a contact would form a synapse
+    probs = 1 - (1 - self.synapse_efficiency)**trimers # probability that a contact would form a synapse
     
     contacts = np.stack([np.random.poisson(_, int(1e5)) for _ in contacts_expected], axis = 1)
-    damages = np.random.binomial(contacts, probs) * damage
+    damages = np.random.binomial(contacts, probs) * self.damage
     self.hp = np.minimum(1.0, self.hp - damages + self.regen * t)
 
     deaths = (self.hp <= 0).mean(axis = 0)
@@ -287,5 +289,5 @@ from qsp.model_TCE_B import *
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
 system.add_x("plasma", "nnn", 10 * units.nM)
-system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+system.run(20 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 '''
