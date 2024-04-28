@@ -154,7 +154,7 @@ class kill:
     self.hp = np.minimum(1.0, self.hp - damages + self.regen * t)
     
     deaths = (self.hp <= 0).mean(axis = 0)
-    system.cell_death_(self.compartments_, self.target_, deaths)
+    system.cell_death_(self.target_, self.compartments_, deaths)
     self.renormalize()
 
 
