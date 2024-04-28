@@ -174,7 +174,7 @@ BD = {}
 BD.update({"A": "CD19", "B": "BAFFR"})
 BD.update({"off_C": 10**-4 / units.s, "affn_C": 260 * units.nM, "affm_C": 26000 * units.nM})
 BD.update({"off_A": 10**-4 / units.s, "affn_A": 1.49 * units.nM, "affm_A": 149 * units.nM})
-BD.update({"off_H": 10**-4 / units.s, "affn_H": 10 * units.nM, "affm_H": 1000 * units.nM})
+BD.update({"off_H": 10**-4 / units.s, "affn_H": math.inf * units.nM, "affm_H": math.inf * units.nM})
 BD.update({"on2dn_C": 1e-4 * units.um**2 / units.s, "on2dm_C": 1e-6 * units.um**2 / units.s})
 BD.update({"on2dn_A": 1e-4 * units.um**2 / units.s, "on2dm_A": 1e-6 * units.um**2 / units.s})
 BD.update({"clearance": math.log(2)/(120 * units.h)})
@@ -290,9 +290,23 @@ from qsp.human import *
 from qsp.model_TCE_B import *
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
-for _ in range(7):
+for _ in range(3):
   system.add_x("plasma", "nnn", 10 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+system.plot_cell(output = "unmasked.png")
 
-system.plot_cell(output = "tmp.png")
+system = model(BD, plasma, lymph, [bone, lung, liver])
+for _ in range(3):
+  system.add_x("plasma", "mmn", 10 * units.nM)
+  system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+system.plot_cell(output = "masked.png")
+
+TCE = BD.copy()
+TCE.update({"off_H": 10**-4 / units.s, "affn_H": 1 * units.nM, "affm_H": 100 * units.nM})
+system = model(TCE, plasma, lymph, [bone, lung, liver])
+for _ in range(3):
+  system.add_x("plasma", "mmn", 10 * units.nM)
+  system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+system.plot_cell(output = "masked.png")
+
 '''
