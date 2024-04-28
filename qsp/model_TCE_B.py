@@ -114,6 +114,8 @@ class kill:
     self.system = None
     self.compartments = compartments
     self.on2ds = on2ds # pandas data frame of unit um**2/s
+    self.effector = effector
+    self.target = target
     self.contact_freq = contact_freq.number(units.ml / units.h)
     self.contact_area_time = contact_area_time.number(units.um**2 * units.s)
     self.regen = regen.number(1/units.h)
@@ -133,8 +135,8 @@ class kill:
       ligands_effector = [ligand for ligand in self.on2ds.index.values if ligand in system.analytes]
       ligands_target = [ligand for ligand in self.on2ds.columns.values if ligand in system.analytes]
       
-      self.effector_ = system.cells.index(effector)
-      self.target_ = system.cells.index(target)
+      self.effector_ = system.cells.index(self.effector)
+      self.target_ = system.cells.index(self.target)
       self.ligands_effector_ = [system.analytes.index(ligand) for ligand in ligands_effector]
       self.ligands_target_ = [system.analytes.index(ligand) for ligand in ligands_target]
       self.on2ds_ = self.on2ds.loc[ligands_effector, ligands_target]
