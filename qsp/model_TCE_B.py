@@ -7,12 +7,11 @@ import itertools
 cells = ["T", "B"]
 areas = [200, 254]
 
-solubles = ["A", "B"]
-ligands = ["[T]C", "[B]A", "[B]B"]
-bindings = ["A", "B", "AB", "[T]C", "[B]A", "[B]B", "[B]AB"]
-drugs = [f"{c}{a}{b}" for c in ("m", "n") for a in ("m", "n") for b in ("m", "n")]
+antigens = ["[T]C", "[B]A", "H"] # H: hydroxyapatite, C: CD3, A: CD19
+bindings = ["[T]C", "[B]A", "H"]
+drugs = [f"{c}{a}{h}" for c in ("m", "n") for a in ("m", "n") for h in ("m", "n")]
 dimers = [f"{binding}-{drug}" for binding in bindings for drug in drugs]
-analytes = solubles + ligands + drugs + dimers
+analytes = antigens + drugs + dimers
 
 
 
@@ -136,21 +135,18 @@ linker = [("plasma", 0.07 / units.d),
 
 BD = {}
 BD.update({"A": "CD19", "B": "BAFFR"})
-BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM, "aff2d_C": None})
-BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM, "aff2d_A": None})
-BD.update({"off_B": 10**-4 / units.s, "affn_B": 10 * units.nM, "affm_B": 1000 * units.nM, "aff2d_B": None})
-BD.update({"avidity": 20})
+BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM, "2D_on_C": 1 / (units.um * units.nM * units.s)})
+BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM, "2D_on_A": 1 / (units.um * units.nM * units.s)})
+BD.update({"off_H": 10**-4 / units.s, "affn_H": 10 * units.nM, "affm_H": 1000 * units.nM})
 BD.update({"clearance": math.log(2)/(120 * units.h)})
 BD["smalls"] = []
 BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
-                                                 ("[B]A", ["[B]A"], 0.1 / units.h),
-                                                 ("[B]B", ["[B]B"], 0.1 / units.h),
-                                                 ("[B]AB", ["[B]A", "[B]B"], 0.02 / units.h)])
+                                                 ("[B]A", ["[B]A"], 0.1 / units.h)])
 BD["cleavage"] = transform()
-for a, b in itertools.product(("m", "n"), ("m", "n")):
-    BD["cleavage"].add(linker = linker, reactant = f"m{a}{b}", products = [f"n{a}{b}"])
-for c, b in itertools.product(("m", "n"), ("m", "n")):
-    BD["cleavage"].add(linker = linker, reactant = f"{c}m{b}", products = [f"{c}n{b}"])
+for a, h in itertools.product(("m", "n"), ("m", "n")):
+    BD["cleavage"].add(linker = linker, reactant = f"m{a}{h}", products = [f"n{a}{h}"])
+for c, h in itertools.product(("m", "n"), ("m", "n")):
+    BD["cleavage"].add(linker = linker, reactant = f"{c}m{h}", products = [f"{c}n{h}"])
 for c, a in itertools.product(("m", "n"), ("m", "n")):
     BD["cleavage"].add(linker = linker, reactant = f"{c}{a}m", products = [f"{c}{a}n"])
 
@@ -188,17 +184,12 @@ def model(TCE, plasma, lymph, organs):
   for drug in drugs:
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
-    off_B = TCE["off_B"]; on_B = {"n":TCE["off_B"] / TCE["affn_B"], "m":TCE["off_B"] / TCE["affm_B"]}[drug[2]]
-    avidity_effector = TCE["avidity"]
-    avidity_target = TCE["avidity"]
+    off_H = TCE["off_H"]; on_H = {"n":TCE["off_H"] / TCE["affn_H"], "m":TCE["off_H"] / TCE["affm_H"]}[drug[2]]
     
     for organ in centrals + organs:
       system.add_simple(organ["name"], ["[T]C", f"{drug}"], [f"[T]C-{drug}"], on_C, off_C)
-      
       system.add_simple(organ["name"], ["[B]A", f"{drug}"], [f"[B]A-{drug}"], on_A, off_A)
-      system.add_simple(organ["name"], ["[B]B", f"{drug}"], [f"[B]B-{drug}"], on_B, off_B)
-      system.add_simple(organ["name"], ["[B]B", f"[B]A-{drug}"], [f"[B]AB-{drug}"], on_B * avidity_target, off_B)
-      system.add_simple(organ["name"], ["[B]A", f"[B]B-{drug}"], [f"[B]AB-{drug}"], on_A * avidity_target, off_A)
+      system.add_simple(organ["name"], ["H", f"{drug}"], [f"H-{drug}"], on_H, off_H)
   
   # mask cleavage
   if TCE["cleavage"] is not None:
@@ -211,11 +202,13 @@ def model(TCE, plasma, lymph, organs):
   # initial concentrations
   for central in centrals:
     system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["C"], [124000])
-    system.add_c(central["name"], "B", central["num_B"] / central["volume"], ["A", "B"], [20000, 10000])
+    system.add_c(central["name"], "B", central["num_B"] / central["volume"], ["A"], [20000])
   
   for organ in organs:
     system.add_c(organ["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["C"], [124000])
-    system.add_c(organ["name"], "B", organ["num_B"] / organ["volume_interstitial"], ["A", "B"], [20000, 10000])
+    system.add_c(organ["name"], "B", organ["num_B"] / organ["volume_interstitial"], ["A"], [20000])
+
+  system.add_x("bone", "H", 100 * units.nM)
   
   return system
 
