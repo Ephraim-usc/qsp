@@ -116,13 +116,19 @@ class kill:
     self.on2ds = on2ds # pandas data frame of unit um**2/s
     self.contact_freq = contact_freq.number(units.ml / units.h)
     self.contact_area_time = contact_area_time.number(units.um**2 * units.s)
-    self.regen = regen
+    self.regen = regen.number(1/units.h)
+  
+  def renormalize(self):
+    deaths = self.hp <= 0
+    alives = np.logical_not(deaths)
+    for i in range(len(self.compartments_)):
+      self.hp[deaths[:, i], i] = np.random.choice(self.hp[alives[:, i], i], deaths[:, i].sum())
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments]
-      self.hp = np.ones(100000)
+      self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments if compartment in system.compartments]
+      self.hp = np.ones([100000, len(self.compartments_)])
 
       ligands_effector = [ligand for ligand in self.on2ds.index.values if ligand in system.analytes]
       ligands_target = [ligand for ligand in self.on2ds.columns.values if ligand in system.analytes]
@@ -132,10 +138,21 @@ class kill:
       self.ligands_target_ = [system.analytes.index(ligand) for ligand in ligands_target]
       self.on2ds_ = self.on2ds.loc[ligands_effector, ligands_target]
     
-    trimers = self.contact_area_time * np.array([system.y[self.ligands_effector_, compartment_] @ self.on2ds_ @ system.y[self.ligands_target_, compartment_] for compartment_ in self.compartments_])
-    probs = 1 - (1 - synapse_efficiency)**trimers
+    t = t.number(units.h)
+    contacts_expected = self.contact_freq * system.c[self.effector_, self.compartments_] * t # average number of contacts with effector cells, for each target cell
     
-    contacts = self.contact_freq * system.c[self.effector_, self.compartments_]
+    trimers = self.contact_area_time * np.array([system.y[self.ligands_effector_, compartment_] @ self.on2ds_ @ system.y[self.ligands_target_, compartment_] for compartment_ in self.compartments_])
+    probs = 1 - (1 - synapse_efficiency)**trimers # probability that a contact would form a synapse
+    
+    contacts = np.stack([np.random.poisson(_, int(1e5)) for _ in contacts_expected], axis = 1)
+    damages = np.random.binomial(contacts, probs) * damage
+    self.hp = np.minimum(1.0, self.hp - damages + self.regen * t)
+
+    deaths = (self.hp <= 0).mean(axis = 0)
+    system.decay(system.compartments[compartment_], )
+    
+    
+    
 
     
     
