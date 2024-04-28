@@ -107,6 +107,7 @@ class System:
     
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # concentration of analytes, in units.nM
+    self.y = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # concentration of analytes, in units.nM * units.um
     self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # concentration of cells, in 1/units.ml
     
     self.history = []
@@ -185,6 +186,15 @@ class System:
     cell = self.cells.index(cell)
     compartment = self.compartments.index(compartment)
     self.c[cell, compartment] *= 1 - value
+  
+  ### 2-dimensional operations
+  def compute_y(self):
+    c = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float)
+    areas = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float)
+    for i in range(self.n_cells):
+      c[self.ligands[i], :] = self.c[i, :]
+      areas[self.ligands[i], :] = self.areas[i]
+    self.y = self.x / c / areas * 1e12 # ml / um**2 = 1e12 * um 
   
   ### system running functions
   def run_flows(self, t):
