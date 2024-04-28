@@ -273,14 +273,15 @@ def model(TCE, plasma, lymph, organs):
 
 def plot(system, name):
   groups = [["[T]C"],
-            ["[B]A", "[B]B"],
+            ["[B]A"],
+            ["H"],
             drugs,
-            [f"{binding}-{drug}" for binding in ["A", "B"] for drug in drugs],
             [f"{binding}-{drug}" for binding in ["[T]C"] for drug in drugs],
-            [f"{binding}-{drug}" for binding in ["[B]A", "[B]B", "[B]AB"] for drug in drugs]]
-  labels = ["CD3", "target", "drug", "target-drug (soluble)", "CD3-drug", "target-drug"]
-  colors = [ "tab:orange", "tab:blue", "black", "skyblue", "wheat", "skyblue"]
-  linestyles = ["solid", "solid", "solid", "dashed", "solid", "solid"]
+            [f"{binding}-{drug}" for binding in ["[B]A"] for drug in drugs],
+            [f"{binding}-{drug}" for binding in ["H"] for drug in drugs]]
+  labels = ["CD3", "CD19", "HA", "drug", "CD3-drug", "CD19-drug", "HA-drug"]
+  colors = [ "tab:orange", "tab:green", "tab:blue", "black", "wheat", "lightgreen", "skyblue"]
+  linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
               output = f"{name}_summary.png")
@@ -296,20 +297,23 @@ system = model(BD, plasma, lymph, [bone, lung, liver])
 for _ in range(3):
   system.add_x("plasma", "nnn", 10 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "unmasked")
 system.plot_cell(output = "unmasked.png")
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
 for _ in range(3):
   system.add_x("plasma", "mmn", 100 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-system.plot_cell(output = "masked.png")
+plot(system, "masked")
+system.plot_cell(output = "masked_cell.png")
 
 TCE = BD.copy()
 TCE.update({"off_H": 10**-4 / units.s, "affn_H": 1 * units.nM, "affm_H": 100 * units.nM})
 system = model(TCE, plasma, lymph, [bone, lung, liver])
 for _ in range(3):
-  system.add_x("plasma", "mmn", 10 * units.nM)
+  system.add_x("plasma", "mmn", 100 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
-system.plot_cell(output = "masked.png")
+plot(system, "masked_HA")
+system.plot_cell(output = "masked_HA.png")
 
 '''
