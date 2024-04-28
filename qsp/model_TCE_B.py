@@ -105,11 +105,10 @@ class internalization:
       system.x[:, compartment_] += delta_dimers @ self.Q
 
 
-class PD:
-  def __init__(self, compartment, kill_freq, kill_damage, regen):
+class kill:
+  def __init__(self, compartments, on2ds, , kill_freq, kill_damage, regen):
     self.system = None
-
-    self.compartment = compartment
+    self.compartments = compartments
     self.kill_freq = kill_freq
     self.kill_damage = kill_damage
     self.regen = regen
@@ -135,9 +134,11 @@ linker = [("plasma", 0.07 / units.d),
 
 BD = {}
 BD.update({"A": "CD19", "B": "BAFFR"})
-BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM, "2D_on_C": 1 / (units.um * units.nM * units.s)})
-BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM, "2D_on_A": 1 / (units.um * units.nM * units.s)})
+BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM})
+BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM})
 BD.update({"off_H": 10**-4 / units.s, "affn_H": 10 * units.nM, "affm_H": 1000 * units.nM})
+BD.update({"on2dn_C": 100 * units.um**2 / units.s, "on2dm_C": 1 * units.um**2 / units.s})
+BD.update({"on2dn_A": 100 * units.um**2 / units.s, "on2dm_A": 1 * units.um**2 / units.s})
 BD.update({"clearance": math.log(2)/(120 * units.h)})
 BD["smalls"] = []
 BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
@@ -190,6 +191,15 @@ def model(TCE, plasma, lymph, organs):
       system.add_simple(organ["name"], ["[T]C", f"{drug}"], [f"[T]C-{drug}"], on_C, off_C)
       system.add_simple(organ["name"], ["[B]A", f"{drug}"], [f"[B]A-{drug}"], on_A, off_A)
       system.add_simple(organ["name"], ["H", f"{drug}"], [f"H-{drug}"], on_H, off_H)
+  
+  ligands_effector = np.array(self.analytes)[np.array(self.ligands[0])]
+  ligands_target = np.array(self.analytes)[np.array(self.ligands[1])]
+  on2ds = pd.DataFrame(0, index = ligands_effector, columns = ligands_target)
+  for drug in drugs:
+    on2d_C = {"n":TCE["on2dn_C"], "m":TCE["on2dm_C"]}[drug[0]].number(units.um**2 / units.s)
+    on2d_A = {"n":TCE["on2dn_A"], "m":TCE["on2dm_C"]}[drug[1]].number(units.um**2 / units.s)
+    on2ds.loc[f"[T]C-{drug}", f"[B]A"] = on2d_A
+    on2ds.loc[f"[T]C", f"[B]A-{drug}"] = on2d_A
   
   # mask cleavage
   if TCE["cleavage"] is not None:
