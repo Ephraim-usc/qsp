@@ -107,16 +107,18 @@ class internalization:
 
 contact_area_time = 10*units.s * math.pi*units.um**2
 contact_freq = 4 * math.pi * (6.45 * units.um**2 / units.MIN) * 4*units.um # T cell diffusion rate according to https://pubmed.ncbi.nlm.nih.gov/29044117/ Figure 2D
+contact_freqs = {"plasma": contact_freq * 10, "lymph": contact_freq * 0.1, "default": contact_freq}
 
 class kill:
-  def __init__(self, compartments, on2ds, 
-               effector = "T", target = "B", contact_area_time = contact_area_time, contact_freq = contact_freq, synapse_efficiency = 0.01, damage = 0.5, regen = 0.1 / units.h):
+  def __init__(self, compartments, on2ds, contact_freq = contact_freqs,
+               effector = "T", target = "B", contact_area_time = contact_area_time, synapse_efficiency = 0.01, damage = 0.5, regen = 0.1 / units.h):
     self.system = None
     self.compartments = compartments
     self.on2ds = on2ds # pandas data frame of unit um**2/s
     self.effector = effector
     self.target = target
-    self.contact_freq = contact_freq.number(units.ml / units.h)
+    
+    self.contact_freqs = [(contact_freqs[compartment].number(units.ml / units.h) if compartment in contact_freqs else contact_freqs["default"].number(units.ml / units.h)) for compartment in compartments]
     self.contact_area_time = contact_area_time.number(units.um**2 * units.s)
     self.synapse_efficiency = synapse_efficiency
     self.damage = damage
@@ -144,7 +146,7 @@ class kill:
       self.on2ds_ = self.on2ds.loc[ligands_effector, ligands_target]
     
     t = t.number(units.h)
-    contacts_expected = self.contact_freq * system.c[self.effector_, self.compartments_] * t # average number of contacts with effector cells, for each target cell
+    contacts_expected = self.contact_freqs * system.c[self.effector_, self.compartments_] * t # average number of contacts with effector cells, for each target cell
     
     trimers = self.contact_area_time * np.array([system.y[self.ligands_effector_, compartment_] @ self.on2ds_ @ system.y[self.ligands_target_, compartment_] for compartment_ in self.compartments_])
     probs = 1 - (1 - self.synapse_efficiency)**trimers # probability that a contact would form a synapse
@@ -288,6 +290,9 @@ from qsp.human import *
 from qsp.model_TCE_B import *
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
-system.add_x("plasma", "nnn", 10 * units.nM)
-system.run(20 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+for _ in range(7):
+  system.add_x("plasma", "nnn", 10 * units.nM)
+  system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+
+system.plot_cell(output = "tmp.png")
 '''
