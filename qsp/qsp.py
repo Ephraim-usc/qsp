@@ -177,8 +177,9 @@ class System:
     cell = self.cells.index(cell)
     compartment = self.compartments.index(compartment)
     self.c[cell, compartment] += value
-  
-  def decay_cell_(self, cell_, compartments_, values):
+
+  # cell dies and ligands disappear
+  def cell_death_(self, cell_, compartments_, values):
     ligands_ = self.ligands[cell_]
     self.x[ligands, compartments_] *= 1 - value
     self.c[cell_, compartments_] *= 1 - value
