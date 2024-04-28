@@ -188,7 +188,7 @@ class System:
     self.c[cell, compartment] *= 1 - value
   
   ### 2-dimensional operations
-  def compute_y(self):
+  def update_y(self):
     c = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float) # in unit of 1/ml
     areas = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float) # in unit of um**2
     for i in range(self.n_cells):
@@ -207,6 +207,7 @@ class System:
       ligands = self.ligands[cell]
       self.x[ligands] = np.dot(self.x[ligands],  expm(t * self.M[cell]))
       self.c[cell] = np.dot(self.c[cell], expm(t * self.M[cell]))
+    self.update_y()
     
     self.t = self.t + t
     self.history.append((self.t, self.x.copy(), self.c.copy()))
@@ -218,6 +219,7 @@ class System:
       self.RS[compartment].refresh()
     for compartment in reacting_compartments:
       self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t)
+    self.update_y()
     
     self.t = self.t + t
     self.history.append((self.t, self.x.copy(), self.c.copy()))
@@ -226,6 +228,7 @@ class System:
     t = t.number(units.h)
     for process in self.processes:
       process(self, t * units.h)
+    self.update_y()
     
     self.t = self.t + t
     self.history.append((self.t, self.x.copy(), self.c.copy()))
@@ -251,20 +254,24 @@ class System:
       for analyte in flowing_analytes:
         A -= tt()
         self.x[analyte] = np.dot(self.x[analyte], expm(t_delta * self.Q[analyte]))
+        self.update_y()
         A += tt()
       for cell in migrating_cells:
         A -= tt()
         ligands = self.ligands[cell]
         self.x[ligands] = np.dot(self.x[ligands], expm(t_delta * self.M[cell]))
         self.c[cell] = np.dot(self.c[cell], expm(t_delta * self.M[cell]))
+        self.update_y()
         A += tt()
       for compartment in reacting_compartments:
         C -= tt()
         self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
+        self.update_y()
         C += tt()
       for process in self.processes:
         D -= tt()
         process(self, t_delta * units.h)
+        self.update_y()
         D += tt()
       
       if math.floor(self.t / t_record) > math.floor(t_prev / t_record):
