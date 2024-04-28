@@ -200,14 +200,16 @@ def model(TCE, plasma, lymph, organs):
       system.add_simple(organ["name"], ["[B]A", f"{drug}"], [f"[B]A-{drug}"], on_A, off_A)
       system.add_simple(organ["name"], ["H", f"{drug}"], [f"H-{drug}"], on_H, off_H)
   
-  ligands_effector = np.array(self.analytes)[np.array(self.ligands[0])]
-  ligands_target = np.array(self.analytes)[np.array(self.ligands[1])]
+  ligands_effector = np.array(system.analytes)[np.array(system.ligands[0])]
+  ligands_target = np.array(system.analytes)[np.array(system.ligands[1])]
   on2ds = pd.DataFrame(0, index = ligands_effector, columns = ligands_target) # in unit of um**2/s
   for drug in drugs:
     on2d_C = {"n":TCE["on2dn_C"], "m":TCE["on2dm_C"]}[drug[0]].number(units.um**2 / units.s)
     on2d_A = {"n":TCE["on2dn_A"], "m":TCE["on2dm_C"]}[drug[1]].number(units.um**2 / units.s)
     on2ds.loc[f"[T]C-{drug}", f"[B]A"] = on2d_A
     on2ds.loc[f"[T]C", f"[B]A-{drug}"] = on2d_A
+  
+  system.on2ds = on2ds
   
   # mask cleavage
   if TCE["cleavage"] is not None:
