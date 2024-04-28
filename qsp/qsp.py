@@ -78,7 +78,7 @@ class RS: # linear and quadratic reaction system
 
 
 class System:
-  def __init__(self, compartments, analytes, cells = None):
+  def __init__(self, compartments, analytes, cells = None, areas = None):
     self.compartments = compartments
     self.n_compartments = len(compartments)
     
@@ -88,6 +88,9 @@ class System:
     cells = [] if cells is None else cells
     self.cells = cells
     self.n_cells = len(cells)
+    
+    areas = [200 for cell in cells] if areas is None else areas # surface area of cells, in units.um**2
+    self.areas = areas
     
     # list of lists of analyte indices for each cell index
     self.ligands = [[] for _ in self.cells]
