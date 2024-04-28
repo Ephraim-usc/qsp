@@ -106,7 +106,7 @@ class internalization:
 
 
 class kill:
-  def __init__(self, compartments, on2ds, contact_freq, contact_area, damage, regen):
+  def __init__(self, compartments, on2ds, contact_freq, contact_time, contact_area, damage, regen):
     self.system = None
     self.compartments = compartments
     self.on2ds = on2ds # pandas data frame of unit um**2/s
@@ -127,9 +127,7 @@ class kill:
       self.ligands_target_ = [system.analytes.index(ligand) for ligand in ligands_target]
       self.on2ds_ = on2ds.loc[ligands_effector, ligands_target]
     
-    
-    compartment_ = 1
-    system.y[np.ix_(self.ligands_effector_, self.compartments_)] * self.on2ds_ * system.y[np.ix_(self.ligands_target_, self.compartments_)]
+    trimers = [system.y[self.ligands_effector_, compartment_] @ self.on2ds_ @ system.y[self.ligands_target_, compartment_] for compartment_ in self.compartments_]
 
 
 ############ drugs ############
