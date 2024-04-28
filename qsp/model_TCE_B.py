@@ -152,9 +152,9 @@ class kill:
     contacts = np.stack([np.random.poisson(_, int(1e5)) for _ in contacts_expected], axis = 1)
     damages = np.random.binomial(contacts, probs) * self.damage
     self.hp = np.minimum(1.0, self.hp - damages + self.regen * t)
-
+    
     deaths = (self.hp <= 0).mean(axis = 0)
-    system.decay(self.compartments_, self.target_, deaths)
+    system.cell_death_(self.compartments_, self.target_, deaths)
     self.renormalize()
 
 
