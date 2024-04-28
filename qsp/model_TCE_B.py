@@ -293,6 +293,8 @@ from qsp import *
 from qsp.human import *
 from qsp.model_TCE_B import *
 
+bone.update({"plasma_flow": 10000 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+
 system = model(BD, plasma, lymph, [bone, lung, liver])
 for _ in range(3):
   system.add_x("plasma", "nnn", 10 * units.nM)
