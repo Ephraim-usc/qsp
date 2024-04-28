@@ -134,6 +134,7 @@ class kill:
       ligands_target = [ligand for ligand in self.on2ds.columns.values if ligand in system.analytes]
       
       self.effector_ = system.cells.index(effector)
+      self.target_ = system.cells.index(target)
       self.ligands_effector_ = [system.analytes.index(ligand) for ligand in ligands_effector]
       self.ligands_target_ = [system.analytes.index(ligand) for ligand in ligands_target]
       self.on2ds_ = self.on2ds.loc[ligands_effector, ligands_target]
@@ -149,14 +150,9 @@ class kill:
     self.hp = np.minimum(1.0, self.hp - damages + self.regen * t)
 
     deaths = (self.hp <= 0).mean(axis = 0)
-    system.decay(system.compartments[compartment_], )
-    
-    
-    
+    system.decay(self.compartments_, self.target_, deaths)
+    self.renormalize()
 
-    
-    
-    
 
 ############ drugs ############
 
@@ -170,8 +166,8 @@ linker = [("plasma", 0.07 / units.d),
 
 BD = {}
 BD.update({"A": "CD19", "B": "BAFFR"})
-BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM})
-BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM})
+BD.update({"off_C": 10**-4 / units.s, "affn_C": 260 * units.nM, "affm_C": 26000 * units.nM})
+BD.update({"off_A": 10**-4 / units.s, "affn_A": 1.49 * units.nM, "affm_A": 149 * units.nM})
 BD.update({"off_H": 10**-4 / units.s, "affn_H": 10 * units.nM, "affm_H": 1000 * units.nM})
 BD.update({"on2dn_C": 1e-4 * units.um**2 / units.s, "on2dm_C": 1e-6 * units.um**2 / units.s})
 BD.update({"on2dn_A": 1e-4 * units.um**2 / units.s, "on2dm_A": 1e-6 * units.um**2 / units.s})
