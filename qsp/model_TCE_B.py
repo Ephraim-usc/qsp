@@ -105,13 +105,16 @@ class internalization:
       system.x[:, compartment_] += delta_dimers @ self.Q
 
 
+contact_area_time = 10*units.s * math.pi*units.um**2
+contact_freq = 4 * math.pi * (0.1075 * units.um**2 / units.s) * 4*units.um # T cell diffusion rate according to https://pubmed.ncbi.nlm.nih.gov/29044117/ Figure 2D
+
 class kill:
-  def __init__(self, compartments, on2ds, contact_freq, contact_time, contact_area, damage, regen):
+  def __init__(self, compartments, on2ds, contact_area_time = contact_area_time, contact_freq = contact_freq, synapse_efficiency = 0.01, damage = 0.5, regen = 0.1 / units.h):
     self.system = None
     self.compartments = compartments
     self.on2ds = on2ds # pandas data frame of unit um**2/s
-    self.contact_freq = contact_freq
-    self.contact_area = contact_area
+    self.contact_freq = contact_freq.number(units.um**3 / units.s)
+    self.contact_area_time = contact_area_time.number(units.um**2 * units.s)
     self.regen = regen
   
   def __call__(self, system, t):
@@ -125,10 +128,12 @@ class kill:
       
       self.ligands_effector_ = [system.analytes.index(ligand) for ligand in ligands_effector]
       self.ligands_target_ = [system.analytes.index(ligand) for ligand in ligands_target]
-      self.on2ds_ = on2ds.loc[ligands_effector, ligands_target]
+      self.on2ds_ = self.on2ds.loc[ligands_effector, ligands_target]
     
-    trimers = [system.y[self.ligands_effector_, compartment_] @ self.on2ds_ @ system.y[self.ligands_target_, compartment_] for compartment_ in self.compartments_]
-
+    trimers = self.contact_area_time * np.array([system.y[self.ligands_effector_, compartment_] @ self.on2ds_ @ system.y[self.ligands_target_, compartment_] for compartment_ in self.compartments_])
+    probs = 0
+    
+    
 
 ############ drugs ############
 
@@ -145,8 +150,8 @@ BD.update({"A": "CD19", "B": "BAFFR"})
 BD.update({"off_C": 10**-4 / units.s, "affn_C": 10 * units.nM, "affm_C": 1000 * units.nM})
 BD.update({"off_A": 10**-4 / units.s, "affn_A": 10 * units.nM, "affm_A": 1000 * units.nM})
 BD.update({"off_H": 10**-4 / units.s, "affn_H": 10 * units.nM, "affm_H": 1000 * units.nM})
-BD.update({"on2dn_C": 100 * units.um**2 / units.s, "on2dm_C": 1 * units.um**2 / units.s})
-BD.update({"on2dn_A": 100 * units.um**2 / units.s, "on2dm_A": 1 * units.um**2 / units.s})
+BD.update({"on2dn_C": 1e-4 * units.um**2 / units.s, "on2dm_C": 1e-6 * units.um**2 / units.s})
+BD.update({"on2dn_A": 1e-4 * units.um**2 / units.s, "on2dm_A": 1e-6 * units.um**2 / units.s})
 BD.update({"clearance": math.log(2)/(120 * units.h)})
 BD["smalls"] = []
 BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
