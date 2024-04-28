@@ -181,8 +181,8 @@ class System:
   # cell dies and ligands disappear
   def cell_death_(self, cell_, compartments_, values):
     ligands = self.ligands[cell_]
-    self.x[ligands, compartments_] *= 1 - value
-    self.c[cell_, compartments_] *= 1 - value
+    self.x[ligands, compartments_] *= 1 - values
+    self.c[cell_, compartments_] *= 1 - values
   
   ### 2-dimensional operations
   def update_y(self):
