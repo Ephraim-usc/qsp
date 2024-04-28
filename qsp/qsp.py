@@ -107,7 +107,7 @@ class System:
     
     self.t = 0
     self.x = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # concentration of analytes, in units.nM
-    self.y = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # concentration of analytes, in units.nM * units.um
+    self.y = np.zeros([self.n_analytes, self.n_compartments], dtype = float) # concentration of analytes, in 1/units.um**2
     self.c = np.zeros([self.n_cells, self.n_compartments], dtype = float) # concentration of cells, in 1/units.ml
     
     self.history = []
@@ -189,12 +189,12 @@ class System:
   
   ### 2-dimensional operations
   def compute_y(self):
-    c = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float)
-    areas = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float)
+    c = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float) # in unit of 1/ml
+    areas = np.full([self.n_analytes, self.n_compartments], np.inf, dtype = float) # in unit of um**2
     for i in range(self.n_cells):
       c[self.ligands[i], :] = self.c[i, :]
       areas[self.ligands[i], :] = self.areas[i]
-    self.y = self.x / c / areas * 1e12 # ml / um**2 = 1e12 * um 
+    self.y = self.x / c / areas * 6.0221415e11 # nM * avagadro / ml / um**2 = 6.0221415e11 * 1/um**2
   
   ### system running functions
   def run_flows(self, t):
