@@ -5,6 +5,7 @@ import itertools
 ### this model is mostly from ...
 
 cells = ["T", "B"]
+areas = [200, 254]
 
 solubles = ["A", "B"]
 ligands = ["[T]C", "[B]A", "[B]B"]
