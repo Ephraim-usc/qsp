@@ -106,20 +106,30 @@ class internalization:
 
 
 class kill:
-  def __init__(self, compartments, on2ds, , kill_freq, kill_damage, regen):
+  def __init__(self, compartments, on2ds, contact_freq, contact_area, damage, regen):
     self.system = None
     self.compartments = compartments
-    self.kill_freq = kill_freq
-    self.kill_damage = kill_damage
+    self.on2ds = on2ds # pandas data frame of unit um**2/s
+    self.contact_freq = contact_freq
+    self.contact_area = contact_area
     self.regen = regen
   
   def __call__(self, system, t):
     if self.system is not system:
       self.system = system
-      self.compartment_ = system.compartments.index(compartment)
-      self.hp = np.ones(1e5)
+      self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments]
+      self.hp = np.ones(100000)
+      
+      ligands_effector = [ligand for ligand in self.on2ds.index.values if ligand in system.analytes]
+      ligands_target = [ligand for ligand in self.on2ds.columns.values if ligand in system.analytes]
+      
+      self.ligands_effector_ = [system.analytes.index(ligand) for ligand in ligands_effector]
+      self.ligands_target_ = [system.analytes.index(ligand) for ligand in ligands_target]
+      self.on2ds_ = on2ds.loc[ligands_effector, ligands_target]
     
-    system.x # compute average number of trimers during each contact
+    
+    compartment_ = 1
+    system.y[np.ix_(self.ligands_effector_, self.compartments_)] * self.on2ds_ * system.y[np.ix_(self.ligands_target_, self.compartments_)]
 
 
 ############ drugs ############
@@ -194,7 +204,7 @@ def model(TCE, plasma, lymph, organs):
   
   ligands_effector = np.array(self.analytes)[np.array(self.ligands[0])]
   ligands_target = np.array(self.analytes)[np.array(self.ligands[1])]
-  on2ds = pd.DataFrame(0, index = ligands_effector, columns = ligands_target)
+  on2ds = pd.DataFrame(0, index = ligands_effector, columns = ligands_target) # in unit of um**2/s
   for drug in drugs:
     on2d_C = {"n":TCE["on2dn_C"], "m":TCE["on2dm_C"]}[drug[0]].number(units.um**2 / units.s)
     on2d_A = {"n":TCE["on2dn_A"], "m":TCE["on2dm_C"]}[drug[1]].number(units.um**2 / units.s)
