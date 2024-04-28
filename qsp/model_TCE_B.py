@@ -212,8 +212,9 @@ def model(TCE, plasma, lymph, organs):
       system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
       system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
       system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+
   
-  # target binding
+  # killing
   for drug in drugs:
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
@@ -233,7 +234,8 @@ def model(TCE, plasma, lymph, organs):
     on2ds.loc[f"[T]C-{drug}", f"[B]A"] = on2d_A
     on2ds.loc[f"[T]C", f"[B]A-{drug}"] = on2d_A
   
-  system.on2ds = on2ds
+  system.add_process(kill(compartments, on2ds))
+
   
   # mask cleavage
   if TCE["cleavage"] is not None:
@@ -282,6 +284,6 @@ from qsp.human import *
 from qsp.model_TCE_B import *
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
-system.add_x("plasma", "mmm", 10 * units.nM)
+system.add_x("plasma", "nnn", 10 * units.nM)
 system.run(300 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 '''
