@@ -111,7 +111,7 @@ contact_freqs = {"plasma": contact_freq * 10, "lymph": contact_freq * 0.1, "defa
 
 class kill:
   def __init__(self, compartments, on2ds, contact_freq = contact_freqs,
-               effector = "T", target = "B", contact_area_time = contact_area_time, synapse_efficiency = 0.01, damage = 0.5, regen = 0.1 / units.h):
+               effector = "T", target = "B", contact_area_time = contact_area_time, synapse_efficiency = 0.01, damage = 0.8, regen = 0.1 / units.h):
     self.system = None
     self.compartments = compartments
     self.on2ds = on2ds # pandas data frame of unit um**2/s
@@ -291,6 +291,7 @@ def plot(system, name):
   linestyles = ["solid", "solid", "solid", "solid", "solid", "solid", "solid"]
   system.plot(compartments = system.compartments, 
               groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              linthresh = 1e-5,
               output = f"{name}_summary.png")
 
 
@@ -303,7 +304,7 @@ from qsp.model_TCE_B import *
 bone.update({"plasma_flow": 10000 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
-for _ in range(7):
+for _ in range(2):
   system.add_x("plasma", "nn", 0.009 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "unmasked")
