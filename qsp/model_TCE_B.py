@@ -107,7 +107,7 @@ class internalization:
 
 contact_area_time = 10*units.s * math.pi*units.um**2
 contact_freq = 4 * math.pi * (6.45 * units.um**2 / units.MIN) * 4*units.um # T cell diffusion rate according to https://pubmed.ncbi.nlm.nih.gov/29044117/ Figure 2D
-contact_freqs = {"plasma": contact_freq * 20, "lymph": contact_freq * 0.1, "default": contact_freq}
+contact_freqs = {"plasma": contact_freq * 15, "lymph": contact_freq * 0.1, "default": contact_freq}
 
 class kill:
   def __init__(self, compartments, on2ds, contact_freq = contact_freqs,
