@@ -177,7 +177,7 @@ BD.update({"off_A": 10**-4 / units.s, "affn_A": 1.49 * units.nM, "affm_A": 149 *
 BD.update({"off_H": 10**-4 / units.s, "aff_H": math.inf * units.nM})
 BD.update({"on2dn_C": 2e-4 * units.um**2 / units.s, "on2dm_C": 2e-6 * units.um**2 / units.s})
 BD.update({"on2dn_A": 2e-4 * units.um**2 / units.s, "on2dm_A": 2e-6 * units.um**2 / units.s})
-BD["synapse_efficiency"] = 0.05
+BD["synapse_efficiency"] = 0.1
 BD.update({"clearance": math.log(2)/(80 * units.h)})
 BD["smalls"] = []
 BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
