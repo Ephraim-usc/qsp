@@ -9,7 +9,7 @@ areas = [200, 254]
 
 antigens = ["[T]C", "[B]A", "H"] # H: hydroxyapatite, C: CD3, A: CD19
 bindings = ["[T]C", "[B]A", "H"]
-drugs = [f"{c}{a}{h}" for c in ("m", "n") for a in ("m", "n") for h in ("m", "n")]
+drugs = [f"{c}{a}" for c in ("m", "n") for a in ("m", "n")]
 dimers = [f"{binding}-{drug}" for binding in bindings for drug in drugs]
 analytes = antigens + drugs + dimers
 
@@ -174,7 +174,7 @@ BD = {}
 BD.update({"A": "CD19", "B": "BAFFR"})
 BD.update({"off_C": 10**-4 / units.s, "affn_C": 260 * units.nM, "affm_C": 26000 * units.nM})
 BD.update({"off_A": 10**-4 / units.s, "affn_A": 1.49 * units.nM, "affm_A": 149 * units.nM})
-BD.update({"off_H": 10**-4 / units.s, "affn_H": math.inf * units.nM, "affm_H": math.inf * units.nM})
+BD.update({"off_H": 10**-4 / units.s, "aff_H": math.inf * units.nM})
 BD.update({"on2dn_C": 1e-4 * units.um**2 / units.s, "on2dm_C": 1e-6 * units.um**2 / units.s})
 BD.update({"on2dn_A": 1e-4 * units.um**2 / units.s, "on2dm_A": 1e-6 * units.um**2 / units.s})
 BD.update({"clearance": math.log(2)/(120 * units.h)})
@@ -182,13 +182,19 @@ BD["smalls"] = []
 BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
                                                  ("[B]A", ["[B]A"], 0.1 / units.h)])
 BD["cleavage"] = transform()
+for a in ("m", "n"):
+  BD["cleavage"].add(linker = linker, reactant = f"m{a}", products = [f"n{a}"])
+for c in ("m", "n"):
+  BD["cleavage"].add(linker = linker, reactant = f"{c}m", products = [f"{c}n"])
+
+'''
 for a, h in itertools.product(("m", "n"), ("m", "n")):
     BD["cleavage"].add(linker = linker, reactant = f"m{a}{h}", products = [f"n{a}{h}"])
 for c, h in itertools.product(("m", "n"), ("m", "n")):
     BD["cleavage"].add(linker = linker, reactant = f"{c}m{h}", products = [f"{c}n{h}"])
 for c, a in itertools.product(("m", "n"), ("m", "n")):
     BD["cleavage"].add(linker = linker, reactant = f"{c}{a}m", products = [f"{c}{a}n"])
-
+'''
 
 ############ model ############
 
@@ -224,7 +230,7 @@ def model(TCE, plasma, lymph, organs):
   for drug in drugs:
     off_C = TCE["off_C"]; on_C = {"n":TCE["off_C"] / TCE["affn_C"], "m":TCE["off_C"] / TCE["affm_C"]}[drug[0]]
     off_A = TCE["off_A"]; on_A = {"n":TCE["off_A"] / TCE["affn_A"], "m":TCE["off_A"] / TCE["affm_A"]}[drug[1]]
-    off_H = TCE["off_H"]; on_H = {"n":TCE["off_H"] / TCE["affn_H"], "m":TCE["off_H"] / TCE["affm_H"]}[drug[2]]
+    off_H = TCE["off_H"]; on_H = TCE["off_H"] / TCE["aff_H"]
     
     for organ in centrals + organs:
       system.add_simple(organ["name"], ["[T]C", f"{drug}"], [f"[T]C-{drug}"], on_C, off_C)
@@ -304,8 +310,7 @@ system.plot_cell(output = "unmasked.png")
 
 
 TCE = BD.copy()
-TCE.update({"off_H": 10**-4 / units.s, "affn_H": 1 * units.nM, "affm_H": 100 * units.nM})
-
+TCE.update({"off_H": 10**-4 / units.s, "aff_H": 1 * units.nM})
 system = model(TCE, plasma, lymph, [bone, lung, liver])
 for _ in range(7):
   system.add_x("plasma", "nnn", 10 * units.nM)
@@ -323,7 +328,7 @@ system.plot_cell(output = "masked_cell.png")
 
 
 TCE = BD.copy()
-TCE.update({"off_H": 10**-4 / units.s, "affn_H": 1 * units.nM, "affm_H": 100 * units.nM})
+TCE.update({"off_H": 10**-4 / units.s, "aff_H": 1 * units.nM})
 system = model(TCE, plasma, lymph, [bone, lung, liver])
 for _ in range(7):
   system.add_x("plasma", "mmn", 100 * units.nM)
