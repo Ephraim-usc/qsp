@@ -328,7 +328,7 @@ class System:
       fig.savefig(output, dpi = 300)
       plt.close(fig)
   
-  def plot_cell(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e5, output = None):
+  def plot_cell(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e4, output = None):
     if compartments is None:
       compartments = self.compartments
     compartments = [self.compartments.index(compartment) for compartment in compartments]
@@ -365,7 +365,7 @@ class System:
         ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
       ax.set_xlim(0, Xmax)
       ax.set_yscale('symlog', linthresh = linthresh)
-      ax.set_yticks([y for y in [1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11] if y >= linthresh])
+      ax.set_yticks([y for y in [1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11] if y >= linthresh])
       ax.set_ylim(0, Ymax)
       ax.grid(axis = "y", color = "grey", linewidth = 1)
       ax.set_title(self.compartments[compartment])
