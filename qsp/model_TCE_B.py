@@ -177,6 +177,7 @@ BD.update({"off_A": 10**-4 / units.s, "affn_A": 1.49 * units.nM, "affm_A": 149 *
 BD.update({"off_H": 10**-4 / units.s, "aff_H": math.inf * units.nM})
 BD.update({"on2dn_C": 1e-4 * units.um**2 / units.s, "on2dm_C": 1e-6 * units.um**2 / units.s})
 BD.update({"on2dn_A": 1e-4 * units.um**2 / units.s, "on2dm_A": 1e-6 * units.um**2 / units.s})
+BD["synapse_efficiency"] = 0.1
 BD.update({"clearance": math.log(2)/(120 * units.h)})
 BD["smalls"] = []
 BD["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
@@ -249,7 +250,7 @@ def model(TCE, plasma, lymph, organs):
     on2ds.loc[f"[T]C-{drug}", f"[B]A"] = on2d_A
     on2ds.loc[f"[T]C", f"[B]A-{drug}"] = on2d_A
   
-  system.add_process(kill(compartments, on2ds))
+  system.add_process(kill(compartments, on2ds, synapse_efficiency = TCE["synapse_efficiency"]))
   
   
   # mask cleavage
