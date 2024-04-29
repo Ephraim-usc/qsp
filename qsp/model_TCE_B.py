@@ -308,7 +308,23 @@ for _ in range(2):
   system.add_x("plasma", "nn", 0.009 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "unmasked")
-system.plot_cell(output = "unmasked.png")
+system.plot_cell(output = "unmasked_9ug.png") # 0.009nM
+
+system = model(BD, plasma, lymph, [bone, lung, liver])
+for _ in range(2):
+  system.add_x("plasma", "nn", 5*70/1000 * units.nM)
+  system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "unmasked_5upk")
+system.plot_cell(output = "unmasked_5upk.png") # 0.35nM
+
+system = model(BD, plasma, lymph, [bone, lung, liver])
+for _ in range(3):
+  system.add_x("plasma", "nn", 135*70/1000 * units.nM)
+  system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
+plot(system, "unmasked_135upk")
+system.plot_cell(output = "unmasked_135upk.png") # 9.45nM
+
+
 
 
 TCE = BD.copy()
