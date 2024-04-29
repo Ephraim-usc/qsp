@@ -304,7 +304,7 @@ bone.update({"plasma_flow": 10000 * units.ml/units.h, "lymphatic_flow_ratio": 0.
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
 for _ in range(7):
-  system.add_x("plasma", "nnn", 10 * units.nM)
+  system.add_x("plasma", "nn", 10 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "unmasked")
 system.plot_cell(output = "unmasked.png")
@@ -314,7 +314,7 @@ TCE = BD.copy()
 TCE.update({"off_H": 10**-4 / units.s, "aff_H": 1 * units.nM})
 system = model(TCE, plasma, lymph, [bone, lung, liver])
 for _ in range(7):
-  system.add_x("plasma", "nnn", 10 * units.nM)
+  system.add_x("plasma", "nn", 10 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "unmasked_HA")
 system.plot_cell(output = "unmasked_HA.png")
@@ -322,7 +322,7 @@ system.plot_cell(output = "unmasked_HA.png")
 
 system = model(BD, plasma, lymph, [bone, lung, liver])
 for _ in range(7):
-  system.add_x("plasma", "mmn", 100 * units.nM)
+  system.add_x("plasma", "mm", 100 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "masked")
 system.plot_cell(output = "masked_cell.png")
@@ -332,7 +332,7 @@ TCE = BD.copy()
 TCE.update({"off_H": 10**-4 / units.s, "aff_H": 1 * units.nM})
 system = model(TCE, plasma, lymph, [bone, lung, liver])
 for _ in range(7):
-  system.add_x("plasma", "mmn", 100 * units.nM)
+  system.add_x("plasma", "mm", 100 * units.nM)
   system.run(24 * units.h, t_step = 1/60 * units.h, t_record = 1 * units.h)
 plot(system, "masked_HA")
 system.plot_cell(output = "masked_HA.png")
