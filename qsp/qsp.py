@@ -373,7 +373,8 @@ class System:
         ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
       ax.set_xlim(0, Xmax)
       if relative:
-        ax.set_yticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
+        ax.set_yticks([0.0, 0.2, 0.5, 0.8, 1.0, 2.0, 5.0, 10.0])
+        ax.set_yticklabels(["0%", "20%", "50%", "80%", "100%", "200%", "500%", "1000%"])
       else:
         ax.set_yscale('symlog', linthresh = linthresh)
         ax.set_yticks([y for y in [1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11] if y >= linthresh])
