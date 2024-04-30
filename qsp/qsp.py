@@ -367,11 +367,13 @@ class System:
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG > 0:
           if relative:
-            ax.plot(X, Y, label = f"{label} (count per ml)", color = color, linestyle = linestyle)
-          else:
             ax.plot(X, Y, label = f"{label} (relative to original)", color = color, linestyle = linestyle)
-      if Xmax > 100:
+          else:
+            ax.plot(X, Y, label = f"{label} (count per ml)", color = color, linestyle = linestyle)
+      if Xmax > 200:
         ax.set_xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
+      elif Xmax > 50:
+        ax.set_xticks([50, 100, 150, 200])
       else:
         ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
       ax.set_xlim(0, Xmax)
