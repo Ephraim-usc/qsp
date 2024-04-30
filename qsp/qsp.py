@@ -328,7 +328,7 @@ class System:
       fig.savefig(output, dpi = 300)
       plt.close(fig)
   
-  def plot_cell(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e4, output = None):
+  def plot_cell(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e4, output = None, relative = False):
     if compartments is None:
       compartments = self.compartments
     compartments = [self.compartments.index(compartment) for compartment in compartments]
@@ -347,15 +347,23 @@ class System:
       linestyles = ["solid"] * 10
     
     Xmax = max([t for t, x, c in self.history])
-    Ymax = max([c[group, compartment].sum() for t, x, c in self.history for group in groups for compartment in compartments])
-    Ymax = 10**np.ceil(np.log10(Ymax))
+    if relative:
+      t0, x0, c0 = self.history[0]
+      Ymax = max([c[group, compartment].sum() / c0[group, compartment].sum() for t, x, c in self.history for group in groups for compartment in compartments])
+      Ymax = 0.1 + np.ceil(Ymax)
+    else:
+      Ymax = max([c[group, compartment].sum() for t, x, c in self.history for group in groups for compartment in compartments])
+      Ymax = 10**np.ceil(np.log10(Ymax))
     
     fig, axs = plt.subplots(nrows = 1, ncols = len(compartments), figsize = (4*len(compartments), 3), squeeze = False)
     axs = axs.ravel().tolist()
     for ax, compartment in zip(axs, compartments):
       for group, label, color, linestyle in zip(groups, labels, colors, linestyles):
         X = [t for t, x, c in self.history]
-        Y = [c[group, compartment].sum() for t, x, c in self.history]
+        if relative:
+          Y = [c[group, compartment].sum() / c0[group, compartment].sum() for t, x, c in self.history]
+        else:
+          Y = [c[group, compartment].sum() for t, x, c in self.history]
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG > 0:
           ax.plot(X, Y, label = f"{label}, avg={AVG:.3}nM", color = color, linestyle = linestyle)
@@ -364,8 +372,11 @@ class System:
       else:
         ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
       ax.set_xlim(0, Xmax)
-      ax.set_yscale('symlog', linthresh = linthresh)
-      ax.set_yticks([y for y in [1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11] if y >= linthresh])
+      if relative:
+        ax.set_yticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
+      else:
+        ax.set_yscale('symlog', linthresh = linthresh)
+        ax.set_yticks([y for y in [1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11] if y >= linthresh])
       ax.set_ylim(0, Ymax)
       ax.grid(axis = "y", color = "grey", linewidth = 1)
       ax.set_title(self.compartments[compartment])
