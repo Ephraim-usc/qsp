@@ -328,7 +328,7 @@ class System:
       fig.savefig(output, dpi = 300)
       plt.close(fig)
   
-  def plot_cell(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e4, output = None, relative = False):
+  def plot_cell(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e5, output = None, relative = False):
     if compartments is None:
       compartments = self.compartments
     compartments = [self.compartments.index(compartment) for compartment in compartments]
@@ -366,7 +366,10 @@ class System:
           Y = [c[group, compartment].sum() for t, x, c in self.history]
         AVG = np.trapz(Y, X) / (X[-1] - X[0])
         if AVG > 0:
-          ax.plot(X, Y, label = f"{label}, avg={AVG:.3}nM", color = color, linestyle = linestyle)
+          if relative:
+            ax.plot(X, Y, label = f"{label} (count per ml)", color = color, linestyle = linestyle)
+          else:
+            ax.plot(X, Y, label = f"{label} (relative to original)", color = color, linestyle = linestyle)
       if Xmax > 100:
         ax.set_xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
       else:
@@ -381,7 +384,7 @@ class System:
       ax.set_ylim(0, Ymax)
       ax.grid(axis = "y", color = "grey", linewidth = 1)
       ax.set_title(self.compartments[compartment])
-      ax.legend(loc = "upper right", prop={'size': 6})
+      ax.legend(loc = "upper right", prop={'size': 10})
     
     if output is None:
       fig.show()
