@@ -241,22 +241,44 @@ class System:
     self.history.append((self.t, self.x.copy(), self.c.copy()))
 
   def run_(self, t):
-    for analyte in flowing_analytes:
+    if self.t_shortcut is not t:
+      self.t_shortcut = t
+      
+      self.flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
+      self.expmQ = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float)
+      for analyte in self.flowing_analytes:
+        self.expmQ[analyte] = expm(t_delta * self.Q[analyte])
+      
+      self.transforming_compartments = [compartment for compartment in range(self.n_compartments) if self.T[compartment].any()]
+      self.expmT = np.zeros([self.n_compartments, self.n_analytes, self.n_analytes], dtype = float)
+      for compartment in self.transforming_compartments:
+        self.expmT[analyte] = expm(t_delta * self.T[compartment])
+      
+      self.migrating_cells = [cell for cell in range(self.n_cells) if self.M[cell].any()]
+      self.expmM = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float)
+      for cell in self.migrating_cells:
+        self.expmM[cell] = expm(t_delta * self.M[cell])
+      
+      self.reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
+    
+    for analyte in self.flowing_analytes:
       self.x[analyte] = np.dot(self.x[analyte], expm(t_delta * self.Q[analyte]))
       self.update_y()
-    for cell in migrating_cells:
+    for compartment in self.reacting_compartments:
+      self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
+      self.update_y()
+    for cell in self.migrating_cells:
       ligands = self.ligands[cell]
       self.x[ligands] = np.dot(self.x[ligands], expm(t_delta * self.M[cell]))
       self.c[cell] = np.dot(self.c[cell], expm(t_delta * self.M[cell]))
-      self.update_y()
-    for compartment in reacting_compartments:
-      self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
       self.update_y()
     for process in self.processes:
       process(self, t_delta * units.h)
       self.update_y()
   
   def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
+    self.t_shortcut = None
+    
     t = t.number(units.h)
     t_start = self.t
     t_end = t_start + t
