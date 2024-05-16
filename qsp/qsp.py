@@ -262,18 +262,21 @@ class System:
       self.reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
     
     for analyte in self.flowing_analytes:
-      self.x[analyte] = np.dot(self.x[analyte], expm(t_delta * self.Q[analyte]))
+      self.x[analyte] = np.dot(self.x[analyte], self.expmQ[analyte]))
       self.update_y()
-    for compartment in self.reacting_compartments:
-      self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
+    for compartment in self.transforming_compartments:
+      self.x[:, compartment] = np.dot(self.x[:, compartment], self.expmT[analyte])
       self.update_y()
     for cell in self.migrating_cells:
       ligands = self.ligands[cell]
-      self.x[ligands] = np.dot(self.x[ligands], expm(t_delta * self.M[cell]))
-      self.c[cell] = np.dot(self.c[cell], expm(t_delta * self.M[cell]))
+      self.x[ligands] = np.dot(self.x[ligands], self.expmM[cell])
+      self.c[cell] = np.dot(self.c[cell], self.expmM[cell])
+      self.update_y()
+    for compartment in self.reacting_compartments:
+      self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t)
       self.update_y()
     for process in self.processes:
-      process(self, t_delta * units.h)
+      process(self, t * units.h)
       self.update_y()
   
   def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
