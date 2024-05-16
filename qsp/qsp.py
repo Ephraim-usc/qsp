@@ -133,7 +133,7 @@ class System:
       self.Q[analyte, compartment_source, compartment_dest] += rate / self.V[compartment_dest]
 
   def add_transform(self, compartment, analyte_source, analyte_dests, rate):
-    rate = rate.number(units.ml/units.h)
+    rate = rate.number(1/units.h)
     compartment = self.compartments.index(compartment)
     analyte_source = self.analytes.index(analyte_source)
     analyte_dests = [self.analytes.index(analyte_dest) for analyte_dest in analyte_dests]
@@ -239,6 +239,22 @@ class System:
     
     self.t = self.t + t
     self.history.append((self.t, self.x.copy(), self.c.copy()))
+
+  def run_(self, t):
+    for analyte in flowing_analytes:
+      self.x[analyte] = np.dot(self.x[analyte], expm(t_delta * self.Q[analyte]))
+      self.update_y()
+    for cell in migrating_cells:
+      ligands = self.ligands[cell]
+      self.x[ligands] = np.dot(self.x[ligands], expm(t_delta * self.M[cell]))
+      self.c[cell] = np.dot(self.c[cell], expm(t_delta * self.M[cell]))
+      self.update_y()
+    for compartment in reacting_compartments:
+      self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
+      self.update_y()
+    for process in self.processes:
+      process(self, t_delta * units.h)
+      self.update_y()
   
   def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
     t = t.number(units.h)
