@@ -100,8 +100,9 @@ class System:
           self.ligands[i].append(j)
     
     self.V = np.zeros(self.n_compartments, dtype = float) # volume of each compartment, in units.ml
-    self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # flow matrix of analytes, in 1/units.h
-    self.M = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float) # migration matrix of cells, in 1/units.h
+    self.Q = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float) # flow matrix of analytes between compartments, in 1/units.h
+    self.T = np.zeros([self.n_compartments, self.n_analytes, self.n_analytes], dtype = float) # transformation between analytes in each compartment, in 1/units.h
+    self.M = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float) # migration matrix of cells between compartments, in 1/units.h
     self.RS = [RS(self.n_analytes) for compartment in self.compartments]
     self.processes = []
     
@@ -130,6 +131,15 @@ class System:
     if compartment_dest is not None:
       compartment_dest = self.compartments.index(compartment_dest)
       self.Q[analyte, compartment_source, compartment_dest] += rate / self.V[compartment_dest]
+
+  def add_transform(self, compartment, analyte_source, analyte_dests, rate):
+    rate = rate.number(units.ml/units.h)
+    compartment = self.compartments.index(compartment)
+    analyte_source = self.analytes.index(analyte_source)
+    analyte_dests = [self.analytes.index(analyte_dest) for analyte_dest in analyte_dests]
+    self.T[compartment, analyte_source, analyte_source] -= rate
+    for analyte_dest in analyte_dests:
+      self.T[compartment, analyte_source, analyte_dest] += rate
   
   def add_simple(self, compartment, reactants, products, forward, backward = None):
     compartment = self.compartments.index(compartment)
