@@ -43,3 +43,14 @@ class Transform:
     pass
 
 
+def add_cleavage(system, linker, drug_source, drug_dests, bindings):
+  for compartment, rate in linker:
+    if compartment not in system.compartments:
+      continue
+    system.add_transform(compartment, drug_source, drug_dests, rate)
+    for binding in bindings:
+      analyte_source = f"{binding}-{drug_source}"
+      analyte_dests = [f"{binding}-{drug_dest}" for drug_dest in drug_dests]
+      system.add_transform(compartment, analyte_source, analyte_dests, rate)
+
+  
