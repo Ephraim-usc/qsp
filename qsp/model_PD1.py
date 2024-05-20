@@ -28,7 +28,7 @@ X = {}
 X.update({"off_P": 10**-4 / units.s, "affn_P": 260 * units.nM, "affm_P": 26000 * units.nM})
 X.update({"clearance": math.log(2)/(80 * units.h), "smalls": []})
 X["cleavages"] = [(linker_175, "m", ["n"])]
-
+X["internalizations"] = [("[T]C", ["[T]C"], 0.1 / units.h)]
 
 ############ model ############
 
@@ -71,6 +71,9 @@ def model(TCE, plasma, lymph, organs, tumors):
   for linker, drug_source, drug_dests in TCE["cleavages"]:
     add_cleavage(system, linker, drug_source, drug_dests, bindings)
   
+  for binding_source, analyte_dests, rate in TCE["internalizations"]:
+    add_internalization(system, binding_source, analyte_dests, rate, drugs)
+  
   # binding kinetics
   for drug in drugs:
     off_P = TCE["off_P"]; on_P = {"n":TCE["off_P"] / TCE["affn_P"], "m":TCE["off_P"] / TCE["affm_P"]}[drug]
@@ -97,6 +100,6 @@ from qsp.tumors import *
 from qsp.model_PD1 import *
 
 system = model(X, plasma, lymph, [bone, lung, liver], [FTC238])
-system.add_x("plasma", "m", 1 * units.nM)
+system.add_x("plasma", "n", 100 * units.nM)
 system.run(units.h)
 '''
