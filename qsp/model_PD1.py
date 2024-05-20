@@ -14,7 +14,6 @@ dimers = [f"{binding}-{drug}" for binding in bindings for drug in drugs]
 analytes = antigens + drugs + dimers
 
 
-
 ### drugs ###
 
 linker_175 = [("plasma", 0.07 / units.d), 
@@ -76,7 +75,6 @@ def model(TCE, plasma, lymph, organs, tumors):
   for drug in drugs:
     off_P = TCE["off_P"]; on_P = {"n":TCE["off_P"] / TCE["affn_P"], "m":TCE["off_P"] / TCE["affm_P"]}[drug]
     for organ in centrals + organs + tumors:
-      print("!")
       system.add_simple(organ["name"], ["[T]P", f"{drug}"], [f"[T]P-{drug}"], on_P, off_P)
   
   # initial concentrations
