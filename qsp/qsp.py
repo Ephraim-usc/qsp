@@ -201,7 +201,7 @@ class System:
     for i in range(self.n_cells):
       c[self.ligands[i], :] = self.c[i, :]
       areas[self.ligands[i], :] = self.areas[i]
-    self.y = self.x / c / areas * 6.0221415e11 # nM * avagadro / ml / um**2 = 6.0221415e11 * 1/um**2
+    self.y = np.divide(self.x, c, out=np.zeros_like(a), where=b!=0) / areas * 6.0221415e11 # nM * avagadro / ml / um**2 = 6.0221415e11 * 1/um**2
   
   ### system running functions
   def run_flows(self, t):
