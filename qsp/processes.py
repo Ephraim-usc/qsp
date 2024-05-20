@@ -55,6 +55,6 @@ def add_cleavage(system, linker, drug_source, drug_dests, bindings):
 
 def add_internalization(system, binding_source, drug_sources, analyte_dests, rate):
   for compartment in system.compartments:
-    for drug_source in drugs_source:
+    for drug_source in drug_sources:
       analyte_source = f"{binding_source}-{drug_source}"
       system.add_transform(compartment, analyte_source, analyte_dests, rate)
