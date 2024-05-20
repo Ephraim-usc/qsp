@@ -293,6 +293,7 @@ class System:
     pbar = tqdm(total = t, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
     pbar.update(0.0)
     while True:
+      t_prev = self.t
       t_delta = min(t_step, t_end - self.t)
       self.t = min(self.t + t_step, t_end)
       self.run_(t_delta)
