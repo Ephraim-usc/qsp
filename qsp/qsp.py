@@ -260,7 +260,7 @@ class System:
         self.expmM[cell] = expm(t * self.M[cell])
       
       self.reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
-      for compartment in reacting_compartments:
+      for compartment in self.reacting_compartments:
         self.RS[compartment].refresh()
     
     for analyte in self.flowing_analytes:
