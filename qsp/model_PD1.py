@@ -101,12 +101,9 @@ from qsp.model_PD1 import *
 
 system = model(X, plasma, lymph, [bone, lung, liver], [FTC238])
 system.add_x("plasma", "n", 100 * units.nM)
-system.run(24 * units.h)
-system.get_y("tumor", "[T]P")
+system.run(168 * units.h, t_step = 1/6 * units.h)
 
-system.history
-
-
-pd.DataFrame(system.history[-1][1], system.analytes, system.compartments)
+coverages = np.array([x[-1, -1] / (x[-1, -1] + x[0, -1]) for t, x, c in system.history])
+coverage = coverages.mean()
 
 '''
