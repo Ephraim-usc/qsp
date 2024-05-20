@@ -76,6 +76,7 @@ def model(TCE, plasma, lymph, organs, tumors):
   for drug in drugs:
     off_P = TCE["off_P"]; on_P = {"n":TCE["off_P"] / TCE["affn_P"], "m":TCE["off_P"] / TCE["affm_P"]}[drug]
     for organ in centrals + organs + tumors:
+      print("!")
       system.add_simple(organ["name"], ["[T]P", f"{drug}"], [f"[T]P-{drug}"], on_P, off_P)
   
   # initial concentrations
@@ -99,4 +100,5 @@ from qsp.model_PD1 import *
 
 system = model(X, plasma, lymph, [bone, lung, liver], [FTC238])
 system.add_x("plasma", "m", 1 * units.nM)
+system.run(units.h)
 '''
