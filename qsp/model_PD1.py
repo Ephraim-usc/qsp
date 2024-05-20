@@ -25,7 +25,7 @@ linker_175 = [("plasma", 0.07 / units.d),
               ("gallbladder", 0.07 / units.d)]
 
 X = {}
-X.update({"off_P": 10**-4 / units.s, "affn_P": 260 * units.nM, "affm_P": 26000 * units.nM})
+X.update({"off_P": 10**-4 / units.s, "affn_P": 0.1 * units.nM, "affm_P": 10 * units.nM})
 X.update({"clearance": math.log(2)/(80 * units.h), "smalls": []})
 X["cleavages"] = [(linker_175, "m", ["n"])]
 X["internalizations"] = [("[T]P", ["[T]P"], 0.1 / units.h)]
@@ -102,4 +102,5 @@ from qsp.model_PD1 import *
 system = model(X, plasma, lymph, [bone, lung, liver], [FTC238])
 system.add_x("plasma", "n", 100 * units.nM)
 system.run(units.h)
+system.get_y("tumor", "[T]P")
 '''
