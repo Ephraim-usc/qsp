@@ -260,8 +260,6 @@ class System:
         self.expmM[cell] = expm(t * self.M[cell])
       
       self.reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
-      for compartment in self.reacting_compartments:
-        self.RS[compartment].refresh()
     
     for analyte in self.flowing_analytes:
       self.x[analyte] = np.dot(self.x[analyte], self.expmQ[analyte])
@@ -289,6 +287,10 @@ class System:
     t_end = t_start + t
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
+    
+    for rs in self.RS:
+      if rs.active:
+        rs.refresh()
     
     pbar = tqdm(total = t, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
     pbar.update(0.0)
