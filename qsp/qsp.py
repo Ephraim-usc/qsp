@@ -260,9 +260,11 @@ class System:
         self.expmM[cell] = expm(t_delta * self.M[cell])
       
       self.reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
+      for compartment in reacting_compartments:
+        self.RS[compartment].refresh()
     
     for analyte in self.flowing_analytes:
-      self.x[analyte] = np.dot(self.x[analyte], self.expmQ[analyte]))
+      self.x[analyte] = np.dot(self.x[analyte], self.expmQ[analyte])
       self.update_y()
     for compartment in self.transforming_compartments:
       self.x[:, compartment] = np.dot(self.x[:, compartment], self.expmT[analyte])
@@ -287,40 +289,14 @@ class System:
     t_end = t_start + t
     t_step = t_step.number(units.h)
     t_record = t_record.number(units.h)
-    flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
-    migrating_cells = [cell for cell in range(self.n_cells) if self.M[cell].any()]
-    reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
-    for compartment in reacting_compartments:
-      self.RS[compartment].refresh()
     
     pbar = tqdm(total = t, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
-    pbar.update(0.0); A, B, C, D = 0.0, 0.0, 0.0, 0.0
+    pbar.update(0.0)
     while True:
       t_prev = self.t
       self.t = min(self.t + t_step, t_end)
       t_delta = self.t - t_prev
-      for analyte in flowing_analytes:
-        A -= tt()
-        self.x[analyte] = np.dot(self.x[analyte], expm(t_delta * self.Q[analyte]))
-        self.update_y()
-        A += tt()
-      for cell in migrating_cells:
-        A -= tt()
-        ligands = self.ligands[cell]
-        self.x[ligands] = np.dot(self.x[ligands], expm(t_delta * self.M[cell]))
-        self.c[cell] = np.dot(self.c[cell], expm(t_delta * self.M[cell]))
-        self.update_y()
-        A += tt()
-      for compartment in reacting_compartments:
-        C -= tt()
-        self.x[:, compartment] = self.RS[compartment](self.x[:, compartment], t_delta)
-        self.update_y()
-        C += tt()
-      for process in self.processes:
-        D -= tt()
-        process(self, t_delta * units.h)
-        self.update_y()
-        D += tt()
+      self.run_(t_delta)
       
       if math.floor(self.t / t_record) > math.floor(t_prev / t_record):
         self.history.append((self.t, self.x.copy(), self.c.copy()))
@@ -328,7 +304,6 @@ class System:
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
     pbar.close()
-    print(f"time in computing flows: {A:.8f}s\ntime in computing reactions: {B:.8f}s\ntime in computing reactions: {C:.8f}s\ntime in computing processes: {D:.8f}s\n", flush = True)
   
   def plot(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e-3, output = None):
     if compartments is None:
