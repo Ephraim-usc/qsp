@@ -28,7 +28,7 @@ linker_175 = [("plasma", 0.07 / units.d),
 X = {}
 X.update({"off_P": 10**-4 / units.s, "affn_P": 260 * units.nM, "affm_P": 26000 * units.nM})
 X.update({"clearance": math.log(2)/(80 * units.h), "smalls": []})
-X["cleavages"] = [(linker, ["m"], ["n"])]
+X["cleavages"] = [(linker_175, "m", ["n"])]
 
 
 ############ model ############
@@ -39,7 +39,7 @@ def model(TCE, plasma, lymph, organs):
   system = System(compartments, analytes, cells)
   system.centrals = [plasma, lymph]
   system.organs = organs
-
+  
   # define volumes
   for central in centrals:
     system.set_volume(central["name"], central["volume"])
@@ -65,6 +65,8 @@ def model(TCE, plasma, lymph, organs):
   # mask cleavage
   for linker, drug_source, drug_dests in TCE["cleavages"]:
     add_cleavage(system, linker, drug_source, drug_dests, bindings)
+  
+  return system
 
 
 ############# demo ###############
@@ -75,5 +77,5 @@ from qsp.human import *
 from qsp.model_PD1 import *
 
 
-system = model(BD, plasma, lymph, [bone, lung, liver])
+system = model(X, plasma, lymph, [bone, lung, liver])
 '''
