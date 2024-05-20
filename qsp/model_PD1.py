@@ -35,10 +35,11 @@ X["cleavages"] = [(linker_175, "m", ["n"])]
 
 def model(TCE, plasma, lymph, organs, tumors):
   centrals = [plasma, lymph]
-  compartments = [organ["name"] for organ in centrals + organs]
+  compartments = [organ["name"] for organ in centrals + organs + tumors]
   system = System(compartments, analytes, cells)
   system.centrals = [plasma, lymph]
   system.organs = organs
+  system.tumors = tumors
   
   # define volumes
   for central in centrals:
