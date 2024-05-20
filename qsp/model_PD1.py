@@ -72,6 +72,12 @@ def model(TCE, plasma, lymph, organs, tumors):
   for linker, drug_source, drug_dests in TCE["cleavages"]:
     add_cleavage(system, linker, drug_source, drug_dests, bindings)
   
+  # binding kinetics
+  for drug in drugs:
+    off_P = TCE["off_P"]; on_P = {"n":TCE["off_P"] / TCE["affn_P"], "m":TCE["off_P"] / TCE["affm_P"]}[drug]
+    for organ in centrals + organs + tumors:
+      system.add_simple(organ["name"], ["[T]P", f"{drug}"], [f"[T]P-{drug}"], on_P, off_P)
+  
   # initial concentrations
   for central in centrals:
     system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["P"], [15000])
