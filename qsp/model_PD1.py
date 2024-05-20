@@ -33,7 +33,7 @@ X["cleavages"] = [(linker_175, "m", ["n"])]
 
 ############ model ############
 
-def model(TCE, plasma, lymph, organs):
+def model(TCE, plasma, lymph, organs, tumors):
   centrals = [plasma, lymph]
   compartments = [organ["name"] for organ in centrals + organs]
   system = System(compartments, analytes, cells)
@@ -45,6 +45,8 @@ def model(TCE, plasma, lymph, organs):
     system.set_volume(central["name"], central["volume"])
   for organ in organs:
     system.set_volume(organ["name"], organ["volume_interstitial"])
+  for tumor in tumors:
+      system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
   
   # distribution
   for drug in drugs:
@@ -52,6 +54,9 @@ def model(TCE, plasma, lymph, organs):
       system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
       system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
       system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+    for tumor in tumors:
+      system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+      system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
   
   # bulk clearance
   for compartment in compartments:
@@ -66,6 +71,14 @@ def model(TCE, plasma, lymph, organs):
   for linker, drug_source, drug_dests in TCE["cleavages"]:
     add_cleavage(system, linker, drug_source, drug_dests, bindings)
   
+  # initial concentrations
+  for central in centrals:
+    system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["P"], [15000])
+  for organ in organs:
+    system.add_c(organ["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["P"], [15000])
+  for tumor in tumors:
+    system.add_c(tumor["name"], "T", organ["density_T"] / organ["volume_interstitial_proportion"], ["P"], [50000])
+  
   return system
 
 
@@ -74,8 +87,9 @@ def model(TCE, plasma, lymph, organs):
 from qsp import *
 from qsp.processes import *
 from qsp.human import *
+from qsp.tumors import *
 from qsp.model_PD1 import *
 
-
-system = model(X, plasma, lymph, [bone, lung, liver])
+system = model(X, plasma, lymph, [bone, lung, liver], [FTC238])
+system.add_x("plasma", "m", 1 * units.nM)
 '''
