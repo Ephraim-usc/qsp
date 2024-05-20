@@ -101,6 +101,12 @@ from qsp.model_PD1 import *
 
 system = model(X, plasma, lymph, [bone, lung, liver], [FTC238])
 system.add_x("plasma", "n", 100 * units.nM)
-system.run(units.h)
+system.run(24 * units.h)
 system.get_y("tumor", "[T]P")
+
+system.history
+
+
+pd.DataFrame(system.history[-1][1], system.analytes, system.compartments)
+
 '''
