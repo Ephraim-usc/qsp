@@ -28,7 +28,7 @@ X = {}
 X.update({"off_P": 10**-4 / units.s, "affn_P": 260 * units.nM, "affm_P": 26000 * units.nM})
 X.update({"clearance": math.log(2)/(80 * units.h), "smalls": []})
 X["cleavages"] = [(linker_175, "m", ["n"])]
-X["internalizations"] = [("[T]C", ["[T]C"], 0.1 / units.h)]
+X["internalizations"] = [("[T]P", ["[T]P"], 0.1 / units.h)]
 
 ############ model ############
 
