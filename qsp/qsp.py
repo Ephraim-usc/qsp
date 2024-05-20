@@ -187,7 +187,7 @@ class System:
     cell = self.cells.index(cell)
     compartment = self.compartments.index(compartment)
     self.c[cell, compartment] += value
-
+  
   # cell dies and ligands disappear
   def cell_death_(self, cell_, compartments_, values):
     ligands = self.ligands[cell_]
@@ -202,6 +202,11 @@ class System:
       c[self.ligands[i], :] = self.c[i, :]
       areas[self.ligands[i], :] = self.areas[i]
     self.y = np.divide(self.x, c, out = np.zeros_like(self.x), where = self.x!=0) / areas * 6.0221415e11 # nM * avagadro / ml / um**2 = 6.0221415e11 * 1/um**2
+  
+  def get_y(self, compartment, analyte):
+    analyte = self.analytes.index(analyte)
+    compartment = self.compartments.index(compartment)
+    return self.y[analyte, compartment] * 1/units.um**2
   
   ### system running functions
   def run_flows(self, t):
