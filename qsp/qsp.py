@@ -247,17 +247,17 @@ class System:
       self.flowing_analytes = [analyte for analyte in range(self.n_analytes) if self.Q[analyte].any()]
       self.expmQ = np.zeros([self.n_analytes, self.n_compartments, self.n_compartments], dtype = float)
       for analyte in self.flowing_analytes:
-        self.expmQ[analyte] = expm(t_delta * self.Q[analyte])
+        self.expmQ[analyte] = expm(t * self.Q[analyte])
       
       self.transforming_compartments = [compartment for compartment in range(self.n_compartments) if self.T[compartment].any()]
       self.expmT = np.zeros([self.n_compartments, self.n_analytes, self.n_analytes], dtype = float)
       for compartment in self.transforming_compartments:
-        self.expmT[analyte] = expm(t_delta * self.T[compartment])
+        self.expmT[analyte] = expm(t * self.T[compartment])
       
       self.migrating_cells = [cell for cell in range(self.n_cells) if self.M[cell].any()]
       self.expmM = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float)
       for cell in self.migrating_cells:
-        self.expmM[cell] = expm(t_delta * self.M[cell])
+        self.expmM[cell] = expm(t * self.M[cell])
       
       self.reacting_compartments = [compartment for compartment in range(self.n_compartments) if self.RS[compartment].active]
       for compartment in reacting_compartments:
@@ -293,9 +293,8 @@ class System:
     pbar = tqdm(total = t, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
     pbar.update(0.0)
     while True:
-      t_prev = self.t
+      t_delta = min(t_step, t_end - self.t)
       self.t = min(self.t + t_step, t_end)
-      t_delta = self.t - t_prev
       self.run_(t_delta)
       
       if math.floor(self.t / t_record) > math.floor(t_prev / t_record):
