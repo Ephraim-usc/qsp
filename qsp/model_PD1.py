@@ -8,97 +8,64 @@ areas = [200]
 
 antigens = ["[T]P"]
 bindings = ["[T]P"]
-drugs = ["n"]
+drugs = ["m", "n"]
 dimers = [f"{binding}-{drug}" for binding in bindings for drug in drugs]
 analytes = antigens + drugs + dimers
 
-############ processes ############
+X = {}
+X.update({"off_P": 10**-4 / units.s, "affn_P": 260 * units.nM, "affm_P": 26000 * units.nM})
+X.update({"clearance": math.log(2)/(80 * units.h), "smalls": []})
 
-class equilibrium:
-  def __init__(self, compartments, analytes):
-    self.system = None
-    self.compartments = compartments
-    self.analytes = analytes
+X["internalization"] = internalization(rates = [("[T]C", ["[T]C"], 0.1 / units.h),
+                                                 ("[B]A", ["[B]A"], 0.1 / units.h)])
+
+BD["cleavage"] = transform()
+for a in ("m", "n"):
+  BD["cleavage"].add(linker = linker, reactant = f"m{a}", products = [f"n{a}"])
+for c in ("m", "n"):
+  BD["cleavage"].add(linker = linker, reactant = f"{c}m", products = [f"{c}n"])
+
+
+############ model ############
+
+def model(TCE, plasma, lymph, organs):
+  centrals = [plasma, lymph]
+  compartments = [organ["name"] for organ in centrals + organs]
+  system = System(compartments, analytes, cells)
+  system.centrals = [plasma, lymph]
+  system.organs = organs
+
+  # define volumes
+  for central in centrals:
+    system.set_volume(central["name"], central["volume"])
+  for organ in organs:
+    system.set_volume(organ["name"], organ["volume_interstitial"])
   
-  def __call__(self, system, t):
-    if self.system is not system:
-      self.system = system
-      
-      self.compartments_ = [system.compartments.index(compartment) for compartment in self.compartments]
-      self.analytes_ = [system.analytes.index(analyte) for analyte in self.analytes]
-    
-    for analyte_ in self.analytes_:
-      x = system.x[analyte_, self.compartments_]
-      volumes = system.V[analyte_, self.compartments_]
-      system.x[analyte_, self.compartments_] = np.average(x, weights = volumes)
-
-
-def add_two_dicts(a, b):
-  return dict(list(a.items()) + list(b.items()) + [(k, a[k] + b[k]) for k in set(b) & set(a)])
-
-class transform:
-  def __init__(self):
-    self.system = None
-    self.Qs = dict()
-    
-    self.analyteses_ = []
-    self.analyteses_.append([analytes.index(f"{drug}") for drug in drugs])
-    for binding in bindings:
-      self.analyteses_.append([analytes.index(f"{binding}-{drug}") for drug in drugs])
+  # distribution
+  for drug in drugs:
+    for organ in organs:
+      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
+      system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+      system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
   
-  def add(self, linker, reactant, products):
-    self.system = None
-    reactant_ = drugs.index(reactant)
-    products_ = [drugs.index(product) for product in products] 
-    
-    for compartment, rate in linker:
-      if compartment not in self.Qs:
-        self.Qs[compartment] = np.zeros([len(drugs), len(drugs)])
-      self.Qs[compartment][reactant_, reactant_] -= rate.number(1/units.h)
-      self.Qs[compartment][reactant_, products_] += rate.number(1/units.h)
+  # 
+  for compartment in compartments:
+    for drug in drugs:
+      system.add_flow(drug, compartment, None, system.get_volume(compartment) * TCE["clearance"])
   
-  def __add__(self, transform2): 
-    buffer = transform()
-    buffer.Qs = add_two_dicts(self.Qs, transform2.Qs)
-    return buffer
+  # small forms plasma clearance
+  for small in TCE["smalls"]:
+    system.add_flow(small, "plasma", None, system.get_volume("plasma") * math.log(2)/(45 * units.MIN))
   
-  def __call__(self, system, t):
-    if self.system is not system:
-      self.system = system
-      self.Qs_ = {system.compartments.index(compartment):Q for compartment, Q in self.Qs.items() if compartment in system.compartments}
-    
-    t = t.number(units.h)
-    for compartment_, Q in self.Qs_.items():
-      for analytes_ in self.analyteses_:
-        system.x[analytes_, compartment_] = system.x[analytes_, compartment_] @ expm(Q * t)
 
 
-class internalization:
-  def __init__(self, rates):
-    self.system = None
-    
-    q = np.zeros(len(dimers))
-    Q = np.zeros([len(dimers), len(analytes)])
-    for target, products, rate in rates:
-      idx_dimers = [dimers.index(f"{target}-{drug}") for drug in drugs if f"{target}-{drug}" in dimers]
-      idx_products = [analytes.index(product) for product in products]
-      q[idx_dimers] -= rate.number(1/units.h)
-      for i in idx_dimers:
-        np.add.at(Q, (i, idx_products), 1) # there may be repeated antigens
-    
-    self.q = q
-    self.Q = Q
-    self.idx_dimers = [analytes.index(dimer) for dimer in dimers]
-  
-  def __call__(self, system, t):
-    if self.system is not system:
-      self.system = system
-      self.compartments_ = [system.compartments.index(compartment) for compartment in system.compartments]
-    
-    t = t.number(units.h)
-    for compartment_ in self.compartments_:
-      delta_dimers = system.x[self.idx_dimers, compartment_] * (1 - np.exp(self.q * t))
-      system.x[self.idx_dimers, compartment_] -= delta_dimers
-      system.x[:, compartment_] += delta_dimers @ self.Q
+############# demo ###############
+'''
+from qsp import *
+from qsp.processes import *
+from qsp.human import *
+from qsp.model_PD1 import *
 
 
+system = model(BD, plasma, lymph, [bone, lung, liver])
+'''
