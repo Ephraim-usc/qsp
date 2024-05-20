@@ -47,7 +47,7 @@ def model(TCE, plasma, lymph, organs, tumors):
   for organ in organs:
     system.set_volume(organ["name"], organ["volume_interstitial"])
   for tumor in tumors:
-      system.set_volume(analyte, tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
+      system.set_volume(tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
   
   # distribution
   for drug in drugs:
@@ -78,7 +78,7 @@ def model(TCE, plasma, lymph, organs, tumors):
   for organ in organs:
     system.add_c(organ["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["P"], [15000])
   for tumor in tumors:
-    system.add_c(tumor["name"], "T", organ["density_T"] / organ["volume_interstitial_proportion"], ["P"], [50000])
+    system.add_c(tumor["name"], "T", tumor["density_T"] / tumor["volume_interstitial_proportion"], ["P"], [50000])
   
   return system
 
