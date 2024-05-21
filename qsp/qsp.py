@@ -28,6 +28,9 @@ units.nM = unum.new_unit('nM', 1e-9 * units.mol / units.l)
 units.kDa = unum.new_unit('kDa', units.kg / units.mol)
 units.avagadro = unum.new_unit('avagadro', 6.0221415e23 / units.mol)
 
+units.mpk = units.mg / units.kg
+units.upk = units.ug / units.kg
+
 np.set_printoptions(suppress=True)
 
 
