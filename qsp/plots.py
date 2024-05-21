@@ -35,6 +35,7 @@ def heatmap(df, xcol, ycol, xlabel, ylabel, zcols, zlabels, norm = norm, cmap = 
     fig.savefig(f"tmp.png", dpi = 300)
   else:
     fig.savefig(output, dpi = 300)
+  plt.close(fig)
 
 def compare_systems(systems, labels, analytes, compartments = None, colors = None, linthresh = 1e-3, output = None):
   indices = [systems[0].analytes.index(analyte) for analyte in analytes]
