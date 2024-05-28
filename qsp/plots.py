@@ -37,6 +37,37 @@ def heatmap(df, xcol, ycol, xlabel, ylabel, zcols, zlabels, norm = norm, cmap = 
     fig.savefig(output, dpi = 300)
   plt.close(fig)
 
+
+def contour_map(z_func, x, y, xlabel, ylabel, zlabel, levels = None, cmap = plt.cm.viridis, output = None):
+  X, Y = np.meshgrid(x, y)
+  Z = X * 0.0
+  for i in range(X.shape[0]):
+    for j in range(X.shape[1]):
+      Z[i, j] = z_func(X[i, j], Y[i, j])
+  
+  if levels is None:
+    levels = 10
+  
+  fig, ax = plt.subplots()
+  
+  CSF = ax.contourf(X, Y, Z, levels, cmap = plt.cm.viridis)
+  CS = ax.contour(X, Y, Z, levels, colors = "white")
+  ax.clabel(CS, CSF.levels, inline = True)
+  
+  cbar = fig.colorbar(CSF)
+  cbar.ax.set_ylabel("AUC(48h) / AUC(168h)")
+  
+  ax.set_xlabel("halflife of unmasked drug (h)")
+  ax.set_ylabel("halflife of masked drug (h)")
+  
+  #plt.gcf().set_size_inches(7, 7)
+  if output is None:
+    fig.savefig(f"tmp.png", dpi = 300)
+  else:
+    fig.savefig(output, dpi = 300)
+  plt.close(fig)
+
+
 def compare_systems(systems, labels, analytes, compartments = None, colors = None, linthresh = 1e-3, output = None):
   indices = [systems[0].analytes.index(analyte) for analyte in analytes]
   
