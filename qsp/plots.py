@@ -57,8 +57,8 @@ def contour_map(z_func, x, y, xlabel, ylabel, zlabel, levels = None, cmap = plt.
   cbar = fig.colorbar(CSF)
   cbar.ax.set_ylabel("AUC(48h) / AUC(168h)")
   
-  ax.set_xlabel("halflife of unmasked drug (h)")
-  ax.set_ylabel("halflife of masked drug (h)")
+  ax.set_xlabel(xlabel)
+  ax.set_ylabel(ylabel)
   
   #plt.gcf().set_size_inches(7, 7)
   if output is None:
