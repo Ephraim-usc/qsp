@@ -20,4 +20,26 @@ def parse_time(time_str):
   
   return dose + time
 
+def hyperbolic(x, baseline, emax, aff):
+  return baseline + emax * x / (x + aff)
+
+def hyperbolic_inverse(x, baseline, emax, aff):
+  return aff / (emax/(x - baseline) - 1)
+
+# ax: the ax object to plot on, if None then do not plot but just return fitted parameters
+# drugs: the vector of drug forms
+# concs: the vector of concentrations if known, use NaN for observed samples
+def fit_standard_curves(ax, drugs, concs, values, cutoff):
+  idx = np.logical_and(values < 3.5, values.notnull())
+  concs_train, values_train = concs[idx], values[idx]
+  popt, pcov = curve_fit(hyperbolic, concs_train, values_train)
+  
+  if ax:
+    x_fit = np.power(10.0, np.arange(-2, 5, 0.1))
+    y_fit = [hyperbolic(_, *popt) for _ in x_fit]
+    ax.plot(x_fit, y_fit)
+
+
+
+
 
