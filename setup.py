@@ -21,7 +21,7 @@ setup(
     long_description=readme(),
     long_description_content_type="text/markdown",
     url="https://github.com/Ephraim-usc/qsp.git",
-    packages=["qsp"],
+    packages=["qsp, pk"],
     python_requires=">=3",
     install_requires=[
         "numpy>=1.14.5",
