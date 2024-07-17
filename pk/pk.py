@@ -3,7 +3,11 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+
+from scipy.optimize import curve_fit
 from scipy.optimize import fsolve
+
+
 
 # T211-Dose2-168h(20X)
 def parse_sample(sample):
@@ -42,15 +46,30 @@ def hyperbolic(x, baseline, emax, aff):
 def hyperbolic_inverse(x, baseline, emax, aff):
   return aff / (emax/(x - baseline) - 1)
 
-def bivariate_hyperbolic(x1, x2, baseline, emax, aff1, aff2):
+def bivariate_hyperbolic(x, baseline, emax, aff1, aff2):
+  x1, x2 = x
   return baseline + emax * (x1/aff1 + x2/aff2) / (1 + x1/aff1 + x2/aff2)
 
 def fit(concs, values, cutoff = 3.5):
   idx = np.logical_and(values < 3.5, ~np.isnan(values))
   concs, values = concs[idx], values[idx]
   popt, pcov = curve_fit(hyperbolic, concs, values, p0 = [0.01, 1.0, 10.0], bounds = ([0.0, 0.0, 0.0], [10.0, 10.0, np.inf]))
-  return popt
-  
+  baseline, emax, aff = popt
+  return baseline, emax, aff
+
+# concs should be of shape (2, M)
+def bivariate_fit(concs, values, cutoff = 3.5):
+  idx = np.logical_and(values < 3.5, ~np.isnan(values))
+  concs, values = concs[:, idx], values[idx]
+  popt, pcov = curve_fit(bivariate_hyperbolic, concs, values, p0 = [0.01, 1.0, 10.0, 10.0], bounds = ([0.0, 0.0, 0.0, 0.0], [10.0, 10.0, np.inf, np.inf]))
+  baseline, emax, aff1, aff2 = popt
+  return baseline, emax, aff1, aff2
+
+
+def solve(baseline, emax, aff1, aff2, total):
+  func = lambda x: bivariate_hyperbolic(x, total - x, baseline, emax, aff1, aff2)
+  x1 = fsolve(func, x0 = 100)
+  return x1
 
 
 # ax: the ax object to plot on, if None then do not plot but just return fitted parameters
