@@ -6,7 +6,7 @@ import matplotlib.colors as mcolors
 
 from scipy.optimize import curve_fit
 from scipy.optimize import fsolve
-
+from scipy.optimize import least_squares
 
 
 # T211-Dose2-168h(20X)
@@ -66,10 +66,19 @@ def bivariate_fit(concs, values, cutoff = 3.5):
   return baseline, emax, aff1, aff2
 
 
-def solve(baseline, emax, aff1, aff2, total):
-  func = lambda x: bivariate_hyperbolic(x, total - x, baseline, emax, aff1, aff2)
-  x1 = fsolve(func, x0 = 100)
-  return x1
+def solve(value, total, baseline, emax, aff1, aff2):
+  func = lambda x: value - bivariate_hyperbolic([x, total - x], baseline, emax, aff1, aff2)
+  x1 = fsolve(func, x0 = total/2)
+  x2 = total - x1
+  return x1, x2
+
+'''
+def solve(value, total, baseline, emax, aff1, aff2):
+  func = lambda x: value - bivariate_hyperbolic([x, total - x], baseline, emax, aff1, aff2)
+  x1 = least_squares(func, x0 = [total/2], bounds = ([0], [total]))
+  x2 = total - x1
+  return x1, x2
+'''
 
 
 # ax: the ax object to plot on, if None then do not plot but just return fitted parameters
