@@ -18,7 +18,7 @@ def parse_sample(sample):
   elif time_str[-3:] == "min":
     time = int(time_str[:-3]) / 60
   
-  return id, time, dilution
+  return id, dose + time, dilution
 
 def parse_samples(samples):
   ids = []
@@ -36,23 +36,6 @@ def parse_samples(samples):
       dilutions.append(dilution)
   return ids, times, dilutions
 
-
-
-
-def parse_time(time_str):
-  if "-" in time_str:
-    dose_str, time_str = time_str.split("-")
-    dose = (int(dose_str[4:]) - 1) * 168.0
-  else:
-    dose = 0.0
-  
-  if time_str[-1] == "h":
-    time = int(time_str[:-1])
-  elif time_str[-3:] == "min":
-    time = int(time_str[:-3]) / 60
-  
-  return dose + time
-
 def hyperbolic(x, baseline, emax, aff):
   return baseline + emax * x / (x + aff)
 
@@ -61,6 +44,13 @@ def hyperbolic_inverse(x, baseline, emax, aff):
 
 def bivariate_hyperbolic(x1, x2, baseline, emax, aff1, aff2):
   return baseline + emax * (x1/aff1 + x2/aff2) / (1 + x1/aff1 + x2/aff2)
+
+def fit(concs, values, cutoff = 3.5):
+  idx = np.logical_and(values < 3.5, ~np.isnan(values))
+  concs, values = concs[idx], values[idx]
+  popt, pcov = curve_fit(hyperbolic, concs, values, p0 = [0.01, 1.0, 10.0], bounds = ([0.0, 0.0, 0.0], [10.0, 10.0, np.inf]))
+  return popt
+  
 
 
 # ax: the ax object to plot on, if None then do not plot but just return fitted parameters
