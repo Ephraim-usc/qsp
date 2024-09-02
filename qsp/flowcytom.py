@@ -14,4 +14,6 @@ def flowcytom(x, num_A, num_B, aff_A, off_A, aff_B, off_B, CAB, t, cell_density 
   system.add_x("container", "B", num_B * cell_density / units.avagadro)
   system.add_x("container", "drug", x)
   system.run(t)
-  return {analyte:x for analyte, x in zip(system.analytes, system.x[:,0])}
+  
+  nums = [(x*units.nM / cell_density * units.avagadro).number(1) for x in system.x[:,0]]
+  return {analyte:num for analyte, num in zip(system.analytes, nums)}
