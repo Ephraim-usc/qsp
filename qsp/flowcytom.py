@@ -1,6 +1,6 @@
 from .qsp import *
 
-def flowcytom(x, num_A, num_B, aff_A, off_A, aff_B, off_B, CAB, t, cell_density = 1e6 / units.ml):
+def flowcytom(x, num_A, num_B, aff_A, off_A, int_A, aff_B, off_B, int_B, CAB, t, cell_density = 1e6 / units.ml):
   compartments = ["container"]
   system = System(compartments, analytes)
   system.set_volume("container", 100*units.ul)
@@ -13,6 +13,11 @@ def flowcytom(x, num_A, num_B, aff_A, off_A, aff_B, off_B, CAB, t, cell_density 
   system.add_x("container", "A", num_A * cell_density / units.avagadro)
   system.add_x("container", "B", num_B * cell_density / units.avagadro)
   system.add_x("container", "drug", x)
+  
+  system.add_flow("A-drug", "container", None, int_A * 100*units.ul)
+  system.add_flow("B-drug", "container", None, int_A * 100*units.ul)
+  system.add_flow("AB-drug", "container", None, min(int_A, int_B) * 100*units.ul)
+  
   system.run(t)
   
   nums = [(x*units.nM / cell_density * units.avagadro).number(1) for x in system.x[:,0]]
