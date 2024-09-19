@@ -273,7 +273,7 @@ class System:
       self.x[analyte] = np.dot(self.x[analyte], self.expmQ[analyte])
       self.update_y()
     for compartment in self.transforming_compartments:
-      self.x[:, compartment] = np.dot(self.x[:, compartment], self.expmT[analyte])
+      self.x[:, compartment] = np.dot(self.x[:, compartment], self.expmT[compartment])
       self.update_y()
     for cell in self.migrating_cells:
       ligands = self.ligands[cell]
