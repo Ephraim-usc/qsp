@@ -1,4 +1,4 @@
-from setuptools import dist, setup, Extension
+from setuptools import dist, setup, find_packages, Extension
 
 # bootstrap numpy; can we workaround this? 
 #dist.Distribution().fetch_build_eggs(["numpy>=1.14.5"])
@@ -21,7 +21,7 @@ setup(
     long_description=readme(),
     long_description_content_type="text/markdown",
     url="https://github.com/Ephraim-usc/qsp.git",
-    packages=["qsp, pk"],
+    packages=find_packages(),
     python_requires=">=3",
     install_requires=[
         "numpy>=1.14.5",
