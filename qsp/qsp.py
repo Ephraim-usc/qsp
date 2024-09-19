@@ -260,7 +260,7 @@ class System:
       self.transforming_compartments = [compartment for compartment in range(self.n_compartments) if self.T[compartment].any()]
       self.expmT = np.zeros([self.n_compartments, self.n_analytes, self.n_analytes], dtype = float)
       for compartment in self.transforming_compartments:
-        self.expmT[analyte] = expm(t * self.T[compartment])
+        self.expmT[compartment] = expm(t * self.T[compartment])
       
       self.migrating_cells = [cell for cell in range(self.n_cells) if self.M[cell].any()]
       self.expmM = np.zeros([self.n_cells, self.n_compartments, self.n_compartments], dtype = float)
