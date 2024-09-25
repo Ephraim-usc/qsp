@@ -287,7 +287,7 @@ class System:
       process(self, t * units.h)
       self.update_y()
   
-  def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h):
+  def run(self, t, t_step = 1/60 * units.h, t_record = 1 * units.h, verbose = False):
     self.t_shortcut = None
     
     t = t.number(units.h)
@@ -299,9 +299,10 @@ class System:
     for rs in self.RS:
       if rs.active:
         rs.refresh()
-    
-    pbar = tqdm(total = t, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
-    pbar.update(0.0)
+
+    if verbose:
+      pbar = tqdm(total = t, unit = "h", bar_format = "{desc}: {percentage:3.0f}%|{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining},  {rate_fmt}{postfix}]")
+      pbar.update(0.0)
     while True:
       t_prev = self.t
       t_delta = min(t_step, t_end - self.t)
@@ -310,10 +311,12 @@ class System:
       
       if math.floor(self.t / t_record) > math.floor(t_prev / t_record):
         self.history.append((self.t, self.x.copy(), self.c.copy()))
-      pbar.update(t_delta)
+      if verbose:
+        pbar.update(t_delta)
       if math.isclose(self.t, t_end, rel_tol = 0, abs_tol = 1e-9):
         break
-    pbar.close()
+    if verbose:
+      pbar.close()
   
   def plot(self, compartments = None, groups = None, labels = None, colors = None, linestyles = None, linthresh = 1e-3, output = None):
     if compartments is None:
