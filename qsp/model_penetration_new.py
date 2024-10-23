@@ -4,7 +4,8 @@ from qsp.human import *
 from qsp.tumors import *
 
 
-def model(aff, off, int_rate, num_A):
+def model(aff, off, int_rate, num_A, 
+          tumor_surface_area = 1*units.cm**2, tumor_layer_depth = 10*units.um, tumor_num_layers = 100):
   analytes = ["antigen", "drug", "antigen-drug"]
   centrals = [plasma, lymph]
   organs = [bone, lung, liver, SI, other]
@@ -22,6 +23,17 @@ def model(aff, off, int_rate, num_A):
     system.set_volume(organ["name"], organ["volume_interstitial"])
   for tumor in tumors:
       system.set_volume(tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
+
+  # distribution
+  for drug in drugs:
+    for organ in organs:
+      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
+      system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+      system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+    
+    tumor_
+    system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+    system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
   
 
 
