@@ -5,9 +5,24 @@ from qsp.tumors import *
 
 
 def model(aff, off, int_rate, num_A):
+  analytes = ["antigen", "drug", "antigen-drug"]
   centrals = [plasma, lymph]
   organs = [bone, lung, liver, SI, other]
-  tumors = 
+  tumors = [FTC238.copy() for _ in range(10)]
+  for i in range(10):
+    tumors[i]["name"] = f"tumor_{i}"
+  
+  compartments = [organ["name"] for organ in centrals + organs + tumors]
+  system = System(compartments, analytes)
+
+  # define volumes
+  for central in centrals:
+    system.set_volume(central["name"], central["volume"])
+  for organ in organs:
+    system.set_volume(organ["name"], organ["volume_interstitial"])
+  for tumor in tumors:
+      system.set_volume(tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
+  
 
 
 def model(TCE, plasma, lymph, organs, tumors):
