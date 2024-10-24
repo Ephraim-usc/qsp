@@ -1,7 +1,5 @@
 from .qsp import *
-from qsp.processes import *
 from qsp.human import *
-from qsp.tumors import *
 
 
 def model(num_antigen, aff, off, int_rate, half_life,
@@ -10,11 +8,8 @@ def model(num_antigen, aff, off, int_rate, half_life,
   analytes = ["antigen", "drug", "antigen-drug"]
   centrals = [plasma, lymph]
   organs = [bone, lung, liver, SI, other]
-  tumors = [FTC238.copy() for _ in range(10)]
-  for i in range(10):
-    tumors[i]["name"] = f"tumor_{i}"
   
-  compartments = [organ["name"] for organ in centrals + organs + tumors]
+  compartments = [organ["name"] for organ in centrals + organs] + [f"tumor_{i}" for i in range(tumor_num_layers)]
   system = System(compartments, analytes)
   
   # define volumes
@@ -45,29 +40,28 @@ def model(num_antigen, aff, off, int_rate, half_life,
   
   # bulk clearance
   for compartment in compartments:
-    system.add_flow(drug, compartment, None, system.get_volume(compartment) * math.log(2)/half_life)
+    system.add_flow("drug", compartment, None, system.get_volume(compartment) * math.log(2)/half_life)
   
   # binding and internalizing kinetics
   for compartment in compartments:
-    system.add_simple(compartment, ["antigen", "drug"], ["antigen-drug"], aff*off, off)
+    system.add_simple(compartment, ["antigen", "drug"], ["antigen-drug"], off/aff, off)
     system.add_transform(compartment, "antigen-drug", ["antigen"], rate = int_rate)
   
   # initial concentrations
   for i in range(tumor_num_layers):
-    system.set_x("antigen", f"tumor_{i}", num_antigen * tumor_cell_density / units.avagadro)
+    system.set_x(f"tumor_{i}", "antigen", num_antigen * tumor_cell_density / units.avagadro)
+  
+  return system
 
 
 ############# demo ###############
 '''
 from qsp import *
-from qsp.processes import *
-from qsp.human import *
-from qsp.tumors import *
-from qsp.model_PD1 import *
+from qsp.model_penetration_new import *
 
-system = model(num_antigen = 10000, aff = 1*units.nM, off = 1e-4*units.s, int_rate = 0.2/units.h, half_life = 80*units.h)
-system.add_x("plasma", "n", 100 * units.nM)
-system.run(168 * units.h, t_step = 1/6 * units.h)
+system = model(num_antigen = 10000, aff = 1*units.nM, off = 1e-4/units.s, int_rate = 0.2/units.h, half_life = 80*units.h)
+system.add_x("plasma", "drug", 10 * units.nM)
+system.run(168 * units.h, t_step = 1/6 * units.h, verbose = True)
 
 coverages = np.array([x[-1, -1] / (x[-1, -1] + x[0, -1]) for t, x, c in system.history])
 coverage = coverages.mean()
