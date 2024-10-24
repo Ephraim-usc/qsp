@@ -45,9 +45,9 @@ def model(num_antigen, aff, off, int_rate, half_life,
   
   # bulk clearance
   for compartment in compartments:
-    system.add_flow(drug, compartment, None, system.get_volume(compartment) * TCE["clearance"])
+    system.add_flow(drug, compartment, None, system.get_volume(compartment) * math.log(2)/half_life)
   
-  # binding kinetics
+  # binding and internalizing kinetics
   for compartment in compartments:
     system.add_simple(compartment, ["antigen", "drug"], ["antigen-drug"], aff*off, off)
     system.add_transform(compartment, "antigen-drug", ["antigen"], rate = int_rate)
