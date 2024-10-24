@@ -22,8 +22,8 @@ def model(aff, off, int_rate, num_A,
   for organ in organs:
     system.set_volume(organ["name"], organ["volume_interstitial"])
   for tumor in tumors:
-      system.set_volume(tumor["name"], tumor["volume"] * tumor["volume_interstitial_proportion"])
-
+    system.set_volume(tumor["name"], tumor_surface_area * tumor_layer_depth)
+  
   # distribution
   for drug in drugs:
     for organ in organs:
@@ -31,10 +31,28 @@ def model(aff, off, int_rate, num_A,
       system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
       system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
     
-    tumor_
+    tumor = tumors[0]
     system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
     system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
+    
+    for i in range(tumor_num_layers):
   
+  # binding kinetics
+  for drug in drugs:
+    off_P = TCE["off_P"]; on_P = {"n":TCE["off_P"] / TCE["affn_P"], "m":TCE["off_P"] / TCE["affm_P"]}[drug]
+    for organ in centrals + organs + tumors:
+      system.add_simple(organ["name"], ["[T]P", f"{drug}"], [f"[T]P-{drug}"], on_P, off_P)
+  
+  # initial concentrations
+  for central in centrals:
+    system.add_c(central["name"], "T", central["num_T"] / central["volume"], ["P"], [15000])
+  for organ in organs:
+    system.add_c(organ["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["P"], [15000])
+  for tumor in tumors:
+    system.add_c(tumor["name"], "T", tumor["density_T"] / tumor["volume_interstitial_proportion"], ["P"], [50000])
+
+
+
 
 
 def model(TCE, plasma, lymph, organs, tumors):
