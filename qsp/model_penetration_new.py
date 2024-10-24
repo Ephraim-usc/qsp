@@ -22,8 +22,10 @@ def model(num_antigen, aff, off, int_rate, half_life,
     system.set_volume(central["name"], central["volume"])
   for organ in organs:
     system.set_volume(organ["name"], organ["volume_interstitial"])
-  for tumor in tumors:
-    system.set_volume(tumor["name"], tumor_surface_area * tumor_layer_depth)
+  for i in range(tumor_num_layers):
+    radius = tumor_capillary_radius + i * tumor_layer_depth
+    area = tumor_capillary * (2 * math.pi * radius)
+    system.set_volume(f"tumor_{i}", area * tumor_layer_depth)
   
   # organ distribution
   for organ in organs:
@@ -36,7 +38,7 @@ def model(num_antigen, aff, off, int_rate, half_life,
   system.add_flow("drug", "tumor_0", "plasma", tumor_capillary * (2 * math.pi * tumor_capillary_radius) * tumor_capillary_permeability)
   
   for i in range(tumor_num_layers - 1):
-    radius = tumor_capillary_radius + i * tumor_layer_depth
+    radius = tumor_capillary_radius + (i + 1) * tumor_layer_depth
     area = tumor_capillary * (2 * math.pi * radius)
     system.add_flow("drug", f"tumor_{i}", f"tumor_{i+1}", area/tumor_layer_depth * tumor_diffusion)
     system.add_flow("drug", f"tumor_{i+1}", f"tumor_{i}", area/tumor_layer_depth * tumor_diffusion)
