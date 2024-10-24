@@ -4,8 +4,9 @@ from qsp.human import *
 from qsp.tumors import *
 
 
-def model(aff, off, int_rate, num_A, 
-          tumor_surface_area = 1*units.cm**2, tumor_layer_depth = 10*units.um, tumor_num_layers = 100):
+def model(num_antigen, aff, off, int_rate, half_life,
+          tumor_capillary_radius = 10 * units.um, tumor_capillary_permeability = 3e-7 * units.cm/units.s, tumor_diffusion = 10 * units.um**2 / units.s,
+          tumor_capillary = 100*units.cm, tumor_layer_depth = 10*units.um, tumor_num_layers = 100):
   analytes = ["antigen", "drug", "antigen-drug"]
   centrals = [plasma, lymph]
   organs = [bone, lung, liver, SI, other]
@@ -15,7 +16,7 @@ def model(aff, off, int_rate, num_A,
   
   compartments = [organ["name"] for organ in centrals + organs + tumors]
   system = System(compartments, analytes)
-
+  
   # define volumes
   for central in centrals:
     system.set_volume(central["name"], central["volume"])
@@ -24,18 +25,25 @@ def model(aff, off, int_rate, num_A,
   for tumor in tumors:
     system.set_volume(tumor["name"], tumor_surface_area * tumor_layer_depth)
   
-  # distribution
-  for drug in drugs:
-    for organ in organs:
-      system.add_flow(drug, "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
-      system.add_flow(drug, organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
-      system.add_flow(drug, "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
-    
-    tumor = tumors[0]
-    system.add_flow(drug, "plasma", tumor["name"], tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-    system.add_flow(drug, tumor["name"], "plasma", tumor["volume"] * tumor["volume_plasma_proportion"] * (2 / tumor["capillary_radius"]) * tumor["capillary_permeability"])
-    
-    for i in range(tumor_num_layers):
+  # organ distribution
+  for organ in organs:
+    system.add_flow("drug", "plasma", organ["name"], organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["vascular_reflection"]))
+    system.add_flow("drug", organ["name"], "lymph", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+    system.add_flow("drug", "lymph", "plasma", organ["plasma_flow"] * organ["lymphatic_flow_ratio"] * (1 - organ["lymphatic_reflection"]))
+  
+  # tumor distribution
+  system.add_flow("drug", "plasma", "tumor_0", tumor_capillary * (2 * math.pi * tumor_capillary_radius) * tumor_capillary_permeability)
+  system.add_flow("drug", "tumor_0", "plasma", tumor_capillary * (2 * math.pi * tumor_capillary_radius) * tumor_capillary_permeability)
+  
+  for i in range(tumor_num_layers - 1):
+    radius = tumor_capillary_radius + i * tumor_layer_depth
+    area = tumor_capillary * (2 * math.pi * radius)
+    system.add_flow("drug", f"tumor_{i}", f"tumor_{i+1}", area/tumor_layer_depth * tumor_diffusion)
+    system.add_flow("drug", f"tumor_{i+1}", f"tumor_{i}", area/tumor_layer_depth * tumor_diffusion)
+  
+  # bulk clearance
+  for compartment in compartments:
+    system.add_flow(drug, compartment, None, system.get_volume(compartment) * TCE["clearance"])
   
   # binding kinetics
   for compartment in compartments:
@@ -48,6 +56,7 @@ def model(aff, off, int_rate, num_A,
   for organ in organs:
     system.add_c(organ["name"], "T", organ["num_T"] / organ["volume_interstitial"], ["P"], [15000])
   for tumor in tumors:
+    system.set_x("target", f"tumor_interstitial_{i}", target["num"] * tumor_cell_density / units.avagadro)
     system.add_c(tumor["name"], "T", tumor["density_T"] / tumor["volume_interstitial_proportion"], ["P"], [50000])
 
 
