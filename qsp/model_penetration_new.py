@@ -38,10 +38,9 @@ def model(aff, off, int_rate, num_A,
     for i in range(tumor_num_layers):
   
   # binding kinetics
-  for drug in drugs:
-    off_P = TCE["off_P"]; on_P = {"n":TCE["off_P"] / TCE["affn_P"], "m":TCE["off_P"] / TCE["affm_P"]}[drug]
-    for organ in centrals + organs + tumors:
-      system.add_simple(organ["name"], ["[T]P", f"{drug}"], [f"[T]P-{drug}"], on_P, off_P)
+  for compartment in compartments:
+    system.add_simple(compartment, ["antigen", "drug"], ["antigen-drug"], aff*off, off)
+    system.add_transform(compartment, "antigen-drug", ["antigen"], rate = int_rate)
   
   # initial concentrations
   for central in centrals:
