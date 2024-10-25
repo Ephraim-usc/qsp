@@ -63,7 +63,8 @@ system = model(num_antigen = 10000, aff = 1*units.nM, off = 1e-4/units.s, int_ra
 system.add_x("plasma", "drug", 10 * units.nM)
 system.run(168 * units.h, t_step = 1/6 * units.h, verbose = True)
 
-coverages = np.array([x[-1, -1] / (x[-1, -1] + x[0, -1]) for t, x, c in system.history])
-coverage = coverages.mean()
+system.plot(compartments = ["tumor_0", "tumor_10", "tumor_20", "tumor_30", "tumor_40"], 
+              #groups = groups, labels = labels, colors = colors, linestyles = linestyles,
+              output = f"penetration.png")
 
 '''
