@@ -4,7 +4,7 @@ from qsp.human import *
 
 def model(num_antigen, aff, off, int_rate, half_life,
           tumor_capillary_radius = 10 * units.um, tumor_capillary_permeability = 3e-7 * units.cm/units.s, tumor_diffusion = 10 * units.um**2 / units.s, tumor_cell_density = 3e8 * 0.44 / units.ml,
-          tumor_capillary = 100*units.cm, tumor_layer_depth = 10*units.um, tumor_num_layers = 100):
+          tumor_capillary = 100*units.cm, tumor_layer_depth = 10*units.um, tumor_num_layers = 20):
   analytes = ["antigen", "drug", "antigen-drug"]
   centrals = [plasma, lymph]
   organs = [bone, lung, liver, SI, other]
@@ -67,8 +67,8 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
   
   if linestyles is None:
     linestyles = ["solid"] * len(compartments)
-
-  SF = units.nM * units.avagadro / system.params["cell_density"]
+  
+  SF = (units.nM * units.avagadro / system.params["tumor_cell_density"]).number(1)
   Xmax = max([t for t, x, c in system.history])
   Ymax = max([x[2, compartment]*SF for t, x, c in system.history for compartment in compartments])
   
@@ -112,9 +112,8 @@ system = model(num_antigen = 10000, aff = 1*units.nM, off = 1e-4/units.s, int_ra
 system.add_x("plasma", "drug", 10 * units.nM)
 system.run(168 * units.h, t_step = 1/6 * units.h, verbose = True)
 
-compartments = ["plasma", "tumor_0", "tumor_5", "tumor_10", "tumor_15", "tumor_20"]
 plot_penetration(system, 
-                 compartments = ["plasma", "tumor_0", "tumor_5", "tumor_10", "tumor_15", "tumor_20"], 
+                 compartments = ["plasma", "tumor_0", "tumor_5", "tumor_10", "tumor_15", "tumor_19"], 
                  labels = ["plasma", "0um", "50um", "100um", "150um", "200um"], 
                  colors = ["black", "red", "orange", "gold", "green", "blue"],
                  output = "tmp.png")
