@@ -11,6 +11,7 @@ def model(num_antigen, aff, off, int_rate, half_life,
   
   compartments = [organ["name"] for organ in centrals + organs] + [f"tumor_{i}" for i in range(tumor_num_layers)]
   system = System(compartments, analytes)
+  system.params = locals().copy()
   
   # define volumes
   for central in centrals:
@@ -66,16 +67,17 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
   
   if linestyles is None:
     linestyles = ["solid"] * len(compartments)
-  
+
+  SF = units.nM * units.avagadro / system.params["cell_density"]
   Xmax = max([t for t, x, c in system.history])
-  Ymax = max([x[2, compartment].sum() for t, x, c in system.history for compartment in compartments])
+  Ymax = max([x[2, compartment]*SF for t, x, c in system.history for compartment in compartments])
   
   fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (4, 4))
   for compartment, label, color, linestyle in zip(compartments, labels, colors, linestyles):
     X = [t for t, x, c in system.history]
-    Y = [x[2, compartment].sum() for t, x, c in system.history]
+    Y = [x[2, compartment]*SF for t, x, c in system.history]
     RATIO = max(Y) / Ymax
-    ax.plot(X, Y, label = f"{label}, avg={RATIO * 100}%", color = color)
+    ax.plot(X, Y, label = f"{label}, avg={RATIO * 100:.2}%", color = color)
   
   if Xmax > 100:
     ax.set_xticks([0, 24, 48, 72, 96, 120, 144, 168])
