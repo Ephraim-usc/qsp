@@ -4,7 +4,7 @@ from qsp.human import *
 
 def model(num_antigen, aff, off, int_rate, half_life,
           tumor_capillary_radius = 10 * units.um, tumor_capillary_permeability = 3e-7 * units.cm/units.s, tumor_diffusion = 10 * units.um**2 / units.s, tumor_cell_density = 3e8 * 0.44 / units.ml,
-          tumor_capillary = 100*units.cm, tumor_layer_depth = 10*units.um, tumor_num_layers = 20):
+          tumor_capillary = 100*units.cm, tumor_layer_depth = 10*units.um, tumor_num_layers = 21):
   analytes = ["antigen", "drug", "antigen-drug"]
   centrals = [plasma, lymph]
   organs = [bone, lung, liver, SI, other]
@@ -72,12 +72,12 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
   Xmax = max([t for t, x, c in system.history])
   Ymax = max([x[2, compartment]*SF for t, x, c in system.history for compartment in compartments])
   
-  fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (4, 4))
+  fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (5.6, 4))
   for compartment, label, color, linestyle in zip(compartments, labels, colors, linestyles):
     X = [t for t, x, c in system.history]
     Y = [x[2, compartment]*SF for t, x, c in system.history]
     RATIO = max(Y) / Ymax
-    ax.plot(X, Y, label = f"{label}, avg={RATIO * 100:.2}%", color = color)
+    ax.plot(X, Y, label = f"{label}, peak={RATIO * 100:.2f}%", color = color)
   
   if Xmax > 100:
     ax.set_xticks([0, 24, 48, 72, 96, 120, 144, 168])
@@ -91,6 +91,7 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
   else:
     ax.set_xlabel("time (h)")
   ax.set_ylim(0, Ymax)
+  ax.set_ylabel("dimers per cell")
   ax.grid(axis = "y", color = "grey", linewidth = 1)
   if title:
     ax.set_title(title)
@@ -113,14 +114,10 @@ system.add_x("plasma", "drug", 10 * units.nM)
 system.run(168 * units.h, t_step = 1/6 * units.h, verbose = True)
 
 plot_penetration(system, 
-                 compartments = ["plasma", "tumor_0", "tumor_5", "tumor_10", "tumor_15", "tumor_19"], 
-                 labels = ["plasma", "0um", "50um", "100um", "150um", "200um"], 
-                 colors = ["black", "red", "orange", "gold", "green", "blue"],
+                 compartments = ["tumor_0", "tumor_5", "tumor_10", "tumor_15", "tumor_20"], 
+                 labels = ["0um", "50um", "100um", "150um", "200um"], 
+                 colors = ["red", "orange", "gold", "green", "blue"],
                  output = "tmp.png")
 
-
-system.plot(compartments = ["tumor_0", "tumor_10", "tumor_20", "tumor_30", "tumor_40"], 
-              #groups = groups, labels = labels, colors = colors, linestyles = linestyles,
-              output = f"penetration.png")
 
 '''
