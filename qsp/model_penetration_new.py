@@ -54,6 +54,53 @@ def model(num_antigen, aff, off, int_rate, half_life,
   return system
 
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+def plot_penetration(system, compartments, labels, colors, linestyles = None, title = None, output = "tmp.png"):
+  if compartments is None:
+    compartments = system.compartments
+  compartments = [system.compartments.index(compartment) for compartment in compartments]
+  
+  if linestyles is None:
+    linestyles = ["solid"] * len(compartments)
+  
+  Xmax = max([t for t, x, c in system.history])
+  Ymax = max([x[2, compartment].sum() for t, x, c in system.history for compartment in compartments])
+  
+  fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (4, 4))
+  for compartment, label, color, linestyle in zip(compartments, labels, colors, linestyles):
+    X = [t for t, x, c in system.history]
+    Y = [x[2, compartment].sum() for t, x, c in system.history]
+    RATIO = max(Y) / Ymax
+    ax.plot(X, Y, label = f"{label}, avg={RATIO * 100}%", color = color)
+  
+  if Xmax > 100:
+    ax.set_xticks([0, 24, 48, 72, 96, 120, 144, 168])
+    ax.set_xticklabels(["0", "1", "2", "3", "4", "5", "6", "7"])
+  else:
+    ax.set_xticks([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+  
+  ax.set_xlim(0, Xmax)
+  if Xmax > 100:
+    ax.set_xlabel("time (d)")
+  else:
+    ax.set_xlabel("time (h)")
+  ax.set_ylim(0, Ymax)
+  ax.grid(axis = "y", color = "grey", linewidth = 1)
+  if title:
+    ax.set_title(title)
+  ax.legend(loc = "upper right", prop={'size': 6})
+  
+  if output is None:
+    fig.show()
+  else:
+    fig.savefig(output, dpi = 300)
+    plt.close(fig)
+
+
 ############# demo ###############
 '''
 from qsp import *
@@ -62,6 +109,14 @@ from qsp.model_penetration_new import *
 system = model(num_antigen = 10000, aff = 1*units.nM, off = 1e-4/units.s, int_rate = 0.2/units.h, half_life = 80*units.h)
 system.add_x("plasma", "drug", 10 * units.nM)
 system.run(168 * units.h, t_step = 1/6 * units.h, verbose = True)
+
+compartments = ["plasma", "tumor_0", "tumor_5", "tumor_10", "tumor_15", "tumor_20"]
+plot_penetration(system, 
+                 compartments = ["plasma", "tumor_0", "tumor_5", "tumor_10", "tumor_15", "tumor_20"], 
+                 labels = ["plasma", "0um", "50um", "100um", "150um", "200um"], 
+                 colors = ["black", "red", "orange", "gold", "green", "blue"],
+                 output = "tmp.png")
+
 
 system.plot(compartments = ["tumor_0", "tumor_10", "tumor_20", "tumor_30", "tumor_40"], 
               #groups = groups, labels = labels, colors = colors, linestyles = linestyles,
