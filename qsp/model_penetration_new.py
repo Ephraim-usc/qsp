@@ -72,7 +72,7 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
   Xmax = max([t for t, x, c in system.history])
   Ymax = max([x[2, compartment]*SF for t, x, c in system.history for compartment in compartments])
   
-  fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (5.6, 4))
+  fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (6, 4))
   for compartment, label, color, linestyle in zip(compartments, labels, colors, linestyles):
     X = [t for t, x, c in system.history]
     Y = [x[2, compartment]*SF for t, x, c in system.history]
