@@ -71,13 +71,15 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
   SF = (units.nM * units.avagadro / system.params["tumor_cell_density"]).number(1)
   Xmax = max([t for t, x, c in system.history])
   Ymax = max([x[2, compartment]*SF for t, x, c in system.history for compartment in compartments])
-  
+
+  results = dict()
   fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (6, 4))
   for compartment, label, color, linestyle in zip(compartments, labels, colors, linestyles):
     X = [t for t, x, c in system.history]
     Y = [x[2, compartment]*SF for t, x, c in system.history]
     RATIO = max(Y) / Ymax
     ax.plot(X, Y, label = f"{label}, peak={max(Y):.2f} ({RATIO * 100:.2f}%)", color = color)
+    results[system.compartments[compartment]] = max(Y)
   
   if Xmax > 100:
     ax.set_xticks([0, 24, 48, 72, 96, 120, 144, 168])
@@ -102,6 +104,8 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
   else:
     fig.savefig(output, dpi = 300)
     plt.close(fig)
+  
+  return results
 
 
 ############# demo ###############
@@ -109,7 +113,7 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
 from qsp import *
 from qsp.model_penetration_new import *
 
-system = model(num_antigen = 10000, aff = 1*units.nM, off = 1e-4/units.s, int_rate = 0.2/units.h, half_life = 80*units.h)
+system = model(num_antigen = 100000, aff = 1*units.nM, off = 1e-4/units.s, int_rate = 0.2/units.h, half_life = 80*units.h)
 system.add_x("plasma", "drug", 10 * units.nM)
 system.run(168 * units.h, t_step = 1/6 * units.h, verbose = True)
 
