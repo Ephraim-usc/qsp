@@ -77,7 +77,7 @@ def plot_penetration(system, compartments, labels, colors, linestyles = None, ti
     X = [t for t, x, c in system.history]
     Y = [x[2, compartment]*SF for t, x, c in system.history]
     RATIO = max(Y) / Ymax
-    ax.plot(X, Y, label = f"{label}, peak={RATIO * 100:.2f}%", color = color)
+    ax.plot(X, Y, label = f"{label}, peak={max(Y)} ({RATIO * 100:.2f}%)", color = color)
   
   if Xmax > 100:
     ax.set_xticks([0, 24, 48, 72, 96, 120, 144, 168])
