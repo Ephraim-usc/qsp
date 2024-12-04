@@ -22,6 +22,14 @@ drug.add_cis(1, 2, )
 
 
 
+
+def Cytotoxicity(system, cell_effector, cell_target, params):
+  pass
+
+
+
+
+
 class Cell:
   def __init__(self, radius = None, area = None, markers = None, copies = None):
     self.radius = radius
@@ -32,7 +40,7 @@ class Cell:
     self.copies = copies
 
 
-Tcell = Cell(5*units.um**2, ["CD3"], [50000])
+Tcell = Cell(radius = 5*units.um**2, markers = ["CD3"], copies = [50000])
+HT29 = Cell(radius = 5*units.um**2, markers = ["EGFR", "CA9"], copies = [80000, 80000])
 
-
-system = System("container", analytes, cells)
+system = System(compartment = "container", cells = [Tcell, HT29], drugs = [drug])
