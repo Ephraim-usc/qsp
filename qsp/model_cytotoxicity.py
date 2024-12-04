@@ -13,11 +13,11 @@ class Drug:
   def add_trans(self, ligand1, ligand2, on2D):
     pass
 
-drug = Drug(3)
-drug.add_affinity(0, "CD3", 1*units.nM, 1e-4/units.s)
-drug.add_affinity(1, "EGFR", 10*units.nM, 1e-4/units.s)
-drug.add_affinity(2, "CA9", 20*units.nM, 1e-4/units.s)
-drug.add_cis(1, 2, )
+X = Drug(3)
+X.add_affinity(0, "CD3", 1*units.nM, 1e-4/units.s)
+X.add_affinity(1, "EGFR", 10*units.nM, 1e-4/units.s)
+X.add_affinity(2, "CA9", 20*units.nM, 1e-4/units.s)
+X.add_cis(1, 2, )
 
 
 
@@ -43,4 +43,8 @@ class Cell:
 Tcell = Cell(radius = 5*units.um**2, markers = ["CD3"], copies = [50000])
 HT29 = Cell(radius = 5*units.um**2, markers = ["EGFR", "CA9"], copies = [80000, 80000])
 
-system = System(compartment = "container", cells = [Tcell, HT29], drugs = [drug])
+
+system = System(compartment = "container", cells = [Tcell, HT29], drugs = [X], solutes = [])
+system.add_process()
+
+
