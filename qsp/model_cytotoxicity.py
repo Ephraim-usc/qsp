@@ -4,22 +4,24 @@ class Drug:
   def __init__(self, num_binding_sites):
     self.num_binding_sites = num_binding_sites
   
-  def add_affinity(self, ligand, aff, off):
+  def add_affinity(self, binding_site, ligand, aff, off):
     pass
   
-  def add_cis(self, ligand1, ligand2, on2D):
+  def add_cis(self, binding_site, ligand, on2D, off, complex = None):
     pass
   
-  def add_trans(self, ligand1, ligand2, on2D):
+  def add_trans(self, binding_site, ligand, on2D, off, complex = None):
     pass
 
 X = Drug(3)
 X.add_affinity(0, "CD3", 1*units.nM, 1e-4/units.s)
 X.add_affinity(1, "EGFR", 10*units.nM, 1e-4/units.s)
 X.add_affinity(2, "CA9", 20*units.nM, 1e-4/units.s)
-X.add_cis(1, 2, )
-
-
+X.add_cis(1, "EGFR", 1 * units.mm**2/units.s, state = ",,CA9")
+X.add_cis(2, "CA9", 1 * units.mm**2/units.s, state = ",EGFR,")
+X.add_trans(0, "CD3", 1 * units.mm**2/units.s)
+X.add_trans(1, "EGFR", 1 * units.mm**2/units.s)
+X.add_trans(2, "CA9", 1 * units.mm**2/units.s)
 
 
 
