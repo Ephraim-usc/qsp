@@ -28,6 +28,12 @@ lung.update({"num_cell": 2.36E+11 * 0.5, "num_T": 1.3E+10, "num_B": 6.8E+08, "nu
 #lung.update({"num_A": 1000, "num_B": 0}) # num_B = 1019 from Liyuan
 lung.update({"num_HER2": 12684})
 
+spleen = {"name": "spleen"}
+spleen.update({"volume_plasma": 26.8 * units.ml, "volume_interstitial": 44.3 * units.ml})
+spleen.update({"vascular_reflection": 0.85, "lymphatic_reflection": 0.2})
+spleen.update({"plasma_flow": 6343 * units.ml/units.h, "lymphatic_flow_ratio": 0.002})
+spleen.update({"num_cell": 1.83E+12 * 0.5, "num_T": 221*3e8, "num_B": 221*2e8})
+
 liver = {"name": "liver"}
 liver.update({"volume_plasma": 183 * units.ml, "volume_interstitial": 429 * units.ml})
 liver.update({"vascular_reflection": 0.85, "lymphatic_reflection": 0.2})
